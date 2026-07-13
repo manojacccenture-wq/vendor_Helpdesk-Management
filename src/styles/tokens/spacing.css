@@ -1,0 +1,10 @@
+/* ===========================================
+   SPACING TOKENS
+=========================================== */
+
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px; /* Card internal gaps */
+  --space-lg: 20px; /* Section gaps */
+}

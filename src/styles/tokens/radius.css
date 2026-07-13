@@ -1,0 +1,8 @@
+/* ===========================================
+   RADIUS TOKENS
+=========================================== */
+
+:root {
+  --radius-control: 8px; /* Buttons, inputs, selects */
+  --radius-card: 12px; /* Ticket cards, modals */
+}

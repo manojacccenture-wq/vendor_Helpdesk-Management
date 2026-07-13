@@ -1,0 +1,12 @@
+@import "./tokens/index.css";
+@import "./semantic/index.css";
+@import "./base/index.css";
+@import "./components/index.css";
+
+@layer tokens, semantic, base, components;
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+}

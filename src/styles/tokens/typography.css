@@ -1,0 +1,32 @@
+/* ===========================================
+   TYPOGRAPHY TOKENS
+=========================================== */
+
+:root {
+  --font-family-sans: "DM Sans", system-ui, sans-serif;
+  --font-family-mono: "DM Mono", ui-monospace, monospace;
+
+  --font-size-page-title: 18px;
+  --font-size-section-label: 13px; /* 13-14px in design */
+  --font-size-body: 14px;
+  --font-size-caption: 12px;
+  --font-size-ticket-id: 12px;
+
+  --font-weight-page-title: 600;
+  --font-weight-section-label: 500;
+  --font-weight-body: 400;
+  --font-weight-caption: 400;
+  --font-weight-ticket-id: 400;
+
+  --line-height-page-title: normal;
+  --line-height-section-label: normal;
+  --line-height-body: normal;
+  --line-height-caption: normal;
+  --line-height-ticket-id: normal;
+
+  --letter-spacing-page-title: normal;
+  --letter-spacing-section-label: normal;
+  --letter-spacing-body: normal;
+  --letter-spacing-caption: normal;
+  --letter-spacing-ticket-id: normal;
+}

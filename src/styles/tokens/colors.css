@@ -1,0 +1,30 @@
+/* ===========================================
+   SURFACES & TEXT
+=========================================== */
+
+:root {
+  --color-bg: #F8F7F4;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-border-hover: #CBD5E1;
+
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-accent: #1E293B;
+}
+
+/* ===========================================
+   STATE COLORS
+=========================================== */
+
+:root {
+  --color-warning: #D97706;
+  --color-warning-bg: #FEF3C7;
+
+  --color-success: #0F766E;
+  --color-success-bg: #CCFBF1;
+
+  --color-danger: #E11D48;
+  --color-danger-bg: #FFE4E6;
+}

@@ -1,0 +1,45 @@
+/* ===========================================
+   SEMANTIC TYPOGRAPHY
+=========================================== */
+
+@layer semantic {
+  .text-page-title {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-page-title);
+    font-weight: var(--font-weight-page-title);
+    line-height: var(--line-height-page-title);
+    letter-spacing: var(--letter-spacing-page-title);
+  }
+
+  .text-section-label {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-section-label);
+    font-weight: var(--font-weight-section-label);
+    line-height: var(--line-height-section-label);
+    letter-spacing: var(--letter-spacing-section-label);
+  }
+
+  .text-body {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-body);
+    line-height: var(--line-height-body);
+    letter-spacing: var(--letter-spacing-body);
+  }
+
+  .text-caption {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-caption);
+    line-height: var(--line-height-caption);
+    letter-spacing: var(--letter-spacing-caption);
+  }
+
+  .text-ticket-id {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-ticket-id);
+    font-weight: var(--font-weight-ticket-id);
+    line-height: var(--line-height-ticket-id);
+    letter-spacing: var(--letter-spacing-ticket-id);
+  }
+}

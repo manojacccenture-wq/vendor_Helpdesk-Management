@@ -1,0 +1,44 @@
+/* ===========================================
+   SEMANTIC SPACING & RADIUS
+=========================================== */
+
+@layer semantic {
+  /* Semantic Gaps */
+  .space-card-gap {
+    gap: var(--space-md);
+  }
+
+  .space-section-gap {
+    gap: var(--space-lg);
+  }
+
+  .space-control-gap {
+    gap: var(--space-sm);
+  }
+
+  /* Stacks */
+  .space-stack-xs {
+    gap: var(--space-xs);
+  }
+
+  .space-stack-sm {
+    gap: var(--space-sm);
+  }
+
+  .space-stack-md {
+    gap: var(--space-md);
+  }
+
+  .space-stack-lg {
+    gap: var(--space-lg);
+  }
+
+  /* Radius */
+  .radius-control {
+    border-radius: var(--radius-control);
+  }
+
+  .radius-card {
+    border-radius: var(--radius-card);
+  }
+}
