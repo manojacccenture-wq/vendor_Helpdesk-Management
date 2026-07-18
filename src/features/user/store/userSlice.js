@@ -37,20 +37,33 @@ export const userSlice = createSlice({
         state.loading = false;
         state.initialized = true;
         
-        if (action.payload) {
-          state.isAuthenticated = action.payload.isAuthenticated || false;
-          state.role = action.payload.role || null;
+        let payload = action.payload;
+        
+        // Defend against stringified JSON (Missing Content-Type header)
+        if (typeof payload === 'string') {
+          try { payload = JSON.parse(payload); } catch(e) {}
+        }
+        
+        // Defend against standard API envelopes (e.g., axios response object leaking or custom envelope)
+        if (payload && payload.data) {
+          payload = payload.data;
+        }
+
+        if (payload) {
+          // Defend against .NET PascalCase serialization & property name mismatch
+          state.isAuthenticated = payload.isAuthenticated ?? payload.IsAuthenticated ?? payload.authenticated ?? false;
+          state.role = payload.role ?? payload.Role ?? null;
           state.profile = {
-            username: action.payload.username || '',
-            name: action.payload.name || '',
-            userCode: action.payload.userCode || '',
-            email: action.payload.email || ''
+            username: payload.username ?? payload.Username ?? '',
+            name: payload.name ?? payload.Name ?? '',
+            userCode: payload.userCode ?? payload.UserCode ?? '',
+            email: payload.email ?? payload.Email ?? ''
           };
-          state.departments = action.payload.userDepartments || [];
+          state.departments = payload.userDepartments ?? payload.UserDepartments ?? payload.departments ?? [];
           state.permissions = {
-            hasAccessJmr: action.payload.hasAccessJmr || false,
-            hasAccessBilling: action.payload.hasAccessBilling || false,
-            hasAccessRetention: action.payload.hasAccessRetention || false
+            hasAccessJmr: payload.hasAccessJmr ?? payload.HasAccessJmr ?? false,
+            hasAccessBilling: payload.hasAccessBilling ?? payload.HasAccessBilling ?? false,
+            hasAccessRetention: payload.hasAccessRetention ?? payload.HasAccessRetention ?? false
           };
         }
       })

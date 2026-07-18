@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { rootReducer } from './rootReducer.js';
 
+import { apiSlice } from '../../shared/api/apiSlice.js';
+
 const middleware = (getDefaultMiddleware) => {
   const middlewares = getDefaultMiddleware();
   // We can push redux-logger here later if installed
-  return middlewares;
+  return middlewares.concat(apiSlice.middleware);
 };
 
 export const store = configureStore({
