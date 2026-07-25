@@ -16,9 +16,6 @@ export const createTicketSchema = z.object({
     .min(1, { message: 'Please select a category' }),
     
   subCategoryId: z.string().optional().or(z.literal('')),
-  
-  priorityId: z.string()
-    .min(1, { message: 'Please select a priority' }),
     
   description: z.string()
     .trim()

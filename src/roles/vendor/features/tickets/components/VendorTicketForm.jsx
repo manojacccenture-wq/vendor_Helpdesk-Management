@@ -12,7 +12,6 @@ import {
   useGetDepartmentsQuery,
   useGetCategoriesQuery,
   useGetSubCategoriesQuery,
-  useGetPrioritiesQuery,
   useGetTicketStatusesQuery,
   useCreateTicketMutation
 } from '../../../../../shared/api/apiSlice.js';
@@ -25,7 +24,6 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
   // RTK Query Hooks for Master Data
   const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
   const { data: categories = [], isLoading: isLoadingCategories } = useGetCategoriesQuery();
-  const { data: priorities = [], isLoading: isLoadingPriorities } = useGetPrioritiesQuery();
   const { data: statuses = [] } = useGetTicketStatusesQuery();
   const [createTicket, { isLoading: isSubmitting }] = useCreateTicketMutation();
 
@@ -37,7 +35,6 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       subject: '',
       categoryId: '',
       subCategoryId: '',
-      priorityId: '',
       attachments: null,
       description: ''
     }
@@ -67,7 +64,10 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       if (data.subCategoryId) {
         formData.append('SubcategoryId', data.subCategoryId);
       }
-      formData.append('PriorityId', data.priorityId);
+      
+      // TODO: Temporary hardcoded PriorityId until backend contract is updated to not require it from Vendor.
+      // 2 typically represents 'Medium' priority.
+      formData.append('PriorityId', 2);
 
       // --- TEMPORARY ASSUMPTIONS ---
       // TODO: Replace temporary VendorId mapping after backend confirmation.
@@ -120,7 +120,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           </div>
 
           {/* Dropdown Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Select
               label="Department *"
               placeholder={isLoadingDepartments ? 'Loading...' : 'Select Department'}
@@ -146,15 +146,6 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
               options={subCategories?.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value })) || []}
               disabled={!selectedCategoryId || isFetchingSubCategories}
               {...register('subCategoryId')}
-            />
-
-            <Select
-              label="Priority *"
-              placeholder={isLoadingPriorities ? 'Loading...' : 'Select Priority'}
-              error={errors.priorityId?.message}
-              options={priorities?.map(p => ({ label: p.text ?? p.Text, value: p.value ?? p.Value })) || []}
-              disabled={isLoadingPriorities}
-              {...register('priorityId')}
             />
           </div>
 

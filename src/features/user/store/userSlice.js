@@ -49,6 +49,13 @@ export const userSlice = createSlice({
           payload = payload.data;
         }
 
+        // Defend against the new nested API response structure where profile is inside "user"
+        if (payload && payload.user) {
+          payload = payload.user;
+        } else if (payload && payload.User) {
+          payload = payload.User;
+        }
+
         if (payload) {
           // Defend against .NET PascalCase serialization & property name mismatch
           state.isAuthenticated = payload.isAuthenticated ?? payload.IsAuthenticated ?? payload.authenticated ?? false;
