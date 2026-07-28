@@ -61,6 +61,12 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Ticket'],
     }),
+    getSubCategoryCtrlMapping: builder.query({
+      query: (subCategoryId) => ({
+        url: `/api/Tickets/subcategoryctrlmapping?subCategoryId=${subCategoryId}`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
@@ -71,4 +77,5 @@ export const {
   useGetPrioritiesQuery,
   useGetTicketStatusesQuery,
   useCreateTicketMutation,
+  useGetSubCategoryCtrlMappingQuery,
 } = apiSlice;

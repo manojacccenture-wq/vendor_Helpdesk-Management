@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
@@ -13,51 +13,80 @@ import {
   useGetCategoriesQuery,
   useGetSubCategoriesQuery,
   useGetTicketStatusesQuery,
-  useCreateTicketMutation
+  useGetPrioritiesQuery,
+  useCreateTicketMutation,
+  useGetSubCategoryCtrlMappingQuery
 } from '../../../../../shared/api/apiSlice.js';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createTicketSchema } from '../validation/createTicketSchema.js';
+import { baseTicketSchema } from '../validation/createTicketSchema.js';
+import { buildDynamicSchema } from '../utils/dynamicSchemaBuilder.js';
+import { DynamicField } from './DynamicField.jsx';
 
 export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
   
-  // RTK Query Hooks for Master Data
   const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
   const { data: categories = [], isLoading: isLoadingCategories } = useGetCategoriesQuery();
   const { data: statuses = [] } = useGetTicketStatusesQuery();
+  const { data: priorities = [] } = useGetPrioritiesQuery();
   const [createTicket, { isLoading: isSubmitting }] = useCreateTicketMutation();
 
-  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue } = useForm({
-    resolver: zodResolver(createTicketSchema),
+  const [currentSchema, setCurrentSchema] = useState(baseTicketSchema);
+
+  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue, unregister } = useForm({
+    resolver: zodResolver(currentSchema),
     mode: 'onTouched',
     defaultValues: {
       departmentId: '',
       subject: '',
       categoryId: '',
       subCategoryId: '',
-      attachments: null,
+      attachments: [],
       description: ''
     }
   });
 
   const selectedCategoryId = watch('categoryId');
+  const selectedSubCategoryId = watch('subCategoryId');
 
-  // Fetch SubCategories only if a Category is selected
   const { data: subCategories = [], isLoading: isLoadingSubCategories, isFetching: isFetchingSubCategories } = useGetSubCategoriesQuery(selectedCategoryId, {
     skip: !selectedCategoryId
   });
+
+  const { data: dynamicControls = [], isFetching: isFetchingControls } = useGetSubCategoryCtrlMappingQuery(selectedSubCategoryId, {
+    skip: !selectedSubCategoryId
+  });
+
+  const previousControlsRef = useRef([]);
 
   // Cascade clear subCategory when category changes
   useEffect(() => {
     setValue('subCategoryId', '');
   }, [selectedCategoryId, setValue]);
 
+  // Handle Dynamic Schema and Unregistering Old Fields
+  useEffect(() => {
+    // 1. Build and set new schema
+    const newSchema = buildDynamicSchema(baseTicketSchema, dynamicControls);
+    setCurrentSchema(newSchema);
+
+    // 2. Cleanup old fields from form state if they don't exist in new controls
+    const previousNames = previousControlsRef.current.map(c => c.columnName);
+    const currentNames = dynamicControls.map(c => c.columnName);
+    
+    const namesToRemove = previousNames.filter(name => !currentNames.includes(name));
+    if (namesToRemove.length > 0) {
+      unregister(namesToRemove);
+    }
+    
+    previousControlsRef.current = dynamicControls;
+  }, [dynamicControls, unregister]);
+
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
-      // TODO: Append DepartmentId to formData once the backend documentation is updated to require it
-      // formData.append('DepartmentId', data.departmentId);
       
+      // Base fields
       formData.append('Subject', data.subject);
       formData.append('Description', data.description);
       formData.append('CategoryId', data.categoryId);
@@ -65,40 +94,45 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
         formData.append('SubcategoryId', data.subCategoryId);
       }
       
-      // TODO: Temporary hardcoded PriorityId until backend contract is updated to not require it from Vendor.
-      // 2 typically represents 'Medium' priority.
-      formData.append('PriorityId', 2);
-
-      // --- TEMPORARY ASSUMPTIONS ---
-      // TODO: Replace temporary VendorId mapping after backend confirmation.
-      // Assuming vendorCode can be parsed, or hardcoding 1 for now if it's not a number.
-      formData.append('VendorId', profile?.userCode ? parseInt(profile.userCode, 10) : 1);
+      // Dynamic Priority mapped to 'MEDIUM'
+      const mediumPriority = priorities.find(p => p.text?.toUpperCase() === 'MEDIUM');
+      formData.append('PriorityId', mediumPriority ? mediumPriority.value : 3);
       
-      // TODO: Replace temporary CreatedBy once backend confirms if they extract it from token or need it explicit.
+      // Temporary IDs (until backend update)
+      formData.append('VendorId', profile?.userCode ? parseInt(profile.userCode, 10) : 1);
       formData.append('CreatedBy', profile?.username || 'vendor_admin');
-
-      // TODO: Replace temporary StatusId once backend confirms default status behavior.
-      // Trying to find 'OPEN' status from API, otherwise fallback to 1.
+      
       const initialStatus = statuses.find(s => s.text?.toUpperCase() === 'OPEN') || statuses[0];
-      formData.append('StatusId', initialStatus?.value || 1);
-      // -----------------------------
+      if (initialStatus) {
+        formData.append('StatusId', initialStatus.value || 1);
+      }
 
-      // Append file
-      if (data.attachments) {
-        formData.append('Attachments', data.attachments);
+      // Append Dynamic Fields
+      const baseKeys = ['departmentId', 'subject', 'categoryId', 'subCategoryId', 'attachments', 'description'];
+      Object.keys(data).forEach(key => {
+        if (!baseKeys.includes(key)) {
+          if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+            formData.append(key, data[key]);
+          }
+        }
+      });
+
+      // Append files
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach(file => {
+          formData.append('Attachments', file);
+        });
       }
 
       // Execute API call
       const response = await createTicket(formData).unwrap();
       
-      
       if (onSubmitTicket) onSubmitTicket(response);
-      
-      reset(); // Clear form on success
+      reset(); 
       
     } catch (error) {
-      
       // TODO: Implement standard error toast handling
+      console.error('Failed to create ticket', error);
     }
   };
 
@@ -119,7 +153,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
             />
           </div>
 
-          {/* Dropdown Section */}
+          {/* Base Dropdowns Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Select
               label="Department *"
@@ -149,8 +183,27 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
             />
           </div>
 
+          {/* Dynamic Controls Section */}
+          {dynamicControls.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2 border-t border-[#E2E8F0] mt-2">
+              {dynamicControls.map((control) => (
+                <DynamicField 
+                  key={control.columnName}
+                  control={control}
+                  register={register}
+                  error={errors[control.columnName]?.message}
+                  disabled={isFetchingControls}
+                />
+              ))}
+            </div>
+          )}
+
+          {isFetchingControls && dynamicControls.length === 0 && (
+            <div className="text-[13px] text-[#64748B] italic">Loading category requirements...</div>
+          )}
+
           {/* File Upload Section */}
-          <div className="w-full">
+          <div className="w-full pt-2 border-t border-[#E2E8F0] mt-2">
             <Controller
               name="attachments"
               control={control}
@@ -161,6 +214,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
                   value={value}
                   ref={ref}
                   error={errors.attachments?.message}
+                  multiple={true}
                 />
               )}
             />
