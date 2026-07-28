@@ -12,17 +12,13 @@ import { adminRoutes } from '../../roles/admin/routing/index.jsx';
 // These ensure the application layout and logic remains exactly 
 // as it was before routing was introduced.
 
-const LegacyDashboard = () => {
-  const profile = useSelector(selectUserProfile);
-  return (
-    <div className="min-h-screen bg-[#F8F7F4] p-8">
-      <h1 className="text-[18px] font-[600] text-[#1E293B] mb-4">Vendor Helpdesk Application</h1>
-      <div className="bg-[#FFFFFF] p-6 rounded-[12px] shadow border border-[#E2E8F0]">
-        <p className="text-[#0F766E] font-[500] text-[14px]">Authentication Successful!</p>
-        <p className="text-[#64748B] text-[14px] mt-[12px]">Welcome, {profile.name} ({profile.username}).</p>
-      </div>
-    </div>
-  );
+const RootRedirect = () => {
+  const role = useSelector(state => state.user.role);
+  
+  // Route authenticated users from the root to their respective portals
+  const redirectPath = role === 'L1' ? '/vendor' : '/';
+  
+  return <Navigate to={redirectPath} replace />;
 };
 
 const LegacyLogin = () => {
@@ -57,7 +53,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LegacyDashboard />
+        element: <RootRedirect />
       },
       // The role boundaries are plugged in here, lazy loaded via the RCMA structure
       vendorRoutes,
