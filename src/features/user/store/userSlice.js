@@ -6,7 +6,11 @@ const initialState = {
     username: '',
     name: '',
     userCode: '',
-    email: ''
+    email: '',
+    mobile: '',
+    gst: '',
+    pan: '',
+    address: ''
   },
   role: null,
   departments: [],
@@ -64,7 +68,11 @@ export const userSlice = createSlice({
             username: payload.username ?? payload.Username ?? '',
             name: payload.name ?? payload.Name ?? '',
             userCode: payload.userCode ?? payload.UserCode ?? '',
-            email: payload.email ?? payload.Email ?? ''
+            email: payload.email ?? payload.Email ?? '',
+            mobile: payload.mobileNumber ?? payload.MobileNumber ?? '',
+            gst: payload.gstin ?? payload.Gstin ?? '',
+            pan: payload.pan ?? payload.Pan ?? '',
+            address: payload.address ?? payload.Address ?? ''
           };
           state.departments = payload.userDepartments ?? payload.UserDepartments ?? payload.departments ?? [];
           state.permissions = {

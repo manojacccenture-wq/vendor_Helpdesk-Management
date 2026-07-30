@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardMetrics } from '../components/DashboardMetrics.jsx';
 import { VendorTabs } from '../components/VendorTabs.jsx';
@@ -7,9 +7,19 @@ import { TicketsTable } from '../../tickets/components/TicketsTable.jsx';
 
 export const VendorDashboard = () => {
   const navigate = useNavigate();
+  
+  const [statusId, setStatusId] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleRaiseTicket = () => {
     navigate('/vendor/create');
+  };
+
+  const handleClearFilters = () => {
+    setStatusId('');
+    setCategoryId('');
+    setSearchTerm('');
   };
 
   return (
@@ -27,10 +37,23 @@ export const VendorDashboard = () => {
       </h1>
 
       {/* Toolbar (Search, Filters, Button) */}
-      <TicketsToolbar onRaiseTicket={handleRaiseTicket} />
+      <TicketsToolbar 
+        statusId={statusId}
+        categoryId={categoryId}
+        searchTerm={searchTerm}
+        onStatusChange={setStatusId}
+        onCategoryChange={setCategoryId}
+        onSearchChange={setSearchTerm}
+        onClearFilters={handleClearFilters}
+        onRaiseTicket={handleRaiseTicket} 
+      />
 
       {/* Data Table */}
-      <TicketsTable />
+      <TicketsTable 
+        statusId={statusId}
+        categoryId={categoryId}
+        searchTerm={searchTerm}
+      />
 
     </div>
   );

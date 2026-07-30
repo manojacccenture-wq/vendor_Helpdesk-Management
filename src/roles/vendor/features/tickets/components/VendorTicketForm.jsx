@@ -48,6 +48,9 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   const selectedCategoryId = watch('categoryId');
   const selectedSubCategoryId = watch('subCategoryId');
+  const subjectValue = watch('subject') || '';
+  const isSubjectAtLimit = subjectValue.length >= 40;
+  const isSubjectNearLimit = subjectValue.length >= 35;
 
   const { data: subCategories = [], isLoading: isLoadingSubCategories, isFetching: isFetchingSubCategories } = useGetSubCategoriesQuery(selectedCategoryId, {
     skip: !selectedCategoryId
@@ -144,13 +147,24 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           
-          <div className="w-full">
+          <div className="w-full relative">
+            <div className="absolute top-0 right-0 flex items-center h-[20px]">
+              <span className={`text-[12px] font-[500] ${isSubjectAtLimit ? 'text-[#EF4444]' : isSubjectNearLimit ? 'text-[#F59E0B]' : 'text-[#64748B]'}`}>
+                {subjectValue.length} / 40
+              </span>
+            </div>
             <Input 
               label="Subject *" 
               placeholder="Enter brief issue subject"
               error={errors.subject?.message}
+              maxLength={40}
               {...register('subject')}
             />
+            {isSubjectAtLimit && !errors.subject && (
+              <span className="text-[12px] text-[#F59E0B] mt-1.5 block">
+                Maximum 40 characters allowed.
+              </span>
+            )}
           </div>
 
           {/* Base Dropdowns Section */}

@@ -1,10 +1,38 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { StatusBadge } from './StatusBadge.jsx';
 import { PipelineStepper } from './PipelineStepper.jsx';
+import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
+import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
 
-const TICKET_DATA = [];
+export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
+  const profile = useSelector(selectUserProfile);
 
-export const TicketsTable = () => {
+  const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
+    userCode: profile?.userCode,
+    statusId,
+    categoryId
+  }, {
+    skip: !profile?.userCode
+  });
+
+  const filteredTickets = tickets.filter(ticket => {
+    if (!searchTerm) return true;
+    const lowerSearch = searchTerm.toLowerCase();
+    return (
+      ticket.subject?.toLowerCase().includes(lowerSearch) ||
+      ticket.ticketNo?.toLowerCase().includes(lowerSearch)
+    );
+  });
+
+  if (isError) {
+    return (
+      <div className="w-full bg-white border border-[#E2E8F0] rounded-[8px] p-8 text-center">
+        <span className="text-[14px] font-[500] text-[#EF4444]">Failed to load tickets. Please try again.</span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white border border-[#E2E8F0] rounded-[8px] overflow-hidden">
       <div className="overflow-x-auto">
@@ -21,17 +49,23 @@ export const TicketsTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E2E8F0]">
-            {TICKET_DATA.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center">
+                  <span className="text-[14px] font-[500] text-[#64748B]">Loading tickets...</span>
+                </td>
+              </tr>
+            ) : filteredTickets.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center">
                   <span className="text-[14px] font-[500] text-[#64748B]">No tickets found.</span>
                 </td>
               </tr>
             ) : (
-              TICKET_DATA.map((ticket, idx) => (
+              filteredTickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
                   <td className="py-4 px-6">
-                    <span className="text-[13px] font-[500] text-[#64748B]">{ticket.id}</span>
+                    <span className="text-[13px] font-[500] text-[#64748B]">{ticket.ticketNo}</span>
                   </td>
                   <td className="py-4 px-6 pr-12">
                     <span className="text-[14px] font-[500] text-[#334155] leading-snug block">
@@ -47,21 +81,19 @@ export const TicketsTable = () => {
                     <StatusBadge status={ticket.status} />
                   </td>
                   <td className="py-4 px-6">
-                    <PipelineStepper currentStep={ticket.pipelineStep} status={ticket.status} />
+                    {/* The new API doesn't provide pipelineStep, passing null safely avoids crashes while keeping UI intact */}
+                    <PipelineStepper currentStep={null} status={ticket.status} />
                   </td>
                   <td className="py-4 px-6">
-                    <span className="text-[13px] text-[#64748B] whitespace-nowrap">{ticket.created}</span>
+                    <span className="text-[13px] text-[#64748B] whitespace-nowrap">
+                      {ticket.createAt ? new Date(ticket.createAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
+                    </span>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <button className="text-[13px] font-[600] text-[#1E293B] hover:underline">
                         View
                       </button>
-                      {ticket.hasFeedback && (
-                        <button className="px-3 py-1 bg-[#D97706] text-white text-[12px] font-[500] rounded-[4px] hover:bg-[#B45309] transition-colors">
-                          Feedback
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>

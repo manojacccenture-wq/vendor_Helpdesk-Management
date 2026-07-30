@@ -12,7 +12,7 @@ export const baseTicketSchema = z.object({
     .trim()
     .min(1, { message: 'Subject is required' })
     .min(5, { message: 'Subject must contain at least 5 characters' })
-    .max(200, { message: 'Subject must not exceed 200 characters' }),
+    .max(40, { message: 'Subject must not exceed 40 characters' }),
     
   categoryId: z.string()
     .min(1, { message: 'Please select a category' }),

@@ -67,6 +67,26 @@ export const apiSlice = createApi({
         method: 'GET',
       }),
     }),
+    getTicketCount: builder.query({
+      query: (userCode) => ({ 
+        url: `/api/Tickets/ticketcount?userCode=${userCode}`, 
+        method: 'GET' 
+      }),
+      providesTags: ['Ticket'],
+    }),
+    getTicketList: builder.query({
+      query: ({ userCode, statusId, categoryId }) => {
+        const params = new URLSearchParams();
+        if (userCode) params.append('userCode', userCode);
+        if (statusId) params.append('statusId', statusId);
+        if (categoryId) params.append('categoryId', categoryId);
+        return {
+          url: `/api/Tickets/ticketlist?${params.toString()}`,
+          method: 'GET'
+        };
+      },
+      providesTags: ['Ticket'],
+    }),
   }),
 });
 
@@ -78,4 +98,6 @@ export const {
   useGetTicketStatusesQuery,
   useCreateTicketMutation,
   useGetSubCategoryCtrlMappingQuery,
+  useGetTicketCountQuery,
+  useGetTicketListQuery,
 } = apiSlice;

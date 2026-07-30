@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { VendorInfoCard } from '../components/VendorInfoCard.jsx';
 import { VendorTicketForm } from '../components/VendorTicketForm.jsx';
 
@@ -7,11 +8,12 @@ import { selectUserProfile } from '../../../../../features/user/store/selectors.
 
 export const CreateVendorTicketPage = () => {
   const profile = useSelector(selectUserProfile) || {};
+  const navigate = useNavigate();
 
-  // FUTURE INTEGRATION: Dispatch AsyncThunk here and navigate on success.
   const handleTicketSubmit = (data) => {
-    
-    // e.g., dispatch(createVendorTicketThunk(data)).unwrap().then(() => navigate('/tickets'));
+    // The ticket was successfully created and the RTK Query cache has been invalidated.
+    // Navigate back to the dashboard, which will automatically refetch live data.
+    navigate('/vendor');
   };
 
   return (
