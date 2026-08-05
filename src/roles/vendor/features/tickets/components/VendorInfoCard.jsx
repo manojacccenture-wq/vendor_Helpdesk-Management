@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
-import { maskMobile, maskGst, maskPan, maskAddress } from '../../../../../shared/utils/masking.js';
+import { maskMobile, maskGst, maskPan, maskAddress, maskEmail } from '../../../../../shared/utils/masking.js';
 
 export const VendorInfoCard = ({ vendor = {} }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -47,7 +47,9 @@ export const VendorInfoCard = ({ vendor = {} }) => {
           </div>
           <div>
             <p className="text-[12px] font-[500] text-[#64748B] mb-1">Email</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">{vendor.email || '---'}</p>
+            <p className="text-[14px] font-[500] text-[#1E293B]">
+              {showSensitive ? (vendor.email || '---') : (maskEmail(vendor.email) || '---')}
+            </p>
           </div>
           {/* New fields pending backend integration */}
           <div>

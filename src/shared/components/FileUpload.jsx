@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { UploadCloud, X } from 'lucide-react';
 import { cn } from '../utils/cn.js';
 
@@ -8,6 +8,8 @@ const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image
 export const FileUpload = React.forwardRef(({ className, label, error, onChange, value = null, multiple = false, ...props }, ref) => {
   const inputRef = useRef(null);
   const [internalError, setInternalError] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
   
   // Create a combined ref handling
   const setRefs = (element) => {
@@ -75,6 +77,48 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
     }
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      // Create a synthetic event-like object to reuse existing handleFileChange
+      const syntheticEvent = {
+        target: {
+          files: e.dataTransfer.files
+        }
+      };
+      handleFileChange(syntheticEvent);
+      e.dataTransfer.clearData();
+    }
+  }, [handleFileChange]);
+
   // Helper to ensure value is array for rendering
   const filesList = multiple ? (Array.isArray(value) ? value : (value ? [value] : [])) : (value ? [value] : []);
   
@@ -92,9 +136,14 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
         className={cn(
           "flex flex-col items-center justify-center border-2 border-dashed border-[#CBD5E1] rounded-[8px] p-6 bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors cursor-pointer",
           displayError && "border-[#EF4444]",
+          isDragging && "border-[#0F766E] bg-[#F0FDF4]",
           className
         )}
         onClick={() => inputRef.current?.click()}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <UploadCloud className="h-8 w-8 text-[#94A3B8] mb-2" />
         <p className="text-[14px] text-[#475569] font-[500]">Click to upload or drag and drop</p>

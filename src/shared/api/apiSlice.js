@@ -87,6 +87,13 @@ export const apiSlice = createApi({
       },
       providesTags: ['Ticket'],
     }),
+    getTicketDetails: builder.query({
+      query: (ticketId) => ({
+        url: `/api/Tickets/ticketdetails?ticketId=${ticketId}`,
+        method: 'GET',
+      }),
+      providesTags: ['Ticket'],
+    }),
   }),
 });
 
@@ -100,4 +107,5 @@ export const {
   useGetSubCategoryCtrlMappingQuery,
   useGetTicketCountQuery,
   useGetTicketListQuery,
+  useGetTicketDetailsQuery,
 } = apiSlice;

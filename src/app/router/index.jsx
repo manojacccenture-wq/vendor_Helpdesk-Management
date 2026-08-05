@@ -16,7 +16,12 @@ const RootRedirect = () => {
   const role = useSelector(state => state.user.role);
   
   // Route authenticated users from the root to their respective portals
-  const redirectPath = role === 'L1' ? '/vendor' : '/';
+  let redirectPath = '/';
+  if (role === 'L1') {
+    redirectPath = '/vendor';
+  } else if (role === 'L2') {
+    redirectPath = '/helpdesk';
+  }
   
   return <Navigate to={redirectPath} replace />;
 };
@@ -26,7 +31,12 @@ const LegacyLogin = () => {
   const role = useSelector(state => state.user.role);
   
   if (isAuthenticated) {
-    const redirectPath = role === 'L1' ? '/vendor' : '/';
+    let redirectPath = '/';
+    if (role === 'L1') {
+      redirectPath = '/vendor';
+    } else if (role === 'L2') {
+      redirectPath = '/helpdesk';
+    }
     return <Navigate to={redirectPath} replace />;
   }
 

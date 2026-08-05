@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
+import { useNotification } from '../../../../../shared/notifications';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
 import { Input } from '../../../../../shared/components/Input.jsx';
 import { Select } from '../../../../../shared/components/Select.jsx';
 import { Textarea } from '../../../../../shared/components/Textarea.jsx';
 import { FileUpload } from '../../../../../shared/components/FileUpload.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
-import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
+import { selectUserProfile, selectUserDepartments } from '../../../../../features/user/store/selectors.js';
 import {
-  useGetDepartmentsQuery,
   useGetCategoriesQuery,
   useGetSubCategoriesQuery,
   useGetTicketStatusesQuery,
@@ -24,8 +24,14 @@ import { DynamicField } from './DynamicField.jsx';
 
 export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
+  const userDepartments = useSelector(selectUserDepartments);
+  const { showSuccess } = useNotification();
   
-  const { data: departments = [], isLoading: isLoadingDepartments } = useGetDepartmentsQuery();
+  // Map userDepartments from Redux to dropdown format
+  const departments = userDepartments?.map(d => ({
+    label: d.deptName,
+    value: d.deptId
+  })) || [];
   const { data: categories = [], isLoading: isLoadingCategories } = useGetCategoriesQuery();
   const { data: statuses = [] } = useGetTicketStatusesQuery();
   const { data: priorities = [] } = useGetPrioritiesQuery();
@@ -130,6 +136,9 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       // Execute API call
       const response = await createTicket(formData).unwrap();
       
+      // Show success notification
+      showSuccess('Ticket created successfully.');
+      
       if (onSubmitTicket) onSubmitTicket(response);
       reset(); 
       
@@ -171,10 +180,10 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Select
               label="Department *"
-              placeholder={isLoadingDepartments ? 'Loading...' : 'Select Department'}
+              placeholder={departments.length === 0 ? 'No departments assigned' : 'Select Department'}
               error={errors.departmentId?.message}
-              options={departments?.map(d => ({ label: d.text ?? d.Text, value: d.value ?? d.Value })) || []}
-              disabled={isLoadingDepartments}
+              options={departments}
+              disabled={departments.length === 0}
               {...register('departmentId')}
             />
 

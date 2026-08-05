@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VendorInfoCard } from '../components/VendorInfoCard.jsx';
 import { VendorTicketForm } from '../components/VendorTicketForm.jsx';
+import { BackButton } from '../../../../../shared/components/BackButton.jsx';
 
 import { useSelector } from 'react-redux';
 import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
@@ -20,13 +21,16 @@ export const CreateVendorTicketPage = () => {
     <div className="flex flex-col gap-6 w-full max-w-[1200px] mx-auto">
       
       {/* Page Header */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-[22px] font-[600] text-[#1E293B]">
-          Create Vendor Ticket
-        </h1>
-        <p className="text-[14px] text-[#64748B]">
-          Raise a new support ticket for vendor-related issues.
-        </p>
+      <div className="flex items-center gap-4">
+        <BackButton to="/vendor" />
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[22px] font-[600] text-[#1E293B]">
+            Create Vendor Ticket
+          </h1>
+          <p className="text-[14px] text-[#64748B]">
+            Raise a new support ticket for vendor-related issues.
+          </p>
+        </div>
       </div>
 
       {/* Composition of Module Components */}

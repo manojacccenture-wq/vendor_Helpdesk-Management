@@ -2,11 +2,16 @@ import React from 'react';
 import { cn } from '../utils/cn.js';
 
 export const Input = React.forwardRef(({ className, type = "text", error, label, ...props }, ref) => {
+  // Parse label to separate text from required asterisk
+  const isRequired = label?.endsWith(' *');
+  const labelText = isRequired ? label.slice(0, -2) : label;
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
         <label className="text-[14px] font-[500] text-[#334155]">
-          {label}
+          {labelText}
+          {isRequired && <span className="text-[#EF4444]"> *</span>}
         </label>
       )}
       <input

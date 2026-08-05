@@ -1,48 +1,49 @@
 /**
- * Masks a mobile number to show only first two and last two digits.
- * e.g. 9876543210 -> 98******10
+ * Fully masks a mobile number, replacing all characters with asterisks.
+ * The masked string length matches the original length.
+ * e.g. 9876543210 -> **********
  */
 export const maskMobile = (mobile) => {
-  if (!mobile || mobile.length < 4) return mobile;
-  const firstTwo = mobile.slice(0, 2);
-  const lastTwo = mobile.slice(-2);
-  const maskedLength = mobile.length - 4;
-  return `${firstTwo}${ '*'.repeat(maskedLength > 0 ? maskedLength : 0) }${lastTwo}`;
+  if (!mobile) return mobile;
+  return '*'.repeat(mobile.length);
 };
 
 /**
- * Masks a GST number to show only first 7 and last 2 characters.
- * e.g. 29ABCDE1234F2Z5 -> 29ABCDE******Z5
+ * Fully masks a GST number, replacing all characters with asterisks.
+ * The masked string length matches the original length.
+ * e.g. 20AALFM8458M1ZS -> ****************
  */
 export const maskGst = (gst) => {
-  if (!gst || gst.length <= 9) return gst;
-  const firstSeven = gst.slice(0, 7);
-  const lastTwo = gst.slice(-2);
-  const maskedLength = gst.length - 9;
-  return `${firstSeven}${ '*'.repeat(maskedLength > 0 ? maskedLength : 0) }${lastTwo}`;
+  if (!gst) return gst;
+  return '*'.repeat(gst.length);
 };
 
 /**
- * Masks a PAN number to show only first 5 and last 1 character.
- * e.g. ABCDE1234F -> ABCDE****F
+ * Fully masks a PAN number, replacing all characters with asterisks.
+ * The masked string length matches the original length.
+ * e.g. AALFM8458M -> **********
  */
 export const maskPan = (pan) => {
-  if (!pan || pan.length <= 6) return pan;
-  const firstFive = pan.slice(0, 5);
-  const lastOne = pan.slice(-1);
-  const maskedLength = pan.length - 6;
-  return `${firstFive}${ '*'.repeat(maskedLength > 0 ? maskedLength : 0) }${lastOne}`;
+  if (!pan) return pan;
+  return '*'.repeat(pan.length);
 };
 
 /**
- * Masks an address by hiding the first part (street name).
- * e.g. Road No 4, Adityapur, Jamshedpur -> ****, Adityapur, Jamshedpur
+ * Fully masks an address, replacing all characters with asterisks.
+ * The masked string length matches the original length.
+ * e.g. Baidyanath Bhavan, Jamshedpur -> ********************************
  */
 export const maskAddress = (address) => {
   if (!address) return address;
-  const parts = address.split(',');
-  if (parts.length === 1) {
-    return '****';
-  }
-  return `****, ${parts.slice(1).join(',').trim()}`;
+  return '*'.repeat(address.length);
+};
+
+/**
+ * Fully masks an email address, replacing all characters with asterisks.
+ * The masked string length matches the original length.
+ * e.g. ms.mohanthakur@gmail.com -> *************************
+ */
+export const maskEmail = (email) => {
+  if (!email) return email;
+  return '*'.repeat(email.length);
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from './StatusBadge.jsx';
 import { PipelineStepper } from './PipelineStepper.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
@@ -7,6 +8,7 @@ import { selectUserProfile } from '../../../../../features/user/store/selectors.
 
 export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
   const profile = useSelector(selectUserProfile);
+  const navigate = useNavigate();
 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
@@ -91,7 +93,10 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <button className="text-[13px] font-[600] text-[#1E293B] hover:underline">
+                      <button 
+                        onClick={() => navigate(`/vendor/ticket/${ticket.id}`)}
+                        className="text-[13px] font-[600] text-[#1E293B] hover:underline"
+                      >
                         View
                       </button>
                     </div>

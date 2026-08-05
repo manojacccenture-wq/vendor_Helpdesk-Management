@@ -1,10 +1,19 @@
 import React from 'react';
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
+import { HelpdeskLayout } from '../layout/HelpdeskLayout.jsx';
+import { HelpdeskDashboard } from '../features/dashboard/pages/HelpdeskDashboard.jsx';
 
 export const helpdeskRoutes = {
   path: 'helpdesk',
-  element: <RoleGuard requiredRole="L2" redirectPath="/" />,
+  element: (
+    <RoleGuard requiredRole="L2" redirectPath="/">
+      <HelpdeskLayout />
+    </RoleGuard>
+  ),
   children: [
-    // Future Helpdesk specific routes will be lazily loaded here
+    {
+      index: true,
+      element: <HelpdeskDashboard />
+    }
   ]
 };

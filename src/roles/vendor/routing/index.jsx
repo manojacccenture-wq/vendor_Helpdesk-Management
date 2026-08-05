@@ -4,6 +4,7 @@ import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { VendorLayout } from '../layout/VendorLayout.jsx';
 import { VendorDashboard } from '../features/dashboard/pages/VendorDashboard.jsx';
 import { CreateVendorTicketPage } from '../features/tickets/pages/CreateVendorTicketPage.jsx';
+import { TicketDetailsPage } from '../features/tickets/pages/TicketDetailsPage.jsx';
 
 export const vendorRoutes = {
   path: 'vendor',
@@ -22,6 +23,14 @@ export const vendorRoutes = {
       element: (
         <div className="px-6 py-8">
           <CreateVendorTicketPage />
+        </div>
+      )
+    },
+    {
+      path: 'ticket/:id',
+      element: (
+        <div className="px-6 py-8">
+          <TicketDetailsPage />
         </div>
       )
     }
