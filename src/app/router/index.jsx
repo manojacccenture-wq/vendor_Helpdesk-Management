@@ -19,7 +19,7 @@ const RootRedirect = () => {
   let redirectPath = '/';
   if (role === 'L1') {
     redirectPath = '/vendor';
-  } else if (role === 'L2') {
+  } else if (role === 'L2' || role === 'HelpdeskExecutive') {
     redirectPath = '/helpdesk';
   }
   
@@ -34,7 +34,7 @@ const LegacyLogin = () => {
     let redirectPath = '/';
     if (role === 'L1') {
       redirectPath = '/vendor';
-    } else if (role === 'L2') {
+    } else if (role === 'L2' || role === 'HelpdeskExecutive') {
       redirectPath = '/helpdesk';
     }
     return <Navigate to={redirectPath} replace />;

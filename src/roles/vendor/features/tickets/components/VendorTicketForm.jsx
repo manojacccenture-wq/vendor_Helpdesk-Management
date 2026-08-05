@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../../../../../shared/notifications';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
 import { Input } from '../../../../../shared/components/Input.jsx';
@@ -8,6 +9,7 @@ import { Select } from '../../../../../shared/components/Select.jsx';
 import { Textarea } from '../../../../../shared/components/Textarea.jsx';
 import { FileUpload } from '../../../../../shared/components/FileUpload.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
+import { TicketSuccessModal } from '../../../../../shared/components/TicketSuccessModal.jsx';
 import { selectUserProfile, selectUserDepartments } from '../../../../../features/user/store/selectors.js';
 import {
   useGetCategoriesQuery,
@@ -26,6 +28,12 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
   const userDepartments = useSelector(selectUserDepartments);
   const { showSuccess } = useNotification();
+  const navigate = useNavigate();
+  
+  // State for success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdTicketNo, setCreatedTicketNo] = useState('');
+  const pendingResponseRef = useRef(null);
   
   // Map userDepartments from Redux to dropdown format
   const departments = userDepartments?.map(d => ({
@@ -136,10 +144,15 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       // Execute API call
       const response = await createTicket(formData).unwrap();
       
-      // Show success notification
-      showSuccess('Ticket created successfully.');
+      // Extract ticket number from response
+      const ticketNo = response?.ticketNo || response?.TicketNo || response?.ticketNumber || response?.id || '';
+      setCreatedTicketNo(ticketNo);
       
-      if (onSubmitTicket) onSubmitTicket(response);
+      // Store response for later callback after modal is dismissed
+      pendingResponseRef.current = response;
+      
+      // Show success modal
+      setShowSuccessModal(true);
       reset(); 
       
     } catch (error) {
@@ -148,7 +161,23 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     }
   };
 
+  const handleViewTickets = () => {
+    setShowSuccessModal(false);
+    // Call the callback after modal is dismissed
+    if (onSubmitTicket && pendingResponseRef.current) {
+      onSubmitTicket(pendingResponseRef.current);
+      pendingResponseRef.current = null;
+    }
+    navigate('/vendor');
+  };
+
   return (
+    <>
+    <TicketSuccessModal 
+      isOpen={showSuccessModal}
+      ticketNo={createdTicketNo}
+      onViewTickets={handleViewTickets}
+    />
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Ticket Details</CardTitle>
@@ -269,5 +298,6 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
         </form>
       </CardContent>
     </Card>
+    </>
   );
 };

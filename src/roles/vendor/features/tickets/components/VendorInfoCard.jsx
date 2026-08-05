@@ -8,7 +8,7 @@ export const VendorInfoCard = ({ vendor = {} }) => {
   const [showSensitive, setShowSensitive] = useState(false);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border-l-4 border-l-[#0F766E]">
       <CardHeader 
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={() => setIsOpen(!isOpen)}

@@ -6,7 +6,7 @@ import { HelpdeskDashboard } from '../features/dashboard/pages/HelpdeskDashboard
 export const helpdeskRoutes = {
   path: 'helpdesk',
   element: (
-    <RoleGuard requiredRole="L2" redirectPath="/">
+    <RoleGuard requiredRole={['L2', 'HelpdeskExecutive']} redirectPath="/">
       <HelpdeskLayout />
     </RoleGuard>
   ),

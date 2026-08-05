@@ -1,8 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import { Input } from '../../../../../shared/components/Input.jsx';
-import { Select } from '../../../../../shared/components/Select.jsx';
-import { Button } from '../../../../../shared/components/Button.jsx';
+import { useGetTicketStatusesQuery, useGetPrioritiesQuery } from '../../../../../shared/api/apiSlice.js';
 
 export const HelpdeskToolbar = ({
   searchTerm,
@@ -13,22 +11,17 @@ export const HelpdeskToolbar = ({
   onPriorityChange,
   onClearFilters,
 }) => {
+  const { data: statuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery();
+  const { data: priorities = [], isLoading: isLoadingPriorities } = useGetPrioritiesQuery();
+
   const statusOptions = [
-    { label: 'All status', value: 'all' },
-    { label: 'New', value: 'new' },
-    { label: 'Open', value: 'open' },
-    { label: 'In Progress', value: 'in progress' },
-    { label: 'On Hold', value: 'on hold' },
-    { label: 'Resolved', value: 'resolved' },
-    { label: 'Closed', value: 'closed' },
+    { label: isLoadingStatuses ? 'Loading...' : 'All status', value: 'all' },
+    ...statuses.map(s => ({ label: s.text ?? s.Text, value: s.value ?? s.Value }))
   ];
 
   const priorityOptions = [
-    { label: 'All priority', value: 'all' },
-    { label: 'High', value: 'high' },
-    { label: 'Medium', value: 'medium' },
-    { label: 'Low', value: 'low' },
-    { label: 'Escalate', value: 'escalate' },
+    { label: isLoadingPriorities ? 'Loading...' : 'All priority', value: 'all' },
+    ...priorities.map(p => ({ label: p.text ?? p.Text, value: p.value ?? p.Value }))
   ];
 
   return (
@@ -51,6 +44,7 @@ export const HelpdeskToolbar = ({
         <select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
+          disabled={isLoadingStatuses}
           className="w-full h-10 px-4 border border-[#E2E8F0] rounded-[6px] text-[14px] text-[#1E293B] bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E] focus:border-transparent"
         >
           {statusOptions.map(option => (
@@ -66,6 +60,7 @@ export const HelpdeskToolbar = ({
         <select
           value={priorityFilter}
           onChange={(e) => onPriorityChange(e.target.value)}
+          disabled={isLoadingPriorities}
           className="w-full h-10 px-4 border border-[#E2E8F0] rounded-[6px] text-[14px] text-[#1E293B] bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E] focus:border-transparent"
         >
           {priorityOptions.map(option => (
@@ -77,13 +72,12 @@ export const HelpdeskToolbar = ({
       </div>
 
       {/* Clear Filters Button */}
-      <Button
-        variant="ghost"
+      <button
         onClick={onClearFilters}
-        className="whitespace-nowrap"
+        className="h-10 px-4 rounded-[6px] border border-[#CBD5E1] bg-white text-[#64748B] text-[13px] font-[500] hover:bg-[#F8FAFC] transition-colors whitespace-nowrap"
       >
         Clear filters
-      </Button>
+      </button>
 
     </div>
   );
