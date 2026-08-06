@@ -8,7 +8,7 @@ export const VendorInfoCard = ({ vendor = {} }) => {
   const [showSensitive, setShowSensitive] = useState(false);
 
   return (
-    <Card className="w-full border-l-4 border-l-[#0F766E]">
+    <Card className="w-full border-l-4 border-l-success">
       <CardHeader 
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={() => setIsOpen(!isOpen)}
@@ -21,12 +21,12 @@ export const VendorInfoCard = ({ vendor = {} }) => {
               e.stopPropagation();
               setShowSensitive(!showSensitive);
             }}
-            className="text-[13px] font-[500] text-[#0F766E] hover:underline"
+            className="sectionLabelClassName text-success hover:underline"
             aria-label={showSensitive ? "Hide Sensitive Information" : "Show Sensitive Information"}
           >
             {showSensitive ? "Hide Details" : "Show Details"}
           </button>
-          {isOpen ? <ChevronUp className="w-5 h-5 text-[#64748B]" /> : <ChevronDown className="w-5 h-5 text-[#64748B]" />}
+          {isOpen ? <ChevronUp className="w-5 h-5 text-secondary" /> : <ChevronDown className="w-5 h-5 text-secondary" />}
         </div>
       </CardHeader>
       
@@ -34,45 +34,45 @@ export const VendorInfoCard = ({ vendor = {} }) => {
         <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Name</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">{vendor.name || '---'}</p>
+            <p className="badgeClassName text-secondary mb-1">Name</p>
+            <p className="sectionLabelClassName text-primary">{vendor.name || '---'}</p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Username</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">{vendor.username || '---'}</p>
+            <p className="badgeClassName text-secondary mb-1">Username</p>
+            <p className="sectionLabelClassName text-primary">{vendor.username || '---'}</p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Vendor Code</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">{vendor.userCode || '---'}</p>
+            <p className="badgeClassName text-secondary mb-1">Vendor Code</p>
+            <p className="sectionLabelClassName text-primary">{vendor.userCode || '---'}</p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Email</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">
+            <p className="badgeClassName text-secondary mb-1">Email</p>
+            <p className="sectionLabelClassName text-primary">
               {showSensitive ? (vendor.email || '---') : (maskEmail(vendor.email) || '---')}
             </p>
           </div>
           {/* New fields pending backend integration */}
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Mobile Number</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">
+            <p className="badgeClassName text-secondary mb-1">Mobile Number</p>
+            <p className="sectionLabelClassName text-primary">
               {showSensitive ? (vendor.mobile || '---') : (maskMobile(vendor.mobile) || '---')}
             </p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">GST Number</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">
+            <p className="badgeClassName text-secondary mb-1">GST Number</p>
+            <p className="sectionLabelClassName text-primary">
               {showSensitive ? (vendor.gst || '---') : (maskGst(vendor.gst) || '---')}
             </p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">PAN Number</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">
+            <p className="badgeClassName text-secondary mb-1">PAN Number</p>
+            <p className="sectionLabelClassName text-primary">
               {showSensitive ? (vendor.pan || '---') : (maskPan(vendor.pan) || '---')}
             </p>
           </div>
           <div>
-            <p className="text-[12px] font-[500] text-[#64748B] mb-1">Address</p>
-            <p className="text-[14px] font-[500] text-[#1E293B]">
+            <p className="badgeClassName text-secondary mb-1">Address</p>
+            <p className="sectionLabelClassName text-primary">
               {showSensitive ? (vendor.address || '---') : (maskAddress(vendor.address) || '---')}
             </p>
           </div>

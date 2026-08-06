@@ -5,7 +5,7 @@ import { cn } from '../utils/cn.js';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
 
-export const FileUpload = React.forwardRef(({ className, label, error, onChange, value = null, multiple = false, ...props }, ref) => {
+export const FileUpload = React.forwardRef(({ className, label, error, onChange, value = null, multiple = false, disabled = false, isUploading = false, ...props }, ref) => {
   const inputRef = useRef(null);
   const [internalError, setInternalError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -127,27 +127,28 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
-        <label className="text-[14px] font-[500] text-[#334155]">
+        <label className="sectionLabelClassName text-primary-hover">
           {label}
         </label>
       )}
       
       <div 
         className={cn(
-          "flex flex-col items-center justify-center border-2 border-dashed border-[#CBD5E1] rounded-[8px] p-6 bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors cursor-pointer",
-          displayError && "border-[#EF4444]",
-          isDragging && "border-[#0F766E] bg-[#F0FDF4]",
+          "flex flex-col items-center justify-center border-2 border-dashed border-hover rounded-control p-6 bg-surface-hover hover:bg-surface-active transition-colors cursor-pointer",
+          displayError && "border-danger",
+          isDragging && "border-success bg-success-soft",
+          (disabled || isUploading) && "opacity-50 cursor-not-allowed hover:bg-surface-hover",
           className
         )}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !disabled && !isUploading && inputRef.current?.click()}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <UploadCloud className="h-8 w-8 text-[#94A3B8] mb-2" />
-        <p className="text-[14px] text-[#475569] font-[500]">Click to upload or drag and drop</p>
-        <p className="text-[12px] text-[#94A3B8]">
+        <UploadCloud className="h-8 w-8 text-muted mb-2" />
+        <p className="sectionLabelClassName text-secondary">Click to upload or drag and drop</p>
+        <p className="captionClassName text-muted">
           {multiple ? "Max file size 5MB (up to 5 files)" : "Max file size 5MB"}
         </p>
         <input
@@ -156,23 +157,25 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
           ref={setRefs}
           onChange={handleFileChange}
           multiple={multiple}
+          disabled={disabled || isUploading}
           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
           {...props}
         />
       </div>
 
-      {displayError && <span className="text-[12px] text-[#EF4444]">{displayError}</span>}
+      {displayError && <span className="captionClassName text-danger">{displayError}</span>}
 
       {/* Uploaded File Items */}
       {filesList.length > 0 && (
         <ul className="mt-3 flex flex-col gap-2">
           {filesList.map((file, idx) => (
-            <li key={idx} className="flex items-center justify-between bg-white border border-[#E2E8F0] p-3 rounded-[6px] shadow-sm">
-              <span className="text-[13px] text-[#334155] truncate max-w-[80%]">{file.name}</span>
+            <li key={idx} className="flex items-center justify-between bg-surface border border-default p-3 rounded-control shadow-sm">
+              <span className="sectionLabelClassName text-primary-hover truncate max-w-[80%]">{file.name}</span>
               <button 
                 type="button" 
                 onClick={() => removeFile(idx)}
-                className="text-[#94A3B8] hover:text-[#EF4444] transition-colors"
+                className="text-muted hover:text-danger transition-colors"
+                disabled={disabled || isUploading}
               >
                 <X className="h-4 w-4" />
               </button>

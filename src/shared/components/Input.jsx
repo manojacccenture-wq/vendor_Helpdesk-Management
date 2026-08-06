@@ -9,22 +9,22 @@ export const Input = React.forwardRef(({ className, type = "text", error, label,
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
-        <label className="text-[14px] font-[500] text-[#334155]">
+        <label className="sectionLabelClassName text-primary-hover">
           {labelText}
-          {isRequired && <span className="text-[#EF4444]"> *</span>}
+          {isRequired && <span className="text-danger"> *</span>}
         </label>
       )}
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-[6px] border border-[#CBD5E1] bg-white px-3 py-2 text-[14px] text-[#1E293B] file:border-0 file:bg-transparent file:text-[14px] file:font-medium placeholder:text-[#94A3B8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-[#F8FAFC]",
-          error && "border-[#EF4444] focus-visible:ring-[#EF4444]",
+          "flex h-10 w-full rounded-control border border-hover bg-surface px-3 py-2 bodyClassName text-primary file:border-0 file:bg-transparent file:bodyClassName file:font-medium placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
+          error && "border-danger focus-visible:ring-danger",
           className
         )}
         ref={ref}
         {...props}
       />
-      {error && <span className="text-[12px] text-[#EF4444]">{error}</span>}
+      {error && <span className="captionClassName text-danger">{error}</span>}
     </div>
   );
 });

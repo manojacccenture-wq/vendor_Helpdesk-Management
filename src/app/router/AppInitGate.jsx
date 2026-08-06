@@ -21,8 +21,8 @@ export const AppInitGate = ({ children }) => {
   // Block the entire router from mounting until the profile check finishes
   if (!initialized || loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#F8F7F4]">
-        <div className="text-[14px] font-[400] text-[#64748B]">Initializing Enterprise App...</div>
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="bodyClassName text-secondary">Initializing Enterprise App...</div>
       </div>
     );
   }

@@ -187,7 +187,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           
           <div className="w-full relative">
             <div className="absolute top-0 right-0 flex items-center h-[20px]">
-              <span className={`text-[12px] font-[500] ${isSubjectAtLimit ? 'text-[#EF4444]' : isSubjectNearLimit ? 'text-[#F59E0B]' : 'text-[#64748B]'}`}>
+              <span className={`badgeClassName ${isSubjectAtLimit ? 'text-danger' : isSubjectNearLimit ? 'text-warning' : 'text-secondary'}`}>
                 {subjectValue.length} / 40
               </span>
             </div>
@@ -199,7 +199,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
               {...register('subject')}
             />
             {isSubjectAtLimit && !errors.subject && (
-              <span className="text-[12px] text-[#F59E0B] mt-1.5 block">
+              <span className="captionClassName text-warning mt-1.5 block">
                 Maximum 40 characters allowed.
               </span>
             )}
@@ -237,7 +237,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
           {/* Dynamic Controls Section */}
           {dynamicControls.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2 border-t border-[#E2E8F0] mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2 border-t border-default mt-2">
               {dynamicControls.map((control) => (
                 <DynamicField 
                   key={control.columnName}
@@ -251,11 +251,11 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           )}
 
           {isFetchingControls && dynamicControls.length === 0 && (
-            <div className="text-[13px] text-[#64748B] italic">Loading category requirements...</div>
+            <div className="bodyClassName text-secondary italic">Loading category requirements...</div>
           )}
 
           {/* File Upload Section */}
-          <div className="w-full pt-2 border-t border-[#E2E8F0] mt-2">
+          <div className="w-full pt-2 border-t border-default mt-2">
             <Controller
               name="attachments"
               control={control}
@@ -283,7 +283,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           </div>
 
           {/* Actions Section */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-[#E2E8F0] mt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-default mt-2">
             <Button type="button" variant="ghost" onClick={() => reset()} disabled={isSubmitting}>
               Reset
             </Button>

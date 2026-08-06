@@ -24,10 +24,10 @@ export const CreateVendorTicketPage = () => {
       <div className="flex items-center gap-4">
         <BackButton to="/vendor" />
         <div className="flex flex-col gap-1">
-          <h1 className="text-[22px] font-[600] text-[#1E293B]">
+          <h1 className="pageTitleClassName text-primary">
             Create Vendor Ticket
           </h1>
-          <p className="text-[14px] text-[#64748B]">
+          <p className="bodyClassName text-secondary">
             Raise a new support ticket for vendor-related issues.
           </p>
         </div>

@@ -34,26 +34,26 @@ export const TicketsToolbar = ({
         
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input 
             type="text" 
             placeholder="Search tickets..." 
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full h-10 pl-9 pr-3 rounded-[6px] border border-[#CBD5E1] bg-white text-[13px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F766E]"
+            className="w-full h-10 pl-9 pr-3 rounded-control border border-hover bg-surface sectionLabelClassName text-primary placeholder:text-muted focus:outline-none focus:border-success"
           />
         </div>
 
         {/* Status Dropdown */}
         <div className="relative w-full sm:w-36">
-          <label className="absolute -top-2 left-2 px-1 bg-white text-[10px] font-[600] text-[#94A3B8] uppercase">
+          <label className="absolute -top-2 left-2 px-1 bg-surface floatingLabelClassName text-muted">
             Status
           </label>
           <Select 
             value={statusId}
             onChange={(e) => onStatusChange(e.target.value)}
             options={statusOptions}
-            className="w-full h-10 px-3 rounded-[6px] border border-[#CBD5E1] bg-white text-[13px] text-[#1E293B] focus:outline-none focus:border-[#0F766E] appearance-none m-0"
+            className="w-full h-10 px-3 rounded-control border border-hover bg-surface sectionLabelClassName text-primary focus:outline-none focus:border-success appearance-none m-0"
             disabled={isLoadingStatuses}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -65,14 +65,14 @@ export const TicketsToolbar = ({
 
         {/* Category Dropdown */}
         <div className="relative w-full sm:w-44">
-          <label className="absolute -top-2 left-2 px-1 bg-white text-[10px] font-[600] text-[#94A3B8] uppercase">
+          <label className="absolute -top-2 left-2 px-1 bg-surface floatingLabelClassName text-muted">
             Category
           </label>
           <Select 
             value={categoryId}
             onChange={(e) => onCategoryChange(e.target.value)}
             options={categoryOptions}
-            className="w-full h-10 px-3 rounded-[6px] border border-[#CBD5E1] bg-white text-[13px] text-[#1E293B] focus:outline-none focus:border-[#0F766E] appearance-none m-0"
+            className="w-full h-10 px-3 rounded-control border border-hover bg-surface sectionLabelClassName text-primary focus:outline-none focus:border-success appearance-none m-0"
             disabled={isLoadingCategories}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -85,7 +85,7 @@ export const TicketsToolbar = ({
         {/* Clear Filters */}
         <button 
           onClick={onClearFilters}
-          className="h-10 px-4 rounded-[6px] border border-[#CBD5E1] bg-white text-[#64748B] text-[13px] font-[500] hover:bg-[#F8FAFC] transition-colors whitespace-nowrap"
+          className="h-10 px-4 rounded-control border border-hover bg-surface text-secondary sectionLabelClassName hover:bg-surface-hover transition-colors whitespace-nowrap"
         >
           Clear filters
         </button>
@@ -94,7 +94,7 @@ export const TicketsToolbar = ({
       {/* Action Right */}
       <button 
         onClick={onRaiseTicket}
-        className="w-full sm:w-auto h-10 px-5 rounded-[6px] bg-[#1E293B] text-white text-[13px] font-[500] hover:bg-[#0F172A] transition-colors flex items-center justify-center gap-2"
+        className="w-full sm:w-auto h-10 px-5 rounded-control bg-primary text-white sectionLabelClassName hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
       >
         <span>+</span> Raise ticket
       </button>

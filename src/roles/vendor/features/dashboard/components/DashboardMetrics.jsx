@@ -13,9 +13,9 @@ export const DashboardMetrics = () => {
 
   if (isError) {
     return (
-      <div className="flex items-center gap-2 text-[#E11D48] bg-[#FFE4E6] p-4 rounded-[12px] mb-8 shadow-sm">
+      <div className="flex items-center gap-2 text-danger bg-danger-soft p-4 rounded-card mb-8 shadow-sm">
         <AlertCircle className="w-5 h-5" />
-        <span className="text-[14px] font-[500]">Failed to load ticket metrics. Please try again.</span>
+        <span className="sectionLabelClassName">Failed to load ticket metrics. Please try again.</span>
       </div>
     );
   }
@@ -23,39 +23,39 @@ export const DashboardMetrics = () => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-8">
       
-      <Card className="flex-1 p-6 rounded-[12px] shadow-sm flex items-center justify-between">
+      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-[#64748B] text-[13px] font-[500] mb-1">Total tickets</p>
-          <h2 className="text-[#1E293B] text-[32px] font-[600] leading-none">
+          <p className="text-secondary sectionLabelClassName mb-1">Total tickets</p>
+          <h2 className="text-primary metricValueClassName">
             {isLoading ? '...' : data?.totalCount ?? 0}
           </h2>
         </div>
-        <div className="w-12 h-12 rounded-[8px] bg-[#F1F5F9] flex items-center justify-center">
-          <Ticket className="w-6 h-6 text-[#1E293B]" />
+        <div className="w-12 h-12 rounded-control bg-surface-active flex items-center justify-center">
+          <Ticket className="w-6 h-6 text-primary" />
         </div>
       </Card>
 
-      <Card className="flex-1 p-6 rounded-[12px] shadow-sm flex items-center justify-between">
+      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-[#64748B] text-[13px] font-[500] mb-1">In progress</p>
-          <h2 className="text-[#1E293B] text-[32px] font-[600] leading-none">
+          <p className="text-secondary sectionLabelClassName mb-1">In progress</p>
+          <h2 className="text-primary metricValueClassName">
             {isLoading ? '...' : data?.inProgress ?? 0}
           </h2>
         </div>
-        <div className="w-12 h-12 rounded-[8px] bg-[#FEF08A] flex items-center justify-center">
-          <Hourglass className="w-6 h-6 text-[#854D0E]" />
+        <div className="w-12 h-12 rounded-control bg-warning-soft flex items-center justify-center">
+          <Hourglass className="w-6 h-6 text-warning" />
         </div>
       </Card>
 
-      <Card className="flex-1 p-6 rounded-[12px] shadow-sm flex items-center justify-between">
+      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-[#64748B] text-[13px] font-[500] mb-1">Resolved</p>
-          <h2 className="text-[#1E293B] text-[32px] font-[600] leading-none">
+          <p className="text-secondary sectionLabelClassName mb-1">Resolved</p>
+          <h2 className="text-primary metricValueClassName">
             {isLoading ? '...' : data?.resolved ?? 0}
           </h2>
         </div>
-        <div className="w-12 h-12 rounded-[8px] bg-[#A7F3D0] flex items-center justify-center">
-          <Check className="w-6 h-6 text-[#065F46]" />
+        <div className="w-12 h-12 rounded-control bg-success-soft flex items-center justify-center">
+          <Check className="w-6 h-6 text-success" />
         </div>
       </Card>
 

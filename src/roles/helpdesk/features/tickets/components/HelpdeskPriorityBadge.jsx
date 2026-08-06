@@ -5,29 +5,29 @@ export const HelpdeskPriorityBadge = ({ priority, isOverdue = false }) => {
   const getPriorityStyles = () => {
     switch (priority?.toLowerCase()) {
       case 'high':
-        return 'bg-[#FEE2E2] text-[#DC2626]';
+        return 'bg-danger-soft text-danger';
       case 'medium':
-        return 'bg-[#FEF9C3] text-[#CA8A04]';
+        return 'bg-warning-soft text-warning';
       case 'low':
-        return 'bg-[#A7F3D0] text-[#059669]';
+        return 'bg-success-soft text-success';
       case 'escalate':
-        return 'bg-[#FEE2E2] text-[#DC2626]';
+        return 'bg-danger-soft text-danger';
       default:
-        return 'bg-[#F1F5F9] text-[#64748B]';
+        return 'bg-surface-active text-secondary';
     }
   };
 
   const getOverdueStyles = () => {
-    return 'bg-[#DC2626] text-white';
+    return 'bg-danger text-white';
   };
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className={cn("px-3 py-1 rounded-full text-[12px] font-[500] whitespace-nowrap", getPriorityStyles())}>
+      <span className={cn("px-3 py-1 rounded-full badgeClassName whitespace-nowrap", getPriorityStyles())}>
         {priority}
       </span>
       {isOverdue && (
-        <span className={cn("px-3 py-1 rounded-full text-[12px] font-[500] whitespace-nowrap", getOverdueStyles())}>
+        <span className={cn("px-3 py-1 rounded-full badgeClassName whitespace-nowrap", getOverdueStyles())}>
           OVERDUE
         </span>
       )}

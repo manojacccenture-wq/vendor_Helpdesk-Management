@@ -21,7 +21,7 @@ export const HelpdeskDashboard = () => {
       <HelpdeskMetrics />
 
       {/* Main Page Title */}
-      <h1 className="text-[20px] font-[700] text-[#1E293B] mb-6">
+      <h1 className="h1ClassName text-primary mb-6">
         All Tickets
       </h1>
 

@@ -5,7 +5,7 @@ import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle } fro
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
 import { BackButton } from '../../../../../shared/components/BackButton.jsx';
-import { StatusBadge } from '../components/StatusBadge.jsx';
+import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { useGetTicketDetailsQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
 import { downloadTicketAttachment } from '../../../../../shared/utils/download.js';
@@ -39,10 +39,10 @@ const formatFileSize = (bytes) => {
 const DetailField = ({ label, value, icon: Icon, className = '' }) => (
   <div className={`flex flex-col gap-1 ${className}`}>
     <div className="flex items-center gap-2">
-      {Icon && <Icon className="w-4 h-4 text-[#64748B]" />}
-      <p className="text-[12px] font-[500] text-[#64748B] uppercase tracking-wide">{label}</p>
+      {Icon && <Icon className="w-4 h-4 text-secondary" />}
+      <p className="badgeClassName text-secondary uppercase tracking-wide">{label}</p>
     </div>
-    <p className="text-[14px] font-[500] text-[#1E293B] leading-relaxed">{value || '---'}</p>
+    <p className="sectionLabelClassName text-primary leading-relaxed">{value || '---'}</p>
   </div>
 );
 
@@ -68,16 +68,16 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="text-[22px] font-[600] text-[#1E293B]">Ticket Details</h1>
-            <p className="text-[14px] text-[#64748B]">Loading ticket information...</p>
+            <h1 className="h1ClassName text-primary">Ticket Details</h1>
+            <p className="bodyClassName text-secondary">Loading ticket information...</p>
           </div>
         </div>
         
         <Card className="w-full">
           <CardContent className="flex items-center justify-center py-12">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-[#0F766E] border-t-transparent rounded-full animate-spin" />
-              <span className="text-[14px] font-[500] text-[#64748B]">Loading ticket details...</span>
+              <div className="w-5 h-5 border-2 border-success border-t-transparent rounded-full animate-spin" />
+              <span className="sectionLabelClassName text-secondary">Loading ticket details...</span>
             </div>
           </CardContent>
         </Card>
@@ -92,17 +92,17 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="text-[22px] font-[600] text-[#1E293B]">Ticket Details</h1>
-            <p className="text-[14px] text-[#64748B]">Error loading ticket</p>
+            <h1 className="h1ClassName text-primary">Ticket Details</h1>
+            <p className="bodyClassName text-secondary">Error loading ticket</p>
           </div>
         </div>
         
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-            <AlertCircle className="w-12 h-12 text-[#EF4444]" />
+            <AlertCircle className="w-12 h-12 text-danger" />
             <div className="text-center">
-              <h3 className="text-[16px] font-[600] text-[#1E293B] mb-2">Failed to load ticket details</h3>
-              <p className="text-[14px] text-[#64748B] mb-4">
+              <h3 className="h2ClassName text-primary mb-2">Failed to load ticket details</h3>
+              <p className="bodyClassName text-secondary mb-4">
                 {error?.data || 'An error occurred while loading the ticket details.'}
               </p>
               <Button variant="primary" onClick={handleBack}>
@@ -122,17 +122,17 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="text-[22px] font-[600] text-[#1E293B]">Ticket Details</h1>
-            <p className="text-[14px] text-[#64748B]">Ticket not found</p>
+            <h1 className="h1ClassName text-primary">Ticket Details</h1>
+            <p className="bodyClassName text-secondary">Ticket not found</p>
           </div>
         </div>
         
         <Card className="w-full">
           <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-            <FileText className="w-12 h-12 text-[#64748B]" />
+            <FileText className="w-12 h-12 text-secondary" />
             <div className="text-center">
-              <h3 className="text-[16px] font-[600] text-[#1E293B] mb-2">Ticket not found</h3>
-              <p className="text-[14px] text-[#64748B] mb-4">
+              <h3 className="h2ClassName text-primary mb-2">Ticket not found</h3>
+              <p className="bodyClassName text-secondary mb-4">
                 The ticket you're looking for doesn't exist or has been removed.
               </p>
               <Button variant="primary" onClick={handleBack}>
@@ -152,10 +152,10 @@ export const TicketDetailsPage = () => {
       <div className="flex items-center gap-4">
         <BackButton to="/vendor" />
         <div className="flex flex-col gap-1">
-          <h1 className="text-[22px] font-[600] text-[#1E293B]">
+          <h1 className="h1ClassName text-primary">
             Ticket Details
           </h1>
-          <p className="text-[14px] text-[#64748B]">
+          <p className="bodyClassName text-secondary">
             Viewing ticket {ticketDetails.ticketNo || `#${id}`}
           </p>
         </div>
@@ -203,8 +203,8 @@ export const TicketDetailsPage = () => {
           <CardTitle>Description</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-[#F8FAFC] rounded-[8px] p-4 border border-[#E2E8F0]">
-            <p className="text-[14px] text-[#1E293B] leading-relaxed whitespace-pre-wrap">
+          <div className="bg-surface-hover rounded-control p-4 border border-default">
+            <p className="bodyClassName text-primary leading-relaxed whitespace-pre-wrap">
               {ticketDetails.ticketDescription || 'No description provided.'}
             </p>
           </div>
@@ -333,15 +333,15 @@ export const TicketDetailsPage = () => {
               {ticketDetails.attachments.map((attachment, index) => (
                 <div 
                   key={attachment.uuid || index}
-                  className="flex items-center justify-between p-4 bg-[#F8FAFC] rounded-[8px] border border-[#E2E8F0] hover:bg-[#F1F5F9] transition-colors"
+                  className="flex items-center justify-between p-4 bg-surface-hover rounded-control border border-default hover:bg-surface-active transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-[#64748B]" />
+                    <FileText className="w-5 h-5 text-secondary" />
                     <div className="flex flex-col">
-                      <span className="text-[13px] font-[500] text-[#1E293B]">
+                      <span className="sectionLabelClassName text-primary">
                         {attachment.originalFileName}
                       </span>
-                      <span className="text-[12px] text-[#64748B]">
+                      <span className="captionClassName text-secondary">
                         {formatFileSize(attachment.fileSizeBytes)} • {attachment.mimeType}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export const TicketDetailsPage = () => {
                     }}
                   >
                     {downloadingAttachments.has(attachment.uuid) ? (
-                      <div className="w-4 h-4 border-2 border-[#64748B] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <Download className="w-4 h-4" />
                     )}
@@ -381,8 +381,8 @@ export const TicketDetailsPage = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-8 gap-2">
-              <FileText className="w-8 h-8 text-[#64748B]" />
-              <p className="text-[14px] text-[#64748B]">No attachments</p>
+              <FileText className="w-8 h-8 text-secondary" />
+              <p className="bodyClassName text-secondary">No attachments</p>
             </div>
           )}
         </CardContent>

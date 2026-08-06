@@ -1,30 +1,35 @@
-/* ===========================================
-   SURFACES & TEXT
-=========================================== */
-
-:root {
-  --color-bg: #F8F7F4;
+@theme {
+  /* Surfaces */
+  --color-background: #F8F9FA;
   --color-surface: #FFFFFF;
-  --color-border: #E2E8F0;
-  --color-border-hover: #CBD5E1;
 
-  --color-text-primary: #1E293B;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
-  --color-accent: #1E293B;
-}
+  /* Typography */
+  --color-primary: #1E293B;
+  --color-secondary: #64748B;
+  --color-muted: #94A3B8;
 
-/* ===========================================
-   STATE COLORS
-=========================================== */
-
-:root {
-  --color-warning: #D97706;
-  --color-warning-bg: #FEF3C7;
-
+  /* Borders */
+  --color-default: #E2E8F0;
+  
+  /* Semantic States */
   --color-success: #0F766E;
-  --color-success-bg: #CCFBF1;
-
+  --color-success-soft: #CCFBF1;
   --color-danger: #E11D48;
-  --color-danger-bg: #FFE4E6;
+  --color-danger-soft: #FFE4E6;
+  --color-warning: #D97706;
+  --color-warning-soft: #FEF3C7;
+  --color-info: #2563EB;
+  --color-info-soft: #DBEAFE;
+  --color-accent: #9333EA;
+  --color-accent-soft: #F3E8FF;
+
+  /* Specific Interactive States */
+  --color-primary-hover: #334155; 
+  --color-success-hover: #0D655E;
+  --color-hover: #CBD5E1;
+  --color-surface-active: #F1F5F9;
+
+  /* Radius Tokens */
+  --radius-control: 8px;
+  --radius-card: 12px;
 }

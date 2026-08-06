@@ -6,27 +6,59 @@
   --font-family-sans: "DM Sans", system-ui, sans-serif;
   --font-family-mono: "DM Mono", ui-monospace, monospace;
 
+  /* Font Sizes */
   --font-size-page-title: 18px;
+  --font-size-card-title: 16px;
+  --font-size-table-header: 13px;
   --font-size-section-label: 13px; /* 13-14px in design */
   --font-size-body: 14px;
   --font-size-caption: 12px;
   --font-size-ticket-id: 12px;
+  --font-size-badge: 12px;
+  --font-size-metric-value: 32px;
+  --font-size-modal-title: 20px;
+  --font-size-page-heading: 22px;
+  --font-size-highlight: 28px;
+  --font-size-brand: 15px;
+  --font-size-floating-label: 10px;
 
+  /* Font Weights */
   --font-weight-page-title: 600;
+  --font-weight-card-title: 600;
+  --font-weight-table-header: 600;
   --font-weight-section-label: 500;
   --font-weight-body: 400;
   --font-weight-caption: 400;
   --font-weight-ticket-id: 400;
+  --font-weight-badge: 500;
+  --font-weight-metric-value: 600;
+  --font-weight-modal-title: 600;
+  --font-weight-page-heading: 600;
+  --font-weight-highlight: 700;
+  --font-weight-brand: 600;
+  --font-weight-floating-label: 600;
 
+  /* Line Heights */
   --line-height-page-title: normal;
   --line-height-section-label: normal;
   --line-height-body: normal;
   --line-height-caption: normal;
   --line-height-ticket-id: normal;
+  --line-height-modal-title: normal;
+  --line-height-page-heading: normal;
+  --line-height-highlight: normal;
+  --line-height-brand: 1.2;
+  --line-height-floating-label: normal;
 
+  /* Letter Spacing */
   --letter-spacing-page-title: normal;
   --letter-spacing-section-label: normal;
   --letter-spacing-body: normal;
   --letter-spacing-caption: normal;
   --letter-spacing-ticket-id: normal;
+  --letter-spacing-modal-title: normal;
+  --letter-spacing-page-heading: normal;
+  --letter-spacing-highlight: normal;
+  --letter-spacing-brand: normal;
+  --letter-spacing-floating-label: 0.05em;
 }

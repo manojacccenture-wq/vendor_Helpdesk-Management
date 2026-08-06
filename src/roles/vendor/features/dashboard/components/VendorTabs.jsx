@@ -10,7 +10,7 @@ export const VendorTabs = () => {
   ];
 
   return (
-    <div className="border-b border-[#E2E8F0] mb-6">
+    <div className="border-b border-default mb-6">
       <div className="flex items-center gap-8 px-2">
         {tabs.map((tab) => (
           <NavLink
@@ -18,15 +18,15 @@ export const VendorTabs = () => {
             to={tab.path}
             end
             className={({ isActive }) => cn(
-              "pb-3 text-[13px] font-[600] transition-colors relative",
-              isActive ? "text-[#1E293B]" : "text-[#94A3B8] hover:text-[#64748B]"
+              "pb-3 tableHeaderClassName transition-colors relative",
+              isActive ? "text-primary" : "text-muted hover:text-secondary"
             )}
           >
             {({ isActive }) => (
               <>
                 {tab.label}
                 {isActive && (
-                  <div className="absolute bottom-[-1px] left-0 w-full h-[3px] bg-[#1E293B] rounded-t-full"></div>
+                  <div className="absolute bottom-[-1px] left-0 w-full h-[3px] bg-primary rounded-t-full"></div>
                 )}
               </>
             )}

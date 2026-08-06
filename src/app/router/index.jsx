@@ -41,11 +41,11 @@ const LegacyLogin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] p-8">
-      <h1 className="text-[18px] font-[600] text-[#1E293B] mb-4">Vendor Helpdesk Application</h1>
-      <div className="bg-[#FFFFFF] p-6 rounded-[12px] shadow border border-[#E11D48]">
-        <p className="text-[#E11D48] font-[500] text-[14px]">Not Authenticated</p>
-        <p className="text-[#64748B] text-[14px] mt-[12px]">{error || 'Please login to continue.'}</p>
+    <div className="min-h-screen bg-background p-8">
+      <h1 className="h1ClassName text-primary mb-4">Vendor Helpdesk Application</h1>
+      <div className="bg-surface p-6 rounded-card shadow border border-danger">
+        <p className="sectionLabelClassName text-danger">Not Authenticated</p>
+        <p className="bodyClassName text-secondary mt-[12px]">{error || 'Please login to continue.'}</p>
       </div>
     </div>
   );
