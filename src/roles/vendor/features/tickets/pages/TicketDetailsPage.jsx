@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '../../../../../shared/components/Card.jsx';
+import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle, Tag, Layers, Paperclip } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../../shared/components/Card.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
 import { BackButton } from '../../../../../shared/components/BackButton.jsx';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
@@ -32,7 +32,18 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-// Compact metadata cell
+// Field display with label and value — gracefully handles null
+const DetailField = ({ label, value, icon: Icon }) => (
+  <div className="flex items-start gap-3 py-2.5">
+    {Icon && <Icon className="w-4 h-4 text-secondary shrink-0 mt-0.5" />}
+    <div className="min-w-0 flex-1">
+      <p className="text-caption text-secondary">{label}</p>
+      <p className="text-body text-primary">{value || '—'}</p>
+    </div>
+  </div>
+);
+
+// Compact metadata cell for processing card
 const MetaCell = ({ label, value, icon: Icon }) => (
   <div className="flex items-center gap-2 py-2 px-3 bg-surface-hover rounded-control border border-default">
     {Icon && <Icon className="w-4 h-4 text-secondary shrink-0" />}
@@ -43,7 +54,7 @@ const MetaCell = ({ label, value, icon: Icon }) => (
   </div>
 );
 
-// Timeline strip item
+// Timeline item for the processing card
 const TimelineItem = ({ label, value, icon: Icon }) => (
   <div className="flex items-center gap-2">
     {Icon && <Icon className="w-4 h-4 text-secondary shrink-0" />}
@@ -52,6 +63,19 @@ const TimelineItem = ({ label, value, icon: Icon }) => (
   </div>
 );
 
+// Chip for displaying tags, categories, etc.
+const InfoChip = ({ children }) => (
+  <span className="inline-flex items-center px-3 py-1 rounded-full text-caption bg-surface-active text-secondary border border-default">
+    {children}
+  </span>
+);
+
+/**
+ * TicketDetailsPage — Redesigned with two-card layout
+ *
+ * Card 1 (Primary): Ticket Information — everything the vendor submitted
+ * Card 2 (Secondary): Processing Information — workflow and system metadata
+ */
 export const TicketDetailsPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -141,6 +165,7 @@ export const TicketDetailsPage = () => {
     );
   }
 
+  // ─── Extract fields from API response ───
   const ticketNo = ticketDetails.ticketNo || ticketDetails.ticketNumber || `#${id}`;
   const subject = ticketDetails.subject || ticketDetails.ticketSubject || 'No subject';
   const category = ticketDetails.category || ticketDetails.ticketCategory;
@@ -148,7 +173,15 @@ export const TicketDetailsPage = () => {
   const source = ticketDetails.ticketSource;
   const description = ticketDetails.ticketDescription;
   const priority = ticketDetails.priority;
+  const status = ticketDetails.status || 'Unknown';
 
+  // Vendor-submitted fields
+  const tags = ticketDetails.tags;
+  const btsNo = ticketDetails.btsNo;
+  const billSubmittedDate = ticketDetails.billSubmittedDate;
+  const processingDays = ticketDetails.noProcessingDays;
+
+  // Workflow/system-generated fields
   const createdAt = formatDate(ticketDetails.ticketCreatedAt || ticketDetails.createdAt || ticketDetails.createAt);
   const updatedAt = formatDate(ticketDetails.ticketUpdatedAt);
   const createdBy = ticketDetails.ticketCreatedBy;
@@ -161,16 +194,11 @@ export const TicketDetailsPage = () => {
   const assignedDept = ticketDetails.assignedDepartmentId;
   const assignedAgent = ticketDetails.assignedAgentId;
 
-  const tags = ticketDetails.tags;
-  const btsNo = ticketDetails.btsNo;
-  const billSubmittedDate = formatDate(ticketDetails.billSubmittedDate);
-  const processingDays = ticketDetails.noProcessingDays;
-
-  const hasAdditionalInfo = tags || btsNo || billSubmittedDate || processingDays;
-  const hasAttachments = ticketDetails.attachments && ticketDetails.attachments.length > 0;
+  const attachments = ticketDetails.attachments || [];
+  const hasAttachments = attachments.length > 0;
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
+    <div className="flex flex-col gap-6 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
       
       {/* Page Header */}
       <div className="flex items-center gap-4">
@@ -178,128 +206,72 @@ export const TicketDetailsPage = () => {
         <h1 className="text-primary">Ticket Details</h1>
       </div>
 
-      {/* Single Card — Enterprise Layout */}
+      {/* ═══════════════════════════════════════════════════════════
+          CARD 1 — PRIMARY: Ticket Information
+          "What did the vendor actually submit?"
+      ═══════════════════════════════════════════════════════════ */}
       <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-success" />
+              Ticket Information
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {priority && (
+                <InfoChip>{priority}</InfoChip>
+              )}
+            </div>
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
 
-          {/* ─── Hero Header ─── */}
-          <div className="px-6 pt-6 pb-5 bg-surface-hover border-b-2 border-default">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
-                  <StatusBadge status={ticketDetails.status || 'Unknown'} />
-                  {priority && (
-                    <span className="px-2 py-0.5 rounded-full text-caption bg-surface-hover border border-default text-secondary">
-                      {priority}
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-card-title text-primary">{subject}</h2>
+          {/* ─── Hero: Ticket Number + Status + Subject ─── */}
+          <div className="px-6 pt-5 pb-4 border-b border-default">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
+                <StatusBadge status={status} />
               </div>
             </div>
-            {/* Category chips */}
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              {category && (
-                <span className="px-3 py-1 rounded-full text-caption bg-surface-hover border border-default text-secondary">
-                  {category}
-                </span>
-              )}
-              {subcategory && (
-                <span className="px-3 py-1 rounded-full text-caption bg-surface-hover border border-default text-secondary">
-                  {subcategory}
-                </span>
-              )}
-              {source && (
-                <span className="px-3 py-1 rounded-full text-caption bg-surface-hover border border-default text-secondary">
-                  Source: {source}
-                </span>
-              )}
-            </div>
+            <h2 className="text-card-title text-primary">{subject}</h2>
           </div>
 
           {/* ─── Description ─── */}
-          {description && (
-            <div className="px-6 py-5 border-b border-default">
-              <p className="text-section-label text-secondary mb-2">Description</p>
-              <div className="bg-surface-hover rounded-control p-5 border border-default">
-                <p className="text-body text-primary whitespace-pre-wrap">{description}</p>
-              </div>
-            </div>
-          )}
-
-          {/* ─── Assignment + Metadata Grid ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:divide-x divide-default">
-            
-            {/* Left: Assignment */}
-            <div className="px-6 py-4">
-              <p className="text-section-label text-secondary mb-3">Assignment</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <MetaCell label="Department" value={assignedDept ? `Department #${assignedDept}` : null} icon={Building2} />
-                <MetaCell label="Agent" value={assignedAgent ? `Agent #${assignedAgent}` : null} icon={User} />
-              </div>
-            </div>
-
-            {/* Right: Metadata */}
-            <div className="px-6 py-4">
-              <p className="text-section-label text-secondary mb-3">Details</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <MetaCell label="Created" value={createdAt} icon={Calendar} />
-                <MetaCell label="Updated" value={updatedAt} icon={Clock} />
-                <MetaCell label="Created By" value={createdBy} icon={User} />
-                <MetaCell label="Updated By" value={updatedBy} icon={User} />
-              </div>
+          <div className="px-6 py-5 border-b border-default">
+            <p className="text-section-label text-secondary mb-2">Description</p>
+            <div className="bg-surface-hover rounded-control p-5 border border-default">
+              <p className="text-body text-primary whitespace-pre-wrap">{description || '—'}</p>
             </div>
           </div>
 
-          {/* ─── Timeline Strip ─── */}
-          <div className="px-6 py-3 border-t border-default bg-background">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <TimelineItem label="Due" value={dueAt} icon={Calendar} />
-              <TimelineItem label="First Response" value={firstResponseAt} icon={Clock} />
-              <TimelineItem label="Resolved" value={resolvedAt} icon={Clock} />
-              <TimelineItem label="Closed" value={closedAt} icon={Clock} />
+          {/* ─── Vendor-Submitted Fields Grid ─── */}
+          <div className="px-6 py-4 border-b border-default">
+            <p className="text-section-label text-secondary mb-3">Submission Details</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6">
+              <DetailField label="Category" value={category} icon={Tag} />
+              <DetailField label="Sub Category" value={subcategory} icon={Tag} />
+              <DetailField label="Source" value={source} icon={Layers} />
+              <DetailField label="Tags" value={tags} icon={Tag} />
+              <DetailField label="BTS Number" value={btsNo} icon={FileText} />
+              <DetailField 
+                label="Bill Submitted Date" 
+                value={billSubmittedDate ? formatDate(billSubmittedDate) : null} 
+                icon={Calendar} 
+              />
+              <DetailField label="Number of Processing Days" value={processingDays} icon={Clock} />
             </div>
           </div>
-
-          {/* ─── Additional Info Strip (conditional) ─── */}
-          {hasAdditionalInfo && (
-            <div className="px-6 py-3 border-t border-default">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                {tags && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-caption text-secondary">Tags:</span>
-                    <span className="text-body text-primary">{tags}</span>
-                  </div>
-                )}
-                {btsNo && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-caption text-secondary">BTS:</span>
-                    <span className="text-body text-primary">{btsNo}</span>
-                  </div>
-                )}
-                {billSubmittedDate && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-caption text-secondary">Bill Date:</span>
-                    <span className="text-body text-primary">{billSubmittedDate}</span>
-                  </div>
-                )}
-                {processingDays && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-caption text-secondary">Days:</span>
-                    <span className="text-body text-primary">{processingDays}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* ─── Attachments ─── */}
-          <div className="px-6 py-5 border-t border-default">
-            <p className="text-section-label text-secondary mb-3">Attachments</p>
+          <div className="px-6 py-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Paperclip className="w-4 h-4 text-secondary" />
+              <p className="text-section-label text-secondary">Attachments</p>
+            </div>
             {hasAttachments ? (
               <div className="flex flex-col gap-2">
-                {ticketDetails.attachments.map((attachment, index) => (
+                {attachments.map((attachment, index) => (
                   <div 
                     key={attachment.uuid || index}
                     className="flex items-center justify-between py-2 px-3 bg-surface-hover rounded-control border border-default"
@@ -353,6 +325,53 @@ export const TicketDetailsPage = () => {
                 <p className="text-caption text-secondary">No attachments available</p>
               </div>
             )}
+          </div>
+
+        </CardContent>
+      </Card>
+
+      {/* ═══════════════════════════════════════════════════════════
+          CARD 2 — SECONDARY: Processing Information
+          "How the helpdesk is processing this ticket."
+      ═══════════════════════════════════════════════════════════ */}
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-success" />
+            Processing Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+
+          {/* ─── Assignment ─── */}
+          <div className="px-6 py-4 border-b border-default">
+            <p className="text-section-label text-secondary mb-3">Assignment</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <MetaCell label="Assigned Department" value={assignedDept ? `Department #${assignedDept}` : null} icon={Building2} />
+              <MetaCell label="Assigned Agent" value={assignedAgent ? `Agent #${assignedAgent}` : null} icon={User} />
+            </div>
+          </div>
+
+          {/* ─── Ownership ─── */}
+          <div className="px-6 py-4 border-b border-default">
+            <p className="text-section-label text-secondary mb-3">Ownership</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <MetaCell label="Created By" value={createdBy} icon={User} />
+              <MetaCell label="Updated By" value={updatedBy} icon={User} />
+            </div>
+          </div>
+
+          {/* ─── Timeline ─── */}
+          <div className="px-6 py-4">
+            <p className="text-section-label text-secondary mb-3">Timeline</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <TimelineItem label="Created" value={createdAt} icon={Calendar} />
+              <TimelineItem label="Updated" value={updatedAt} icon={Clock} />
+              <TimelineItem label="Due Date" value={dueAt} icon={Calendar} />
+              <TimelineItem label="First Response" value={firstResponseAt} icon={Clock} />
+              <TimelineItem label="Resolved" value={resolvedAt} icon={Clock} />
+              <TimelineItem label="Closed" value={closedAt} icon={Clock} />
+            </div>
           </div>
 
         </CardContent>

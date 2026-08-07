@@ -77,7 +77,7 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
                       {ticket.subject}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="">
                     <small className="inline-block px-3 py-1 bg-surface-active text-secondary rounded-full whitespace-nowrap">
                       {ticket.category}
                     </small>
@@ -89,18 +89,18 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
                     {/* Mapping is now handled internally by PipelineStepper based on status */}
                     <PipelineStepper status={ticket.status} />
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="text-center">
                     <small className="text-secondary whitespace-nowrap">
                       {ticket.createAt ? new Date(ticket.createAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
                     </small>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
+                  <td >
+                    <div className=" gap-3">
                       <Button 
                         variant="ghost"
                         onClick={() => navigate(`/vendor/ticket/${ticket.id}`)}
                       >
-                        View
+                       👁 View
                       </Button>
                     </div>
                   </td>

@@ -146,7 +146,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
                           variant="ghost"
                           onClick={() => navigate(`/helpdesk/ticket/${ticket.id}`)}
                         >
-                          View
+                         👁 View
                         </Button>
                         <Button
                           variant="primary"

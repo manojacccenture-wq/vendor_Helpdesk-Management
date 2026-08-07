@@ -82,7 +82,7 @@ export const TicketsToolbar = ({
         onClick={onRaiseTicket}
         className="w-full sm:w-auto bg-primary"
       >
-        <span>+</span> Raise ticket
+        <span>+ &nbsp;</span> Raise ticket
       </Button>
 
     </div>
