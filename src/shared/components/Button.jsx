@@ -9,9 +9,9 @@ const buttonVariants = {
 };
 
 const buttonSizes = {
-  sm: "h-8 px-3 buttonSmallClassName",
-  md: "h-10 px-4 buttonMediumClassName",
-  lg: "h-12 px-6 buttonLargeClassName"
+  sm: "h-8 px-3 btn-sm",
+  md: "h-10 px-4 btn-md",
+  lg: "h-12 px-6 btn-lg"
 };
 
 export const Button = React.forwardRef(({ 

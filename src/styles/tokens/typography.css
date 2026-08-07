@@ -6,21 +6,21 @@
   --font-family-sans: "DM Sans", system-ui, sans-serif;
   --font-family-mono: "DM Mono", ui-monospace, monospace;
 
-  /* Font Sizes */
-  --font-size-page-title: 18px;
-  --font-size-card-title: 16px;
-  --font-size-table-header: 13px;
-  --font-size-section-label: 13px; /* 13-14px in design */
-  --font-size-body: 14px;
-  --font-size-caption: 12px;
-  --font-size-ticket-id: 12px;
-  --font-size-badge: 12px;
-  --font-size-metric-value: 32px;
-  --font-size-modal-title: 20px;
-  --font-size-page-heading: 22px;
-  --font-size-highlight: 28px;
-  --font-size-brand: 15px;
-  --font-size-floating-label: 10px;
+  /* Font Sizes — responsive via clamp() */
+  --font-size-page-title: clamp(1.125rem, 0.944rem + 0.391vw, 1.375rem);     /* 18px → 22px */
+  --font-size-card-title: clamp(1rem, 0.889rem + 0.278vw, 1.25rem);           /* 16px → 20px */
+  --font-size-table-header: clamp(0.8125rem, 0.793rem + 0.049vw, 0.875rem);   /* 13px → 14px */
+  --font-size-section-label: clamp(0.8125rem, 0.793rem + 0.049vw, 0.875rem);  /* 13px → 14px */
+  --font-size-body: clamp(0.875rem, 0.852rem + 0.065vw, 0.9375rem);           /* 14px → 15px */
+  --font-size-caption: clamp(0.75rem, 0.734rem + 0.039vw, 0.8125rem);         /* 12px → 13px */
+  --font-size-ticket-id: 0.75rem;                                              /* 12px fixed — mono */
+  --font-size-badge: clamp(0.75rem, 0.734rem + 0.039vw, 0.8125rem);           /* 12px → 13px */
+  --font-size-metric-value: clamp(2rem, 1.375rem + 1.563vw, 3.5rem);          /* 32px → 56px */
+  --font-size-modal-title: clamp(1.25rem, 1.016rem + 0.586vw, 1.75rem);       /* 20px → 28px */
+  --font-size-page-heading: clamp(1.375rem, 1.078rem + 0.742vw, 1.875rem);    /* 22px → 30px */
+  --font-size-highlight: clamp(1.75rem, 1.172rem + 1.484vw, 3.25rem);         /* 28px → 52px */
+  --font-size-brand: clamp(0.9375rem, 0.859rem + 0.195vw, 1.125rem);          /* 15px → 18px */
+  --font-size-floating-label: 0.625rem;                                        /* 10px fixed */
 
   /* Font Weights */
   --font-weight-page-title: 600;

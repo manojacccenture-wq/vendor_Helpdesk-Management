@@ -9,14 +9,14 @@ export const Select = React.forwardRef(({ className, error, label, options = [],
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
-        <label className="sectionLabelClassName text-primary-hover">
+        <label className="text-primary-hover">
           {labelText}
           {isRequired && <span className="text-danger"> *</span>}
         </label>
       )}
       <select
         className={cn(
-          "flex h-10 w-full rounded-control border border-hover bg-surface px-3 py-2 bodyClassName text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
+          "flex h-10 w-full rounded-control border border-hover bg-surface px-3 py-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
           error && "border-danger focus-visible:ring-danger",
           className
         )}
@@ -34,7 +34,7 @@ export const Select = React.forwardRef(({ className, error, label, options = [],
           </option>
         ))}
       </select>
-      {error && <span className="captionClassName text-danger">{error}</span>}
+      {error && <small className="text-danger">{error}</small>}
     </div>
   );
 });

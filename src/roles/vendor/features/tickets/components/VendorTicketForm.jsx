@@ -187,9 +187,9 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           
           <div className="w-full relative">
             <div className="absolute top-0 right-0 flex items-center h-[20px]">
-              <span className={`badgeClassName ${isSubjectAtLimit ? 'text-danger' : isSubjectNearLimit ? 'text-warning' : 'text-secondary'}`}>
+              <small className={`${isSubjectAtLimit ? 'text-danger' : isSubjectNearLimit ? 'text-warning' : 'text-secondary'}`}>
                 {subjectValue.length} / 40
-              </span>
+              </small>
             </div>
             <Input 
               label="Subject *" 
@@ -199,9 +199,9 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
               {...register('subject')}
             />
             {isSubjectAtLimit && !errors.subject && (
-              <span className="captionClassName text-warning mt-1.5 block">
+              <small className="text-warning mt-1.5 block">
                 Maximum 40 characters allowed.
-              </span>
+              </small>
             )}
           </div>
 
@@ -251,7 +251,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
           )}
 
           {isFetchingControls && dynamicControls.length === 0 && (
-            <div className="bodyClassName text-secondary italic">Loading category requirements...</div>
+            <div className="text-secondary italic">Loading category requirements...</div>
           )}
 
           {/* File Upload Section */}

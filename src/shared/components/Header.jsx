@@ -11,13 +11,13 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
       {/* Left: Branding */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-[8px] border border-white/20 bg-white/10 flex items-center justify-center">
-          <span className="text-white buttonMediumClassName">TS</span>
+          <span className="text-white">TS</span>
         </div>
         <div className="flex flex-col">
-          <h1 className="text-white brandClassName">
+          <h1 className="text-white brand-title">
             Tata Steel Utilities and Infrastructure Services Limited
           </h1>
-          <p className="text-slate-400 captionClassName">
+          <p className="text-slate-400">
             {portalName}
           </p>
         </div>
@@ -34,11 +34,11 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
         {/* Profile */}
         <div className="flex items-center gap-2 cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center">
-            <span className="text-white sectionLabelClassName">
+            <span className="text-white">
               {profile?.name?.charAt(0) || 'A'}
             </span>
           </div>
-          <span className="text-white sectionLabelClassName">
+          <span className="text-white">
             {profile?.name || 'ABC Suppliers Pvt Ltd'}
           </span>
         </div>
@@ -46,7 +46,7 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
         {/* Logout */}
         <button className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
           <LogOut className="w-4 h-4" />
-          <span className="sectionLabelClassName">Logout</span>
+          <span>Logout</span>
         </button>
       </div>
     </header>

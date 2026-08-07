@@ -127,7 +127,7 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
-        <label className="sectionLabelClassName text-primary-hover">
+        <label className="text-primary-hover">
           {label}
         </label>
       )}
@@ -147,10 +147,10 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
         onDrop={handleDrop}
       >
         <UploadCloud className="h-8 w-8 text-muted mb-2" />
-        <p className="sectionLabelClassName text-secondary">Click to upload or drag and drop</p>
-        <p className="captionClassName text-muted">
+        <p className="text-secondary">Click to upload or drag and drop</p>
+        <small className="text-muted">
           {multiple ? "Max file size 5MB (up to 5 files)" : "Max file size 5MB"}
-        </p>
+        </small>
         <input
           type="file"
           className="hidden"
@@ -163,14 +163,14 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
         />
       </div>
 
-      {displayError && <span className="captionClassName text-danger">{displayError}</span>}
+      {displayError && <small className="text-danger">{displayError}</small>}
 
       {/* Uploaded File Items */}
       {filesList.length > 0 && (
         <ul className="mt-3 flex flex-col gap-2">
           {filesList.map((file, idx) => (
             <li key={idx} className="flex items-center justify-between bg-surface border border-default p-3 rounded-control shadow-sm">
-              <span className="sectionLabelClassName text-primary-hover truncate max-w-[80%]">{file.name}</span>
+              <span className="text-primary-hover truncate max-w-[80%]">{file.name}</span>
               <button 
                 type="button" 
                 onClick={() => removeFile(idx)}

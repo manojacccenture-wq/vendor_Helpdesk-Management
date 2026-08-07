@@ -9,21 +9,21 @@ export const Textarea = React.forwardRef(({ className, error, label, ...props },
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
-        <label className="sectionLabelClassName text-primary-hover">
+        <label className="text-primary-hover">
           {labelText}
           {isRequired && <span className="text-danger"> *</span>}
         </label>
       )}
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-control border border-hover bg-surface px-3 py-2 bodyClassName text-primary placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
+          "flex min-h-[80px] w-full rounded-control border border-hover bg-surface px-3 py-2 text-primary placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
           error && "border-danger focus-visible:ring-danger",
           className
         )}
         ref={ref}
         {...props}
       />
-      {error && <span className="captionClassName text-danger">{error}</span>}
+      {error && <small className="text-danger">{error}</small>}
     </div>
   );
 });

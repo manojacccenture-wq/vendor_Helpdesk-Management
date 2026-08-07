@@ -23,13 +23,13 @@ export const HelpdeskPriorityBadge = ({ priority, isOverdue = false }) => {
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className={cn("px-3 py-1 rounded-full badgeClassName whitespace-nowrap", getPriorityStyles())}>
+      <small className={cn("px-3 py-1 rounded-full whitespace-nowrap", getPriorityStyles())}>
         {priority}
-      </span>
+      </small>
       {isOverdue && (
-        <span className={cn("px-3 py-1 rounded-full badgeClassName whitespace-nowrap", getOverdueStyles())}>
+        <small className={cn("px-3 py-1 rounded-full whitespace-nowrap", getOverdueStyles())}>
           OVERDUE
-        </span>
+        </small>
       )}
     </div>
   );

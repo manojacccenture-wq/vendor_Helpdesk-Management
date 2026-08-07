@@ -18,7 +18,7 @@ export const VendorTabs = () => {
             to={tab.path}
             end
             className={({ isActive }) => cn(
-              "pb-3 tableHeaderClassName transition-colors relative",
+              "pb-3 transition-colors relative",
               isActive ? "text-primary" : "text-muted hover:text-secondary"
             )}
           >

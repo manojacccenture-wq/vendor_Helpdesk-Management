@@ -16,7 +16,7 @@ export const DashboardMetrics = () => {
     return (
       <div className="flex items-center gap-2 text-danger bg-danger-soft p-4 rounded-card mb-8 shadow-sm">
         <AlertCircle className="w-5 h-5" />
-        <span className="sectionLabelClassName">Failed to load ticket metrics. Please try again.</span>
+        <span>Failed to load ticket metrics. Please try again.</span>
       </div>
     );
   }
@@ -26,8 +26,8 @@ export const DashboardMetrics = () => {
       
       <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-secondary sectionLabelClassName mb-1">Total tickets</p>
-          <h2 className="text-primary metricValueClassName">
+          <p className="text-secondary mb-1">Total tickets</p>
+          <h2 className="text-primary">
             {isLoading ? '...' : data?.totalCount ?? 0}
           </h2>
         </div>
@@ -38,8 +38,8 @@ export const DashboardMetrics = () => {
 
       <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-secondary sectionLabelClassName mb-1">In progress</p>
-          <h2 className="text-primary metricValueClassName">
+          <p className="text-secondary mb-1">In progress</p>
+          <h2 className="text-primary">
             {isLoading ? '...' : data?.inProgress ?? 0}
           </h2>
         </div>
@@ -50,8 +50,8 @@ export const DashboardMetrics = () => {
 
       <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-secondary sectionLabelClassName mb-1">Resolved</p>
-          <h2 className="text-primary metricValueClassName">
+          <p className="text-secondary mb-1">Resolved</p>
+          <h2 className="text-primary">
             {isLoading ? '...' : data?.resolved ?? 0}
           </h2>
         </div>

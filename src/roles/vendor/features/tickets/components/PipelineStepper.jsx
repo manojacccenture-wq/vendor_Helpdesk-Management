@@ -49,13 +49,13 @@ export const PipelineStepper = ({ status, showLabels = false, className }) => {
                 <div className="relative flex flex-col items-center justify-center">
                   <div className={cn("w-[10px] h-[10px] rounded-full flex-shrink-0 z-10", dotColor)} />
                   {label && (
-                    <span className={cn(
-                      "badgeClassName whitespace-nowrap absolute top-4",
+                    <small className={cn(
+                      "whitespace-nowrap absolute top-4",
                       stepNumber === currentStep ? "text-warning" : 
                       (currentStep === 4 || stepNumber < currentStep) ? "text-success" : "text-secondary"
                     )}>
                       {label}
-                    </span>
+                    </small>
                   )}
                 </div>
               ) : (

@@ -32,7 +32,7 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
   if (isError) {
     return (
       <div className="w-full bg-surface border border-default rounded-control p-8 text-center">
-        <span className="sectionLabelClassName text-danger">Failed to load tickets. Please try again.</span>
+        <span className="text-danger">Failed to load tickets. Please try again.</span>
       </div>
     );
   }
@@ -43,43 +43,43 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="border-b border-default bg-surface-hover">
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[140px]">Ticket #</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary">Subject</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[220px]">Category</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[120px]">Status</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[120px]">Pipeline</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[120px]">Created</th>
-              <th className="py-4 px-6 tableHeaderClassName text-secondary w-[140px]">Action</th>
+              <th className="py-4 px-6 text-secondary w-[140px]">Ticket #</th>
+              <th className="py-4 px-6 text-secondary">Subject</th>
+              <th className="py-4 px-6 text-secondary w-[220px]">Category</th>
+              <th className="py-4 px-6 text-secondary w-[120px]">Status</th>
+              <th className="py-4 px-6 text-secondary w-[120px]">Pipeline</th>
+              <th className="py-4 px-6 text-secondary w-[120px]">Created</th>
+              <th className="py-4 px-6 text-secondary w-[140px]">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-default">
             {isLoading ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center">
-                  <span className="sectionLabelClassName text-secondary">Loading tickets...</span>
+                  <span className="text-secondary">Loading tickets...</span>
                 </td>
               </tr>
             ) : filteredTickets.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center">
-                  <span className="sectionLabelClassName text-secondary">No tickets found.</span>
+                  <span className="text-secondary">No tickets found.</span>
                 </td>
               </tr>
             ) : (
               filteredTickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-surface-hover/50 transition-colors">
                   <td className="py-4 px-6">
-                    <span className="ticketIdClassName text-secondary">{ticket.ticketNo}</span>
+                    <code className="text-secondary">{ticket.ticketNo}</code>
                   </td>
                   <td className="py-4 px-6 pr-12">
-                    <span className="sectionLabelClassName text-primary-hover leading-snug block">
+                    <span className="text-primary-hover leading-snug block">
                       {ticket.subject}
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="inline-block px-3 py-1 bg-surface-active text-secondary badgeClassName rounded-full whitespace-nowrap">
+                    <small className="inline-block px-3 py-1 bg-surface-active text-secondary rounded-full whitespace-nowrap">
                       {ticket.category}
-                    </span>
+                    </small>
                   </td>
                   <td className="py-4 px-6">
                     <StatusBadge status={ticket.status} />
@@ -89,15 +89,15 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
                     <PipelineStepper status={ticket.status} />
                   </td>
                   <td className="py-4 px-6">
-                    <span className="captionClassName text-secondary whitespace-nowrap">
+                    <small className="text-secondary whitespace-nowrap">
                       {ticket.createAt ? new Date(ticket.createAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                    </span>
+                    </small>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => navigate(`/vendor/ticket/${ticket.id}`)}
-                        className="sectionLabelClassName text-primary hover:underline"
+                        className="text-primary hover:underline"
                       >
                         View
                       </button>

@@ -24,7 +24,7 @@ export const StatusBadge = ({ status, className }) => {
   return (
     <span 
       className={cn(
-        "px-3 py-1 rounded-full badgeClassName whitespace-nowrap border", 
+        "px-3 py-1 rounded-full whitespace-nowrap border", 
         styles,
         className
       )}

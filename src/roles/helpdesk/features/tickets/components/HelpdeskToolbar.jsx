@@ -35,7 +35,7 @@ export const HelpdeskToolbar = ({
           placeholder="Search tickets..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full h-10 pl-10 pr-4 border border-default rounded-control bodyClassName text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
+          className="w-full h-10 pl-10 pr-4 border border-default rounded-control text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
         />
       </div>
 
@@ -45,7 +45,7 @@ export const HelpdeskToolbar = ({
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
           disabled={isLoadingStatuses}
-          className="w-full h-10 px-4 border border-default rounded-control bodyClassName text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
+          className="w-full h-10 px-4 border border-default rounded-control text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
         >
           {statusOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -61,7 +61,7 @@ export const HelpdeskToolbar = ({
           value={priorityFilter}
           onChange={(e) => onPriorityChange(e.target.value)}
           disabled={isLoadingPriorities}
-          className="w-full h-10 px-4 border border-default rounded-control bodyClassName text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
+          className="w-full h-10 px-4 border border-default rounded-control text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
         >
           {priorityOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -74,7 +74,7 @@ export const HelpdeskToolbar = ({
       {/* Clear Filters Button */}
       <button
         onClick={onClearFilters}
-        className="h-10 px-4 rounded-control border border-hover bg-surface text-secondary sectionLabelClassName hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="h-10 px-4 rounded-control border border-hover bg-surface text-secondary hover:bg-surface-hover transition-colors whitespace-nowrap"
       >
         Clear filters
       </button>

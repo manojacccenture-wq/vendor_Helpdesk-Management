@@ -22,7 +22,7 @@ export const AppInitGate = ({ children }) => {
   if (!initialized || loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="bodyClassName text-secondary">Initializing Enterprise App...</div>
+        <p className="text-secondary">Initializing Enterprise App...</p>
       </div>
     );
   }

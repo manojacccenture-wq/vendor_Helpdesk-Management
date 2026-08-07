@@ -21,7 +21,7 @@ export const VendorInfoCard = ({ vendor = {} }) => {
               e.stopPropagation();
               setShowSensitive(!showSensitive);
             }}
-            className="sectionLabelClassName text-success hover:underline"
+            className="text-success hover:underline"
             aria-label={showSensitive ? "Hide Sensitive Information" : "Show Sensitive Information"}
           >
             {showSensitive ? "Hide Details" : "Show Details"}
@@ -34,45 +34,45 @@ export const VendorInfoCard = ({ vendor = {} }) => {
         <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
-            <p className="badgeClassName text-secondary mb-1">Name</p>
-            <p className="sectionLabelClassName text-primary">{vendor.name || '---'}</p>
+            <small className="text-secondary mb-1 block">Name</small>
+            <p className="text-primary">{vendor.name || '---'}</p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">Username</p>
-            <p className="sectionLabelClassName text-primary">{vendor.username || '---'}</p>
+            <small className="text-secondary mb-1 block">Username</small>
+            <p className="text-primary">{vendor.username || '---'}</p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">Vendor Code</p>
-            <p className="sectionLabelClassName text-primary">{vendor.userCode || '---'}</p>
+            <small className="text-secondary mb-1 block">Vendor Code</small>
+            <p className="text-primary">{vendor.userCode || '---'}</p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">Email</p>
-            <p className="sectionLabelClassName text-primary">
+            <small className="text-secondary mb-1 block">Email</small>
+            <p className="text-primary">
               {showSensitive ? (vendor.email || '---') : (maskEmail(vendor.email) || '---')}
             </p>
           </div>
           {/* New fields pending backend integration */}
           <div>
-            <p className="badgeClassName text-secondary mb-1">Mobile Number</p>
-            <p className="sectionLabelClassName text-primary">
+            <small className="text-secondary mb-1 block">Mobile Number</small>
+            <p className="text-primary">
               {showSensitive ? (vendor.mobile || '---') : (maskMobile(vendor.mobile) || '---')}
             </p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">GST Number</p>
-            <p className="sectionLabelClassName text-primary">
+            <small className="text-secondary mb-1 block">GST Number</small>
+            <p className="text-primary">
               {showSensitive ? (vendor.gst || '---') : (maskGst(vendor.gst) || '---')}
             </p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">PAN Number</p>
-            <p className="sectionLabelClassName text-primary">
+            <small className="text-secondary mb-1 block">PAN Number</small>
+            <p className="text-primary">
               {showSensitive ? (vendor.pan || '---') : (maskPan(vendor.pan) || '---')}
             </p>
           </div>
           <div>
-            <p className="badgeClassName text-secondary mb-1">Address</p>
-            <p className="sectionLabelClassName text-primary">
+            <small className="text-secondary mb-1 block">Address</small>
+            <p className="text-primary">
               {showSensitive ? (vendor.address || '---') : (maskAddress(vendor.address) || '---')}
             </p>
           </div>

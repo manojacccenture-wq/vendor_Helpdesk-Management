@@ -40,9 +40,9 @@ const DetailField = ({ label, value, icon: Icon, className = '' }) => (
   <div className={`flex flex-col gap-1 ${className}`}>
     <div className="flex items-center gap-2">
       {Icon && <Icon className="w-4 h-4 text-secondary" />}
-      <p className="badgeClassName text-secondary uppercase tracking-wide">{label}</p>
+      <small className="text-secondary uppercase tracking-wide">{label}</small>
     </div>
-    <p className="sectionLabelClassName text-primary leading-relaxed">{value || '---'}</p>
+    <p className="text-primary leading-relaxed">{value || '---'}</p>
   </div>
 );
 
@@ -68,8 +68,8 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="h1ClassName text-primary">Ticket Details</h1>
-            <p className="bodyClassName text-secondary">Loading ticket information...</p>
+            <h1 className="text-primary">Ticket Details</h1>
+            <p className="text-secondary">Loading ticket information...</p>
           </div>
         </div>
         
@@ -77,7 +77,7 @@ export const TicketDetailsPage = () => {
           <CardContent className="flex items-center justify-center py-12">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-success border-t-transparent rounded-full animate-spin" />
-              <span className="sectionLabelClassName text-secondary">Loading ticket details...</span>
+              <span className="text-secondary">Loading ticket details...</span>
             </div>
           </CardContent>
         </Card>
@@ -92,8 +92,8 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="h1ClassName text-primary">Ticket Details</h1>
-            <p className="bodyClassName text-secondary">Error loading ticket</p>
+            <h1 className="text-primary">Ticket Details</h1>
+            <p className="text-secondary">Error loading ticket</p>
           </div>
         </div>
         
@@ -101,8 +101,8 @@ export const TicketDetailsPage = () => {
           <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
             <AlertCircle className="w-12 h-12 text-danger" />
             <div className="text-center">
-              <h3 className="h2ClassName text-primary mb-2">Failed to load ticket details</h3>
-              <p className="bodyClassName text-secondary mb-4">
+              <h3 className="text-primary mb-2">Failed to load ticket details</h3>
+              <p className="text-secondary mb-4">
                 {error?.data || 'An error occurred while loading the ticket details.'}
               </p>
               <Button variant="primary" onClick={handleBack}>
@@ -122,8 +122,8 @@ export const TicketDetailsPage = () => {
         <div className="flex items-center gap-4">
           <BackButton to="/vendor" />
           <div className="flex flex-col gap-1">
-            <h1 className="h1ClassName text-primary">Ticket Details</h1>
-            <p className="bodyClassName text-secondary">Ticket not found</p>
+            <h1 className="text-primary">Ticket Details</h1>
+            <p className="text-secondary">Ticket not found</p>
           </div>
         </div>
         
@@ -131,8 +131,8 @@ export const TicketDetailsPage = () => {
           <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
             <FileText className="w-12 h-12 text-secondary" />
             <div className="text-center">
-              <h3 className="h2ClassName text-primary mb-2">Ticket not found</h3>
-              <p className="bodyClassName text-secondary mb-4">
+              <h3 className="text-primary mb-2">Ticket not found</h3>
+              <p className="text-secondary mb-4">
                 The ticket you're looking for doesn't exist or has been removed.
               </p>
               <Button variant="primary" onClick={handleBack}>
@@ -152,10 +152,10 @@ export const TicketDetailsPage = () => {
       <div className="flex items-center gap-4">
         <BackButton to="/vendor" />
         <div className="flex flex-col gap-1">
-          <h1 className="h1ClassName text-primary">
+          <h1 className="text-primary">
             Ticket Details
           </h1>
-          <p className="bodyClassName text-secondary">
+          <p className="text-secondary">
             Viewing ticket {ticketDetails.ticketNo || `#${id}`}
           </p>
         </div>
@@ -204,7 +204,7 @@ export const TicketDetailsPage = () => {
         </CardHeader>
         <CardContent>
           <div className="bg-surface-hover rounded-control p-4 border border-default">
-            <p className="bodyClassName text-primary leading-relaxed whitespace-pre-wrap">
+            <p className="text-primary leading-relaxed whitespace-pre-wrap">
               {ticketDetails.ticketDescription || 'No description provided.'}
             </p>
           </div>
@@ -338,12 +338,12 @@ export const TicketDetailsPage = () => {
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-secondary" />
                     <div className="flex flex-col">
-                      <span className="sectionLabelClassName text-primary">
+                      <span className="text-primary">
                         {attachment.originalFileName}
                       </span>
-                      <span className="captionClassName text-secondary">
+                      <small className="text-secondary">
                         {formatFileSize(attachment.fileSizeBytes)} • {attachment.mimeType}
-                      </span>
+                      </small>
                     </div>
                   </div>
                   <Button 
@@ -382,7 +382,7 @@ export const TicketDetailsPage = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-8 gap-2">
               <FileText className="w-8 h-8 text-secondary" />
-              <p className="bodyClassName text-secondary">No attachments</p>
+              <p className="text-secondary">No attachments</p>
             </div>
           )}
         </CardContent>

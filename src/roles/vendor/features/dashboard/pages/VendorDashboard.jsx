@@ -32,7 +32,7 @@ export const VendorDashboard = () => {
       <VendorTabs />
 
       {/* Main Page Title */}
-      <h1 className="h1ClassName text-primary mb-6">
+      <h1 className="text-primary mb-6">
         My Tickets
       </h1>
 
