@@ -68,16 +68,17 @@ export const apiSlice = createApi({
       }),
     }),
     getTicketCount: builder.query({
-      query: (userCode) => ({ 
-        url: `/api/Tickets/ticketcount?userCode=${userCode}`, 
+      query: ({ role, userCode }) => ({ 
+        url: `/api/Tickets/ticketcount?role=${role}&userCode=${userCode}`, 
         method: 'GET' 
       }),
       providesTags: ['Ticket'],
     }),
     getTicketList: builder.query({
-      query: ({ userCode, statusId, categoryId }) => {
+      query: ({ userCode, role, statusId, categoryId }) => {
         const params = new URLSearchParams();
         if (userCode) params.append('userCode', userCode);
+        if (role) params.append('role', role);
         if (statusId) params.append('statusId', statusId);
         if (categoryId) params.append('categoryId', categoryId);
         return {

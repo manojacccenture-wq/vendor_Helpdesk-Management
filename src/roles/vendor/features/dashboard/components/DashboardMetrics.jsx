@@ -3,12 +3,13 @@ import { Ticket, Hourglass, Check, AlertCircle } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { Card } from '../../../../../shared/components/Card.jsx';
 import { useGetTicketCountQuery } from '../../../../../shared/api/apiSlice.js';
-import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
+import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 
 export const DashboardMetrics = () => {
   const profile = useSelector(selectUserProfile);
-  const { data, isLoading, isError } = useGetTicketCountQuery(profile?.userCode, {
-    skip: !profile?.userCode
+  const role = useSelector(selectUserRole);
+  const { data, isLoading, isError } = useGetTicketCountQuery({ role, userCode: profile?.userCode }, {
+    skip: !profile?.userCode || !role
   });
 
   if (isError) {

@@ -4,18 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { PipelineStepper } from './PipelineStepper.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
-import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
+import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 
 export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
   const profile = useSelector(selectUserProfile);
+  const role = useSelector(selectUserRole);
   const navigate = useNavigate();
 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
+    role,
     statusId,
     categoryId
   }, {
-    skip: !profile?.userCode
+    skip: !profile?.userCode || !role
   });
 
   const filteredTickets = tickets.filter(ticket => {

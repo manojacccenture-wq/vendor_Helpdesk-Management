@@ -4,18 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { HelpdeskPriorityBadge } from './HelpdeskPriorityBadge.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
-import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
+import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 
 export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter }) => {
   const profile = useSelector(selectUserProfile);
+  const role = useSelector(selectUserRole);
   const navigate = useNavigate();
 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
+    role,
     statusId: statusFilter !== 'all' ? statusFilter : undefined,
     categoryId: undefined
   }, {
-    skip: !profile?.userCode
+    skip: !profile?.userCode || !role
   });
 
   // Client-side filtering for search and priority (API doesn't support these params directly)
