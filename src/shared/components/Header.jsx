@@ -2,6 +2,7 @@ import React from 'react';
 import { Bell, LogOut } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { selectUserProfile } from '../../features/user/store/selectors.js';
+import { Button } from './Button.jsx';
 
 export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
   const profile = useSelector(selectUserProfile);
@@ -44,10 +45,13 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
         </div>
 
         {/* Logout */}
-        <button className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 text-slate-300 hover:text-white"
+        >
           <LogOut className="w-4 h-4" />
           <span>Logout</span>
-        </button>
+        </Button>
       </div>
     </header>
   );

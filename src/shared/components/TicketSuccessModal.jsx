@@ -51,9 +51,6 @@ export const TicketSuccessModal = ({
           <p className="text-secondary mb-2">
             Your ticket has been created and will be reviewed shortly.
           </p>
-          <p className="text-secondary mb-8">
-            You will receive email and SMS notifications.
-          </p>
           
           {/* Action Button */}
           <Button

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { UploadCloud, X } from 'lucide-react';
 import { cn } from '../utils/cn.js';
+import { Button } from './Button.jsx';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
@@ -171,14 +172,15 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
           {filesList.map((file, idx) => (
             <li key={idx} className="flex items-center justify-between bg-surface border border-default p-3 rounded-control shadow-sm">
               <span className="text-primary-hover truncate max-w-[80%]">{file.name}</span>
-              <button 
+              <Button 
+                variant="ghost"
                 type="button" 
                 onClick={() => removeFile(idx)}
-                className="text-muted hover:text-danger transition-colors"
+                className="text-muted hover:text-danger p-1"
                 disabled={disabled || isUploading}
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

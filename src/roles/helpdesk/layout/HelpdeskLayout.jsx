@@ -4,7 +4,7 @@ import { Header } from '../../../shared/components/Header.jsx';
 
 export const HelpdeskLayout = () => {
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Reusable Top Header */}
       <Header portalName="Helpdesk admin portal" />
 

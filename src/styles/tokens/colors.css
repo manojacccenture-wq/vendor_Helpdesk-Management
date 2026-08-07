@@ -29,6 +29,17 @@
   --color-hover: #CBD5E1;
   --color-surface-active: #F1F5F9;
 
+  /* Priority States */
+  --color-priority-low: #8AD1A4;
+  --color-priority-low-text: #1A1A1A;
+  --color-priority-medium: #F4D983;
+  --color-priority-medium-text: #9E917F;
+  --color-priority-high: #DD8622; 
+  --color-priority-high-text: #1E293B;
+  --color-priority-high-active: #DD8622;
+  --color-priority-escalate: #F08EA3;
+  --color-priority-escalate-text: #1A1A1A;
+
   /* Radius Tokens */
   --radius-control: 8px;
   --radius-card: 12px;

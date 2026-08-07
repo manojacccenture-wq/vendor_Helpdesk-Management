@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { PipelineStepper } from './PipelineStepper.jsx';
+import { Button } from '../../../../../shared/components/Button.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 
@@ -95,12 +96,12 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <button 
+                      <Button 
+                        variant="ghost"
                         onClick={() => navigate(`/vendor/ticket/${ticket.id}`)}
-                        className="text-primary hover:underline"
                       >
                         View
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

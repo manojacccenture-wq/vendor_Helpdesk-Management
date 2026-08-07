@@ -1,5 +1,8 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import { Input } from '../../../../../shared/components/Input.jsx';
+import { Select } from '../../../../../shared/components/Select.jsx';
+import { Button } from '../../../../../shared/components/Button.jsx';
 import { useGetTicketStatusesQuery, useGetPrioritiesQuery } from '../../../../../shared/api/apiSlice.js';
 
 export const HelpdeskToolbar = ({
@@ -29,55 +32,44 @@ export const HelpdeskToolbar = ({
       
       {/* Search Input */}
       <div className="relative flex-1 w-full sm:w-auto sm:min-w-[280px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
-        <input
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary z-10" />
+        <Input
           type="text"
           placeholder="Search tickets..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full h-10 pl-10 pr-4 border border-default rounded-control text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
+          className="pl-10"
         />
       </div>
 
       {/* Status Filter */}
       <div className="w-full sm:w-auto sm:min-w-[160px]">
-        <select
+        <Select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
+          options={statusOptions}
           disabled={isLoadingStatuses}
-          className="w-full h-10 px-4 border border-default rounded-control text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
-        >
-          {statusOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       {/* Priority Filter */}
       <div className="w-full sm:w-auto sm:min-w-[160px]">
-        <select
+        <Select
           value={priorityFilter}
           onChange={(e) => onPriorityChange(e.target.value)}
+          options={priorityOptions}
           disabled={isLoadingPriorities}
-          className="w-full h-10 px-4 border border-default rounded-control text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-success focus:border-transparent"
-        >
-          {priorityOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       {/* Clear Filters Button */}
-      <button
+      <Button
+        variant="ghost"
         onClick={onClearFilters}
-        className="h-10 px-4 rounded-control border border-hover bg-surface text-secondary hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="whitespace-nowrap"
       >
         Clear filters
-      </button>
+      </Button>
 
     </div>
   );
