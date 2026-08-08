@@ -89,8 +89,8 @@ export const apiSlice = createApi({
       providesTags: ['Ticket'],
     }),
     getTicketDetails: builder.query({
-      query: (ticketId) => ({
-        url: `/api/Tickets/ticketdetails?ticketId=${ticketId}`,
+      query: ({ ticketId, role, userCode }) => ({
+        url: `/api/Tickets/ticketdetails?ticketId=${ticketId}&role=${role}&userCode=${userCode}`,
         method: 'GET',
       }),
       providesTags: ['Ticket'],

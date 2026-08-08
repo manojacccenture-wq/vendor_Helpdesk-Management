@@ -7,7 +7,7 @@ import { Button } from '../../../../../shared/components/Button.jsx';
 import { BackButton } from '../../../../../shared/components/BackButton.jsx';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { useGetTicketDetailsQuery } from '../../../../../shared/api/apiSlice.js';
-import { selectUserProfile } from '../../../../../features/user/store/selectors.js';
+import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 import { downloadTicketAttachment } from '../../../../../shared/utils/download.js';
 
 // Format date helper
@@ -80,10 +80,15 @@ export const TicketDetailsPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const profile = useSelector(selectUserProfile);
+  const role = useSelector(selectUserRole);
   const [downloadingAttachments, setDownloadingAttachments] = useState(new Set());
 
-  const { data: ticketDetails, isLoading, isError, error } = useGetTicketDetailsQuery(id, {
-    skip: !id
+  const { data: ticketDetails, isLoading, isError, error } = useGetTicketDetailsQuery({
+    ticketId: id,
+    role,
+    userCode: profile?.userCode
+  }, {
+    skip: !id || !profile?.userCode || !role
   });
 
   const handleBack = () => {
@@ -199,7 +204,7 @@ export const TicketDetailsPage = () => {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
-      
+
       {/* Page Header */}
       <div className="flex items-center gap-4">
         <BackButton to="/vendor" />
@@ -211,7 +216,7 @@ export const TicketDetailsPage = () => {
           "What did the vendor actually submit?"
       ═══════════════════════════════════════════════════════════ */}
       <Card className="w-full">
-        <CardHeader>
+        {/* <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-success" />
@@ -223,7 +228,7 @@ export const TicketDetailsPage = () => {
               )}
             </div>
           </div>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent className="p-0">
 
           {/* ─── Hero: Ticket Number + Status + Subject ─── */}
@@ -232,8 +237,14 @@ export const TicketDetailsPage = () => {
               <div className="flex items-center gap-3">
                 <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
                 <StatusBadge status={status} />
+                <div className="flex items-center gap-2">
+                  {priority && (
+                    <InfoChip>{priority}</InfoChip>
+                  )}
+                </div>
               </div>
             </div>
+
             <h2 className="text-card-title text-primary">{subject}</h2>
           </div>
 
@@ -254,10 +265,10 @@ export const TicketDetailsPage = () => {
               <DetailField label="Source" value={source} icon={Layers} />
               <DetailField label="Tags" value={tags} icon={Tag} />
               <DetailField label="BTS Number" value={btsNo} icon={FileText} />
-              <DetailField 
-                label="Bill Submitted Date" 
-                value={billSubmittedDate ? formatDate(billSubmittedDate) : null} 
-                icon={Calendar} 
+              <DetailField
+                label="Bill Submitted Date"
+                value={billSubmittedDate ? formatDate(billSubmittedDate) : null}
+                icon={Calendar}
               />
               <DetailField label="Number of Processing Days" value={processingDays} icon={Clock} />
             </div>
@@ -272,7 +283,7 @@ export const TicketDetailsPage = () => {
             {hasAttachments ? (
               <div className="flex flex-col gap-2">
                 {attachments.map((attachment, index) => (
-                  <div 
+                  <div
                     key={attachment.uuid || index}
                     className="flex items-center justify-between py-2 px-3 bg-surface-hover rounded-control border border-default"
                   >
@@ -285,14 +296,14 @@ export const TicketDetailsPage = () => {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       aria-label={`Download ${attachment.originalFileName}`}
                       disabled={downloadingAttachments.has(attachment.uuid)}
                       onClick={async () => {
                         if (downloadingAttachments.has(attachment.uuid)) return;
-                        
+
                         setDownloadingAttachments(prev => new Set([...prev, attachment.uuid]));
                         try {
                           await downloadTicketAttachment(
@@ -379,7 +390,7 @@ export const TicketDetailsPage = () => {
 
       {/* Footer */}
       <div className="flex justify-end pb-4">
-        <Button variant="primary" onClick={handleBack}>
+        <Button variant="black" onClick={handleBack}>
           Back to Dashboard
         </Button>
       </div>
