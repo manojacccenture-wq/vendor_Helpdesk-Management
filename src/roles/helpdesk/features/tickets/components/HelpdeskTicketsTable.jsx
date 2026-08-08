@@ -24,7 +24,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
     skip: !profile?.userCode || !role
   });
 
-  const { data: departments = [] } = useGetDepartmentsQuery();
+  const { data: departments = [] } = useGetDepartmentsQuery({ role, userCode: profile?.userCode }, { skip: !profile?.userCode || !role });
 
   // Client-side filtering for search and priority (API doesn't support these params directly)
   const filteredTickets = tickets.filter(ticket => {
@@ -149,7 +149,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
                          👁 View
                         </Button>
                         <Button
-                          variant="primary"
+                          variant="black"
                           onClick={() => handleAssignClick(ticket)}
                         >
                           Assign

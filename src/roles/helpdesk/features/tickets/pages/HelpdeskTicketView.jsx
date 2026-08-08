@@ -52,12 +52,13 @@ const InfoChip = ({ children }) => (
 );
 
 /**
- * TicketDetailsPage — Redesigned with two-card layout
+ * HelpdeskTicketView — Ticket details page for Helpdesk role (L2/HelpdeskExecutive)
  *
- * Card 1 (Primary): Ticket Information — everything the vendor submitted
- * Card 2 (Secondary): Processing Information — workflow and system metadata
+ * Card 1 (Primary): Ticket Information
+ * Card 2 (Secondary): Processing Information
+ * Card 3: Add Comment
  */
-export const TicketDetailsPage = () => {
+export const HelpdeskTicketView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const profile = useSelector(selectUserProfile);
@@ -73,7 +74,7 @@ export const TicketDetailsPage = () => {
   });
 
   const handleBack = () => {
-    navigate('/vendor');
+    navigate('/helpdesk');
   };
 
   // Loading state
@@ -81,7 +82,7 @@ export const TicketDetailsPage = () => {
     return (
       <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
-          <BackButton to="/vendor" />
+          <BackButton to="/helpdesk" />
           <div className="flex flex-col gap-1">
             <h1 className="text-primary">Ticket Details</h1>
             <p className="text-secondary">Loading ticket information...</p>
@@ -104,7 +105,7 @@ export const TicketDetailsPage = () => {
     return (
       <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
-          <BackButton to="/vendor" />
+          <BackButton to="/helpdesk" />
           <h1 className="text-primary">Ticket Details</h1>
         </div>
         <Card className="w-full">
@@ -130,7 +131,7 @@ export const TicketDetailsPage = () => {
     return (
       <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
-          <BackButton to="/vendor" />
+          <BackButton to="/helpdesk" />
           <h1 className="text-primary">Ticket Details</h1>
         </div>
         <Card className="w-full">
@@ -188,28 +189,14 @@ export const TicketDetailsPage = () => {
 
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <BackButton to="/vendor" />
+        <BackButton to="/helpdesk" />
         <h1 className="text-primary">Ticket Details</h1>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
           CARD 1 — PRIMARY: Ticket Information
-          "What did the vendor actually submit?"
       ═══════════════════════════════════════════════════════════ */}
       <Card className="w-full">
-        {/* <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="w-5 h-5 text-success" />
-              Ticket Information
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              {priority && (
-                <InfoChip>{priority}</InfoChip>
-              )}
-            </div>
-          </div>
-        </CardHeader> */}
         <CardContent className="p-0">
 
           {/* ─── Hero: Ticket Number + Status + Subject ─── */}
@@ -324,7 +311,6 @@ export const TicketDetailsPage = () => {
 
       {/* ═══════════════════════════════════════════════════════════
           CARD 2 — SECONDARY: Processing Information
-          "How the helpdesk is processing this ticket."
       ═══════════════════════════════════════════════════════════ */}
       <Card className="w-full">
         <CardHeader>

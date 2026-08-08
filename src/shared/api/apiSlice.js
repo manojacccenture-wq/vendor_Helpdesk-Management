@@ -32,7 +32,7 @@ export const apiSlice = createApi({
   tagTypes: ['Ticket'],
   endpoints: (builder) => ({
     getDepartments: builder.query({
-      query: () => ({ url: '/api/App/departments', method: 'GET' }),
+      query: ({ role, userCode }) => ({ url: `/api/App/departments?role=${role}&userCode=${userCode}`, method: 'GET' }),
     }),
     getCategories: builder.query({
       query: () => ({ url: '/api/App/categories', method: 'GET' }),
@@ -60,6 +60,35 @@ export const apiSlice = createApi({
         },
       }),
       invalidatesTags: ['Ticket'],
+    }),
+    addComment: builder.mutation({
+      query: ({ ticketId, parentCommentId, body, isInternal, isEdited, userCode, role }) => ({
+        url: '/api/Tickets/addcomment',
+        method: 'POST',
+        data: {
+          ticketId,
+          parentCommentId: parentCommentId || 0,
+          body,
+          isInternal: isInternal ?? false,
+          isEdited: isEdited ?? false,
+          userCode,
+          role,
+        },
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
+    getTicketComments: builder.query({
+      query: ({ ticketId, role, userCode }) => {
+        const params = new URLSearchParams();
+        if (userCode) params.append('userCode', userCode);
+        if (role) params.append('role', role);
+        if (ticketId) params.append('ticketId', ticketId);
+        return {
+          url: `/api/Tickets/viewcomments?${params.toString()}`,
+          method: 'GET',
+        };
+      },
+      providesTags: ['Ticket'],
     }),
     getSubCategoryCtrlMapping: builder.query({
       query: (subCategoryId) => ({
@@ -105,6 +134,8 @@ export const {
   useGetPrioritiesQuery,
   useGetTicketStatusesQuery,
   useCreateTicketMutation,
+  useAddCommentMutation,
+  useGetTicketCommentsQuery,
   useGetSubCategoryCtrlMappingQuery,
   useGetTicketCountQuery,
   useGetTicketListQuery,

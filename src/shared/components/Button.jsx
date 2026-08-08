@@ -5,8 +5,8 @@ const buttonVariants = {
   primary: "bg-success text-white hover:bg-success-hover border-transparent",
   secondary: "bg-surface-active text-primary hover:border-default border-transparent",
   outline: "bg-transparent text-success border-success hover:bg-success-soft",
-  ghost: "bg-transparent text-secondary hover:bg-surface-active border-transparent",
-  black: "bg-primary text-white "
+  ghost: "bg-transparent text-secondary hover:bg-surface-active border-transparent cursor-pointer",
+  black: "bg-primary text-white cursor-pointer ",
 };
 
 const buttonSizes = {
