@@ -1,32 +1,71 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Select } from './Select.jsx';
-import { Input } from './Input.jsx';
 import { Button } from './Button.jsx';
+import { useGetUsersByDepartmentQuery } from '../api/apiSlice.js';
 
 /**
  * Modal for assigning a ticket to a helpdesk agent.
  * Displays ticket details and allows selecting department, assignee, and priority.
+ *
+ * Assign To dropdown is dynamically populated via GET /api/user/users?role=BL1&deptId={deptId}
+ * When department changes, agent selection is cleared and users are re-fetched.
  */
 export const AssignTicketModal = ({
   isOpen,
   ticket,
   departments = [],
   onAssign,
-  onCancel
+  onCancel,
+  isSubmitting = false
 }) => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [assignTo, setAssignTo] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('high');
+
+  // Fetch users for the selected department
+  // Query is skipped until a department is selected
+  const { data: users = [], isLoading: isLoadingUsers, isFetching: isFetchingUsers, error: usersError } =
+    useGetUsersByDepartmentQuery(selectedDepartment, { skip: !selectedDepartment });
+
+  // When department changes, clear the previously selected agent
+  useEffect(() => {
+    setSelectedAgent('');
+  }, [selectedDepartment]);
+
+  // Reset state when modal opens with a new ticket
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDepartment('');
+      setSelectedAgent('');
+      setSelectedPriority('high');
+    }
+  }, [isOpen, ticket?.id]);
 
   if (!isOpen || !ticket) return null;
 
   // Map departments to Select-compatible format { label, value }
-  // Handles both raw API data { deptName, deptId } and pre-mapped { label, value }
   const departmentOptions = (departments || []).map(d => ({
     label: d.label || d.deptName || d.name || d.text || '',
     value: d.value ?? d.deptId ?? d.id ?? ''
   }));
+
+  // Map users to Select-compatible format
+  // Display: "Name (userCode)"  |  Value: "Name(userCode)" (payload-ready)
+  const userOptions = (users || []).map(u => ({
+    label: `${u.name || u.username || ''} (${u.userCode || ''})`,
+    value: `${u.name || u.username || ''}(${u.userCode || ''})`
+  }));
+
+  // Determine Assign To placeholder and disabled state
+  const assignToPlaceholder = !selectedDepartment
+    ? 'Select department first'
+    : isLoadingUsers || isFetchingUsers
+      ? 'Loading agents...'
+      : userOptions.length === 0
+        ? 'No agents available'
+        : 'Select agent';
+
+  const isAssignToDisabled = !selectedDepartment || isLoadingUsers || isFetchingUsers || userOptions.length === 0;
 
   const priorityOptions = [
     { value: 'low', label: 'LOW', bgColor: 'bg-priority-low', textColor: 'text-priority-low-text' },
@@ -36,11 +75,11 @@ export const AssignTicketModal = ({
   ];
 
   const handleAssign = () => {
-    if (onAssign) {
+    if (onAssign && !isSubmitting && selectedDepartment && selectedAgent) {
       onAssign({
         ticketId: ticket.id,
         department: selectedDepartment,
-        assignTo,
+        agent: selectedAgent, // Already in "Name(userCode)" format
         priority: selectedPriority
       });
     }
@@ -51,7 +90,7 @@ export const AssignTicketModal = ({
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50"
-        onClick={onCancel}
+        onClick={isSubmitting ? undefined : onCancel}
       />
 
       {/* Modal */}
@@ -85,15 +124,31 @@ export const AssignTicketModal = ({
             />
           </div>
 
-          {/* Assign To Input */}
+          {/* Assign To Select — populated from users API */}
           <div className="mb-6">
-            <Input
-              label="Assign to"
-              type="text"
-              value={assignTo}
-              onChange={(e) => setAssignTo(e.target.value)}
-              placeholder="Enter agent name"
+            <Select
+              label="Assign To"
+              value={selectedAgent}
+              onChange={(e) => setSelectedAgent(e.target.value)}
+              options={userOptions}
+              placeholder={assignToPlaceholder}
+              disabled={isAssignToDisabled}
             />
+            {/* Loading indicator */}
+            {(isLoadingUsers || isFetchingUsers) && selectedDepartment && (
+              <p className="text-xs text-secondary mt-1 flex items-center gap-1">
+                <span className="w-3 h-3 border-2 border-secondary border-t-transparent rounded-full animate-spin inline-block" />
+                Fetching agents...
+              </p>
+            )}
+            {/* Error state — API call failed */}
+            {!isLoadingUsers && !isFetchingUsers && selectedDepartment && usersError && (
+              <p className="text-xs text-danger mt-1">Failed to load agents. Please try again.</p>
+            )}
+            {/* Empty state — API succeeded but no users found */}
+            {!isLoadingUsers && !isFetchingUsers && selectedDepartment && !usersError && userOptions.length === 0 && (
+              <p className="text-xs text-secondary mt-1">No agents found for this department.</p>
+            )}
           </div>
 
           {/* Change Priority */}
@@ -125,6 +180,7 @@ export const AssignTicketModal = ({
             <Button
               variant="ghost"
               onClick={onCancel}
+              disabled={isSubmitting}
               className="px-6"
             >
               Cancel
@@ -132,9 +188,17 @@ export const AssignTicketModal = ({
             <Button
               variant="primary"
               onClick={handleAssign}
+              disabled={isSubmitting || !selectedDepartment || !selectedAgent}
               className="px-6 bg-info hover:bg-info/90"
             >
-              Assign Ticket
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Assigning...
+                </span>
+              ) : (
+                'Assign Ticket'
+              )}
             </Button>
           </div>
         </div>

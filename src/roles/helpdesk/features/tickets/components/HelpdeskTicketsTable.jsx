@@ -5,15 +5,18 @@ import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { HelpdeskPriorityBadge } from './HelpdeskPriorityBadge.jsx';
 import { AssignTicketModal } from '../../../../../shared/components/AssignTicketModal.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
-import { useGetTicketListQuery, useGetDepartmentsQuery } from '../../../../../shared/api/apiSlice.js';
+import { useGetTicketListQuery, useGetDepartmentsQuery, useAssignTicketMutation } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
+import { useNotification } from '../../../../../shared/notifications/index.js';
 
 export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter }) => {
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [assignTicket, { isLoading: isAssigning }] = useAssignTicketMutation();
 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
@@ -54,10 +57,27 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
     setIsModalOpen(true);
   };
 
-  const handleAssign = (assignmentData) => {
-    // TODO: Call API to assign ticket
-    setIsModalOpen(false);
-    setSelectedTicket(null);
+  const handleAssign = async (assignmentData) => {
+    try {
+      const response = await assignTicket({
+        ticketId: parseInt(assignmentData.ticketId, 10),
+        assignedDepartmentId: parseInt(assignmentData.department, 10),
+        assignedAgentId: assignmentData.agent, // Already in "Name(userCode)" format from modal
+      }).unwrap();
+
+      // Check API-level success flag
+      if (response?.isSuccessful === false) {
+        showError(response?.message || 'Failed to assign ticket. Please try again.');
+        return;
+      }
+
+      // Success
+      showSuccess('Ticket assigned successfully.');
+      setIsModalOpen(false);
+      setSelectedTicket(null);
+    } catch (error) {
+      showError(error?.data?.message || 'Failed to assign ticket. Please try again.');
+    }
   };
 
   const handleCancel = () => {
@@ -170,6 +190,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
         departments={departments}
         onAssign={handleAssign}
         onCancel={handleCancel}
+        isSubmitting={isAssigning}
       />
     </>
   );

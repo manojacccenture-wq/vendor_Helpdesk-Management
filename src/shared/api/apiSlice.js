@@ -124,11 +124,26 @@ export const apiSlice = createApi({
       }),
       providesTags: ['Ticket'],
     }),
+    getUsersByDepartment: builder.query({
+      query: (deptId) => ({
+        url: `/api/user/users?role=BL1&deptId=${deptId}`,
+        method: 'GET',
+      }),
+    }),
+    assignTicket: builder.mutation({
+      query: ({ ticketId, assignedDepartmentId, assignedAgentId }) => ({
+        url: '/api/Tickets/assign',
+        method: 'POST',
+        data: { ticketId, assignedDepartmentId, assignedAgentId },
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
   }),
 });
 
 export const {
   useGetDepartmentsQuery,
+  useGetUsersByDepartmentQuery,
   useGetCategoriesQuery,
   useGetSubCategoriesQuery,
   useGetPrioritiesQuery,
@@ -140,4 +155,5 @@ export const {
   useGetTicketCountQuery,
   useGetTicketListQuery,
   useGetTicketDetailsQuery,
+  useAssignTicketMutation,
 } = apiSlice;
