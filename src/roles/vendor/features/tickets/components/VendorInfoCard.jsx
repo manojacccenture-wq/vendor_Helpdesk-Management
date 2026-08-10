@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/
 import { maskMobile, maskGst, maskPan, maskAddress, maskEmail } from '../../../../../shared/utils/masking.js';
 
 export const VendorInfoCard = ({ vendor = {} }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [showSensitive, setShowSensitive] = useState(false);
 
   return (
