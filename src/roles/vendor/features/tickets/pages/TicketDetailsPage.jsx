@@ -10,8 +10,7 @@ import { useGetTicketDetailsQuery } from '../../../../../shared/api/apiSlice.js'
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 import { downloadTicketAttachment } from '../../../../../shared/utils/download.js';
 import { formatDate, formatFileSize } from '../../../../../shared/utils/date.js';
-import { AddComment } from '../../../../../shared/components/AddComment.jsx';
-import { TicketComments } from '../../../../../shared/components/TicketComments.jsx';
+import { TicketCommentsDrawer } from '../../../../../shared/components/TicketCommentsDrawer.jsx';
 
 // Field display with label and value — gracefully handles null
 const DetailField = ({ label, value, icon: Icon }) => (
@@ -370,14 +369,9 @@ export const TicketDetailsPage = () => {
       </Card>
 
       {/* ═══════════════════════════════════════════════════════════
-          CARD 3 — COMMENTS
+          COMMENTS DRAWER TRIGGER
       ═══════════════════════════════════════════════════════════ */}
-      <TicketComments ticketId={id} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          CARD 4 — ADD COMMENT
-      ═══════════════════════════════════════════════════════════ */}
-      <AddComment ticketId={id} />
+      <TicketCommentsDrawer ticketId={id} />
 
       {/* Footer */}
       <div className="flex justify-end pb-4">

@@ -55,7 +55,6 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
   };
 
   const handleAssign = (assignmentData) => {
-    console.log('Assigning ticket:', assignmentData);
     // TODO: Call API to assign ticket
     setIsModalOpen(false);
     setSelectedTicket(null);

@@ -21,6 +21,13 @@ export const AssignTicketModal = ({
 
   if (!isOpen || !ticket) return null;
 
+  // Map departments to Select-compatible format { label, value }
+  // Handles both raw API data { deptName, deptId } and pre-mapped { label, value }
+  const departmentOptions = (departments || []).map(d => ({
+    label: d.label || d.deptName || d.name || d.text || '',
+    value: d.value ?? d.deptId ?? d.id ?? ''
+  }));
+
   const priorityOptions = [
     { value: 'low', label: 'LOW', bgColor: 'bg-priority-low', textColor: 'text-priority-low-text' },
     { value: 'medium', label: 'MEDIUM', bgColor: 'bg-priority-medium', textColor: 'text-priority-medium-text' },
@@ -73,7 +80,7 @@ export const AssignTicketModal = ({
               label="Department"
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              options={departments}
+              options={departmentOptions}
               placeholder="Select department"
             />
           </div>

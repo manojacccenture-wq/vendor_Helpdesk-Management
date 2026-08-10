@@ -16,7 +16,7 @@ export const Select = React.forwardRef(({ className, error, label, options = [],
       )}
       <select
         className={cn(
-          "flex h-10 w-full rounded-control border border-hover bg-surface px-3 py-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
+          "h-10 w-full rounded-control border border-hover bg-surface px-3 py-2 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:border-transparent disabled:cursor-not-allowed disabled:bg-surface-hover",
           error && "border-danger focus-visible:ring-danger",
           className
         )}
