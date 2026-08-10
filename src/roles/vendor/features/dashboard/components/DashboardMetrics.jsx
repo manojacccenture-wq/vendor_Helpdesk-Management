@@ -1,10 +1,13 @@
-import React from 'react';
-import { Ticket, Hourglass, Check, AlertCircle } from 'lucide-react';
+import { Ticket, Hourglass, Check } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { Card } from '../../../../../shared/components/Card.jsx';
+import { TicketMetrics } from '../../../../../shared/components/TicketMetrics.jsx';
 import { useGetTicketCountQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 
+/**
+ * DashboardMetrics — Vendor-specific metrics configuration.
+ * Uses the shared TicketMetrics component with Vendor metric cards.
+ */
 export const DashboardMetrics = () => {
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
@@ -12,54 +15,37 @@ export const DashboardMetrics = () => {
     skip: !profile?.userCode || !role
   });
 
-  if (isError) {
-    return (
-      <div className="flex items-center gap-2 text-danger bg-danger-soft p-4 rounded-card mb-8 shadow-sm">
-        <AlertCircle className="w-5 h-5" />
-        <span>Failed to load ticket metrics. Please try again.</span>
-      </div>
-    );
-  }
+  const metrics = [
+    {
+      label: 'Total tickets',
+      value: data?.totalCount,
+      icon: Ticket,
+      iconBg: 'bg-surface-active',
+      iconColor: 'text-primary',
+    },
+    {
+      label: 'In progress',
+      value: data?.inProgress,
+      icon: Hourglass,
+      iconBg: 'bg-warning-soft',
+      iconColor: 'text-warning',
+    },
+    {
+      label: 'Resolved',
+      value: data?.resolved,
+      icon: Check,
+      iconBg: 'bg-success-soft',
+      iconColor: 'text-success',
+    },
+  ];
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-      
-      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
-        <div>
-          <p className="text-secondary mb-1">Total tickets</p>
-          <h2 className="text-primary">
-            {isLoading ? '...' : data?.totalCount ?? 0}
-          </h2>
-        </div>
-        <div className="w-12 h-12 rounded-control bg-surface-active flex items-center justify-center">
-          <Ticket className="w-6 h-6 text-primary" />
-        </div>
-      </Card>
-
-      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
-        <div>
-          <p className="text-secondary mb-1">In progress</p>
-          <h2 className="text-primary">
-            {isLoading ? '...' : data?.inProgress ?? 0}
-          </h2>
-        </div>
-        <div className="w-12 h-12 rounded-control bg-warning-soft flex items-center justify-center">
-          <Hourglass className="w-6 h-6 text-warning" />
-        </div>
-      </Card>
-
-      <Card className="flex-1 p-6 rounded-card shadow-sm flex items-center justify-between">
-        <div>
-          <p className="text-secondary mb-1">Resolved</p>
-          <h2 className="text-primary">
-            {isLoading ? '...' : data?.resolved ?? 0}
-          </h2>
-        </div>
-        <div className="w-12 h-12 rounded-control bg-success-soft flex items-center justify-center">
-          <Check className="w-6 h-6 text-success" />
-        </div>
-      </Card>
-
-    </div>
+    <TicketMetrics
+      metrics={metrics}
+      isLoading={isLoading}
+      isError={isError}
+    />
   );
 };
+
+export default DashboardMetrics;

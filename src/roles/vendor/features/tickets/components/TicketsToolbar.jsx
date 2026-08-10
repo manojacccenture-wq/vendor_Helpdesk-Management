@@ -1,10 +1,10 @@
-import React from 'react';
-import { Search } from 'lucide-react';
-import { Input } from '../../../../../shared/components/Input.jsx';
-import { Select } from '../../../../../shared/components/Select.jsx';
-import { Button } from '../../../../../shared/components/Button.jsx';
+import { TicketToolbar } from '../../../../../shared/components/TicketToolbar.jsx';
 import { useGetTicketStatusesQuery, useGetCategoriesQuery } from '../../../../../shared/api/apiSlice.js';
 
+/**
+ * TicketsToolbar — Vendor-specific toolbar configuration.
+ * Uses the shared TicketToolbar with Status and Category filters + Raise Ticket action.
+ */
 export const TicketsToolbar = ({ 
   statusId, 
   categoryId, 
@@ -28,63 +28,43 @@ export const TicketsToolbar = ({
     ...categories.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value }))
   ];
 
+  const filters = [
+    {
+      label: 'Status',
+      value: statusId,
+      onChange: onStatusChange,
+      options: statusOptions,
+      isLoading: isLoadingStatuses,
+      width: 'sm:w-36',
+    },
+    {
+      label: 'Category',
+      value: categoryId,
+      onChange: onCategoryChange,
+      options: categoryOptions,
+      isLoading: isLoadingCategories,
+      width: 'sm:w-44',
+    },
+  ];
+
+  const actions = [
+    {
+      label: '+ Raise ticket',
+      onClick: onRaiseTicket,
+      variant: 'primary',
+      className: 'bg-primary',
+    },
+  ];
+
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-      
-      {/* Filters Left */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-        
-        {/* Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted z-10" />
-          <Input 
-            type="text" 
-            placeholder="Search tickets..." 
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-
-        {/* Status Dropdown */}
-        <div className="relative w-full sm:w-36">
-          <Select 
-            value={statusId}
-            onChange={(e) => onStatusChange(e.target.value)}
-            options={statusOptions}
-            disabled={isLoadingStatuses}
-          />
-        </div>
-
-        {/* Category Dropdown */}
-        <div className="relative w-full sm:w-44">
-          <Select 
-            value={categoryId}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            options={categoryOptions}
-            disabled={isLoadingCategories}
-          />
-        </div>
-
-        {/* Clear Filters */}
-        <Button 
-          variant="ghost"
-          onClick={onClearFilters}
-          className="whitespace-nowrap"
-        >
-          Clear filters
-        </Button>
-      </div>
-
-      {/* Action Right */}
-      <Button 
-        variant="primary"
-        onClick={onRaiseTicket}
-        className="w-full sm:w-auto bg-primary"
-      >
-        <span>+ &nbsp;</span> Raise ticket
-      </Button>
-
-    </div>
+    <TicketToolbar
+      searchTerm={searchTerm}
+      onSearchChange={onSearchChange}
+      filters={filters}
+      onClearFilters={onClearFilters}
+      actions={actions}
+    />
   );
 };
+
+export default TicketsToolbar;

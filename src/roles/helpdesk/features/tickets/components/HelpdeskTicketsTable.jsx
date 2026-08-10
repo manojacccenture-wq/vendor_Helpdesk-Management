@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { HelpdeskPriorityBadge } from './HelpdeskPriorityBadge.jsx';
 import { AssignTicketModal } from '../../../../../shared/components/AssignTicketModal.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
+import { Table } from '../../../../../shared/components/Table.jsx';
 import { useGetTicketListQuery, useGetDepartmentsQuery, useAssignTicketMutation } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 import { useNotification } from '../../../../../shared/notifications/index.js';
+import { formatDate } from '../../../../../shared/utils/date.js';
 
+/**
+ * HelpdeskTicketsTable — Ticket list for Helpdesk role.
+ * Uses the reusable Table component with ticket-specific column configuration.
+ */
 export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter }) => {
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
@@ -29,28 +35,24 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
 
   const { data: departments = [] } = useGetDepartmentsQuery({ role, userCode: profile?.userCode }, { skip: !profile?.userCode || !role });
 
-  // Client-side filtering for search and priority (API doesn't support these params directly)
-  const filteredTickets = tickets.filter(ticket => {
-    // Search filter
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      const matchesSearch =
-        ticket.ticketNo?.toLowerCase().includes(lowerSearch) ||
-        ticket.vendor?.toLowerCase().includes(lowerSearch) ||
-        ticket.subject?.toLowerCase().includes(lowerSearch) ||
-        ticket.department?.toLowerCase().includes(lowerSearch);
-      if (!matchesSearch) return false;
-    }
-
-    // Priority filter (client-side since API doesn't filter by priority)
-    if (priorityFilter && priorityFilter !== 'all') {
-      if (ticket.priority?.toLowerCase() !== String(priorityFilter).toLowerCase()) {
-        return false;
+  // Client-side filtering for search and priority
+  const filteredTickets = useMemo(() => {
+    return tickets.filter(ticket => {
+      if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        const matchesSearch =
+          ticket.ticketNo?.toLowerCase().includes(lowerSearch) ||
+          ticket.subject?.toLowerCase().includes(lowerSearch);
+        if (!matchesSearch) return false;
       }
-    }
-
-    return true;
-  });
+      if (priorityFilter && priorityFilter !== 'all') {
+        if (ticket.priority?.toLowerCase() !== String(priorityFilter).toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [tickets, searchTerm, priorityFilter]);
 
   const handleAssignClick = (ticket) => {
     setSelectedTicket(ticket);
@@ -62,16 +64,14 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
       const response = await assignTicket({
         ticketId: parseInt(assignmentData.ticketId, 10),
         assignedDepartmentId: parseInt(assignmentData.department, 10),
-        assignedAgentId: assignmentData.agent, // Already in "Name(userCode)" format from modal
+        assignedAgentId: assignmentData.agent,
       }).unwrap();
 
-      // Check API-level success flag
       if (response?.isSuccessful === false) {
         showError(response?.message || 'Failed to assign ticket. Please try again.');
         return;
       }
 
-      // Success
       showSuccess('Ticket assigned successfully.');
       setIsModalOpen(false);
       setSelectedTicket(null);
@@ -85,103 +85,106 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
     setSelectedTicket(null);
   };
 
+  // ─── Column Configuration ───
+  const columns = useMemo(() => [
+    {
+      key: 'ticketNo',
+      header: 'Ticket No',
+      width: '160px',
+      nowrap: true,
+      truncate: false,
+      render: (row) => (
+        <code className='text-secondary text-sm'>{row.ticketNo}</code>
+      ),
+    },
+    {
+      key: 'subject',
+      header: 'Subject',
+      flex: 0.9,
+      truncate: true,
+      render: (row) => (
+        <span className='text-primary-hover leading-snug block' title={row.subject}>
+          {row.subject}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: '110px',
+      nowrap: true,
+      truncate: false,
+      render: (row) => (
+        <StatusBadge status={row.status} colorHex={row.statusColorHex} />
+      ),
+    },
+    {
+      key: 'priority',
+      header: 'Priority',
+      width: '110px',
+      nowrap: true,
+      truncate: false,
+      render: (row) => (
+        <HelpdeskPriorityBadge priority={row.priority} colorHex={row.priorityColorHex} />
+      ),
+    },
+    {
+      key: 'createAt',
+      header: 'Created At',
+      width: '150px',
+      nowrap: true,
+      truncate: false,
+      render: (row) => (
+        <small className='text-secondary whitespace-nowrap'>
+          {formatDate(row.createAt) || '—'}
+        </small>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: '130px',
+      nowrap: true,
+      truncate: false,
+      align: 'left',
+      render: (row) => (
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => navigate(`/helpdesk/ticket/${row.id}`)}
+          >
+            👁 View
+          </Button>
+          <Button
+            variant='black'
+            size='sm'
+            onClick={() => handleAssignClick(row)}
+          >
+            Assign
+          </Button>
+        </div>
+      ),
+    },
+  ], [navigate]);
+
   if (isError) {
     return (
-      <div className="w-full bg-surface border border-default rounded-control p-8 text-center">
-        <span className="text-danger">Failed to load tickets. Please try again.</span>
+      <div className='w-full bg-surface border border-default rounded-control p-8 text-center'>
+        <span className='text-danger'>Failed to load tickets. Please try again.</span>
       </div>
     );
   }
 
   return (
     <>
-      <div className="w-full bg-surface border border-default rounded-control overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="border-b border-default bg-surface-hover">
-                <th className="py-4 px-6 text-secondary w-[140px]">Ticket #</th>
-                <th className="py-4 px-6 text-secondary">Vendor</th>
-                <th className="py-4 px-6 text-secondary">Subject</th>
-                <th className="py-4 px-6 text-secondary w-[160px]">Priority</th>
-                <th className="py-4 px-6 text-secondary w-[120px]">Status</th>
-                <th className="py-4 px-6 text-secondary w-[120px]">Department</th>
-                <th className="py-4 px-6 text-secondary">Assigned</th>
-                <th className="py-4 px-6 text-secondary w-[140px]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-default">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center">
-                    <span className="text-secondary">Loading tickets...</span>
-                  </td>
-                </tr>
-              ) : filteredTickets.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center">
-                    <span className="text-secondary">No tickets found.</span>
-                  </td>
-                </tr>
-              ) : (
-                filteredTickets.map((ticket) => (
-                  <tr key={ticket.id} className="hover:bg-surface-hover/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <code className="text-secondary">{ticket.ticketNo}</code>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-primary-hover">
-                        {ticket.vendor || '—'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 pr-12">
-                      <span className="text-primary-hover leading-snug block">
-                        {ticket.subject}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <HelpdeskPriorityBadge priority={ticket.priority} isOverdue={ticket.isOverdue} />
-                    </td>
-                    <td className="py-4 px-6">
-                      <StatusBadge status={ticket.status} />
-                    </td>
-                    <td className="py-4 px-6">
-                      {ticket.department ? (
-                        <small className="inline-block px-3 py-1 bg-surface-active text-secondary rounded-full whitespace-nowrap">
-                          {ticket.department}
-                        </small>
-                      ) : (
-                        <small className="text-secondary">—</small>
-                      )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <small className="text-secondary">
-                        {ticket.assignedTo || '—'}
-                      </small>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          onClick={() => navigate(`/helpdesk/ticket/${ticket.id}`)}
-                        >
-                         👁 View
-                        </Button>
-                        <Button
-                          variant="black"
-                          onClick={() => handleAssignClick(ticket)}
-                        >
-                          Assign
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Table
+        columns={columns}
+        data={filteredTickets}
+        rowKey={(row) => row.id}
+        isLoading={isLoading}
+        emptyMessage='No tickets found.'
+      />
 
       {/* Assign Ticket Modal */}
       <AssignTicketModal

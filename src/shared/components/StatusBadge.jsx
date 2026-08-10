@@ -16,20 +16,23 @@ const STATUS_STYLES = {
   'Failed': 'bg-danger-soft text-danger border-danger',
 };
 
-export const StatusBadge = ({ status, className }) => {
-  // Fallback to warning style for unknown/null statuses 
-  // since the backend currently defaults to Open-like workflows
+export const StatusBadge = ({ status, colorHex, className }) => {
+  // Use API-provided color if available, otherwise fallback to hardcoded mapping
   const styles = STATUS_STYLES[status] || 'bg-warning-soft text-warning border-warning';
+
+  // When API provides a hex color, apply it as inline styles for both bg and text
+  const useApiColor = !!colorHex;
 
   return (
     <span 
       className={cn(
-        "px-3 py-1 rounded-full whitespace-nowrap border", 
-        styles,
+        "px-3 py-1 rounded-full whitespace-nowrap border",
+        useApiColor ? 'border-transparent' : styles,
         className
       )}
+      style={useApiColor ? { backgroundColor: `${colorHex}20`, color: colorHex, borderColor: `${colorHex}40` } : undefined}
     >
-      {status || 'Open'}
+      {status || '----'}
     </span>
   );
 };

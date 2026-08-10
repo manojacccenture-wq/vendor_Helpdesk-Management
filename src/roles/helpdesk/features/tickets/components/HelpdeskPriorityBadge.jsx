@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../../../../shared/utils/cn.js';
 
-export const HelpdeskPriorityBadge = ({ priority, isOverdue = false }) => {
+export const HelpdeskPriorityBadge = ({ priority, colorHex }) => {
   const getPriorityStyles = () => {
     switch (priority?.toLowerCase()) {
       case 'high':
@@ -17,20 +17,18 @@ export const HelpdeskPriorityBadge = ({ priority, isOverdue = false }) => {
     }
   };
 
-  const getOverdueStyles = () => {
-    return 'bg-danger text-white';
-  };
+  // Use API-provided color if available, otherwise fallback to hardcoded mapping
+  const useApiColor = !!colorHex;
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <small className={cn("px-3 py-1 rounded-full whitespace-nowrap", getPriorityStyles())}>
-        {priority}
-      </small>
-      {isOverdue && (
-        <small className={cn("px-3 py-1 rounded-full whitespace-nowrap", getOverdueStyles())}>
-          OVERDUE
-        </small>
+    <small
+      className={cn(
+        "px-3 py-1 rounded-full whitespace-nowrap",
+        useApiColor ? '' : getPriorityStyles()
       )}
-    </div>
+      style={useApiColor ? { backgroundColor: `${colorHex}20`, color: colorHex } : undefined}
+    >
+      {priority}
+    </small>
   );
 };

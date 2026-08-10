@@ -1,11 +1,44 @@
 import React from 'react';
 import { Bell, LogOut } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { selectUserProfile } from '../../features/user/store/selectors.js';
 import { Button } from './Button.jsx';
+import { AuthApi } from '../../features/auth/api/auth.api.js';
+import { clearUser } from '../../features/user/store/userSlice.js';
+import { TokenService } from '../api/auth.js';
+import { useNotification } from '../notifications/index.js';
 
 export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
   const profile = useSelector(selectUserProfile);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { showError } = useNotification();
+
+  const handleLogout = async () => {
+    try {
+      const response = await AuthApi.logout();
+
+      // Only proceed with logout if API succeeds
+      if (response?.isSuccessful === false) {
+        showError(response?.message || 'Logout failed. Please try again.');
+        return;
+      }
+
+n      // API succeeded - clear state and redirect
+      dispatch(clearUser());
+      TokenService.clearAll();
+      navigate('/DBSTS/Account/Login');
+    } catch (error) {
+      // API failed - show error, keep user on page
+      const errorMessage = error?.response?.data?.message 
+        || error?.response?.data?.detail 
+        || error?.response?.data?.title
+        || error?.message
+        || 'Logout failed. Please try again.';
+      showError(errorMessage);
+    }
+  };
 
   return (
     <header className="h-[64px] bg-primary flex items-center justify-between px-6 shrink-0 w-full">
@@ -46,8 +79,9 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
 
         {/* Logout */}
         <Button
-          variant="ghost"
-          className="flex items-center gap-2 text-slate-300 hover:text-white"
+          variant="black"
+          className="flex items-center gap-2 "
+          onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />
           <span>Logout</span>

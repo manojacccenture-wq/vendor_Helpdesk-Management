@@ -1,4 +1,5 @@
 import { axiosClient, API_ENDPOINTS } from '../../../shared/api/index.js';
+import { dbstsClient } from '../../../shared/api/dbstsClient.js';
 
 /**
  * Example Feature API: Auth
@@ -10,7 +11,8 @@ export const AuthApi = {
   },
   
   logout: async () => {
-    return axiosClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    // Use DBSTS client for logout (different server)
+    return dbstsClient.post(API_ENDPOINTS.AUTH.LOGOUT);
   },
 
   getProfile: async () => {

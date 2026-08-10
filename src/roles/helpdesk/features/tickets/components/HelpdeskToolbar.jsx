@@ -1,10 +1,10 @@
-import React from 'react';
-import { Search } from 'lucide-react';
-import { Input } from '../../../../../shared/components/Input.jsx';
-import { Select } from '../../../../../shared/components/Select.jsx';
-import { Button } from '../../../../../shared/components/Button.jsx';
+import { TicketToolbar } from '../../../../../shared/components/TicketToolbar.jsx';
 import { useGetTicketStatusesQuery, useGetPrioritiesQuery } from '../../../../../shared/api/apiSlice.js';
 
+/**
+ * HelpdeskToolbar — Helpdesk-specific toolbar configuration.
+ * Uses the shared TicketToolbar with Status and Priority filters.
+ */
 export const HelpdeskToolbar = ({
   searchTerm,
   statusFilter,
@@ -27,50 +27,33 @@ export const HelpdeskToolbar = ({
     ...priorities.map(p => ({ label: p.text ?? p.Text, value: p.value ?? p.Value }))
   ];
 
+  const filters = [
+    {
+      label: 'Status',
+      value: statusFilter,
+      onChange: onStatusChange,
+      options: statusOptions,
+      isLoading: isLoadingStatuses,
+      width: 'sm:min-w-[160px]',
+    },
+    {
+      label: 'Priority',
+      value: priorityFilter,
+      onChange: onPriorityChange,
+      options: priorityOptions,
+      isLoading: isLoadingPriorities,
+      width: 'sm:min-w-[160px]',
+    },
+  ];
+
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-      
-      {/* Search Input */}
-      <div className="relative flex-1 w-full sm:w-auto sm:min-w-[280px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary z-10" />
-        <Input
-          type="text"
-          placeholder="Search tickets..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Status Filter */}
-      <div className="w-full sm:w-auto sm:min-w-[160px]">
-        <Select
-          value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value)}
-          options={statusOptions}
-          disabled={isLoadingStatuses}
-        />
-      </div>
-
-      {/* Priority Filter */}
-      <div className="w-full sm:w-auto sm:min-w-[160px]">
-        <Select
-          value={priorityFilter}
-          onChange={(e) => onPriorityChange(e.target.value)}
-          options={priorityOptions}
-          disabled={isLoadingPriorities}
-        />
-      </div>
-
-      {/* Clear Filters Button */}
-      <Button
-        variant="ghost"
-        onClick={onClearFilters}
-        className="whitespace-nowrap"
-      >
-        Clear filters
-      </Button>
-
-    </div>
+    <TicketToolbar
+      searchTerm={searchTerm}
+      onSearchChange={onSearchChange}
+      filters={filters}
+      onClearFilters={onClearFilters}
+    />
   );
 };
+
+export default HelpdeskToolbar;
