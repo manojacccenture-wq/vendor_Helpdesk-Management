@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle, Tag, Layers, Paperclip } from 'lucide-react';
+import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle, Tag, Layers, Paperclip, Pencil, Star } from 'lucide-react';
 import { Card, CardContent } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { BackButton } from './BackButton.jsx';
 import { StatusBadge } from './StatusBadge.jsx';
+import { UpdateTicketStatusModal } from './UpdateTicketStatusModal.jsx';
+import { TicketFeedbackModal } from './TicketFeedbackModal.jsx';
 import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
 import { useGetTicketDetailsQuery } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
@@ -58,6 +60,8 @@ export const TicketDetailsView = ({
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
   const [downloadingAttachments, setDownloadingAttachments] = useState(new Set());
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const { data: ticketDetails, isLoading, isError, error } = useGetTicketDetailsQuery({
     ticketId,
@@ -66,6 +70,8 @@ export const TicketDetailsView = ({
   }, {
     skip: !ticketId || !profile?.userCode || !role
   });
+
+  const canUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
 
   // ─── Loading State ───
   if (isLoading) {
@@ -151,6 +157,7 @@ export const TicketDetailsView = ({
   const description = ticketDetails.ticketDescription;
   const priority = ticketDetails.priority;
   const status = ticketDetails.status || 'Unknown';
+  const statusColorHex = ticketDetails.statusColorHex;
 
   // Vendor-submitted fields
   const vendorName = ticketDetails.vendorName;
@@ -201,7 +208,18 @@ export const TicketDetailsView = ({
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-3">
                 <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
-                <StatusBadge status={status} />
+                <StatusBadge status={status} colorHex={statusColorHex} />
+                {canUpdateStatus && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsStatusModalOpen(true)}
+                    className="p-1 h-auto hover:text-primary"
+                    title="Update status"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                )}
                 <div className="flex items-center gap-2">
                   {priority && (
                     <InfoChip>{priority}</InfoChip>
@@ -284,7 +302,7 @@ export const TicketDetailsView = ({
           </div>
 
           {/* ─── Attachments (Compact) ─── */}
-          <div className="px-5 py-3">
+          <div className="px-5 py-3 border-b border-default">
             <SectionHeading>Attachments</SectionHeading>
             <SectionDivider />
             {hasAttachments ? (
@@ -343,6 +361,26 @@ export const TicketDetailsView = ({
             )}
           </div>
 
+          {/* ─── Feedback (Vendor only, Closed status only) ─── */}
+          {role === 'L1' && ticketDetails?.statusId === 5 && (
+            <div className="px-5 py-3">
+              <SectionHeading>Feedback</SectionHeading>
+              <SectionDivider />
+              <div className="flex items-center justify-between">
+                <p className="text-secondary text-sm">Share your experience with this ticket resolution.</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFeedbackModalOpen(true)}
+                  className="shrink-0"
+                >
+                  <Star className="w-4 h-4 mr-1" />
+                  Leave Feedback
+                </Button>
+              </div>
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
@@ -352,6 +390,26 @@ export const TicketDetailsView = ({
           Back to Dashboard
         </Button>
       </div>
+
+      {/* Status Update Modal (Helpdesk Executive only) */}
+      {canUpdateStatus && (
+        <UpdateTicketStatusModal
+          isOpen={isStatusModalOpen}
+          ticketId={ticketId}
+          currentStatus={status}
+          onClose={() => setIsStatusModalOpen(false)}
+        />
+      )}
+
+      {/* Feedback Modal (Vendor only) */}
+      {role === 'L1' && (
+        <TicketFeedbackModal
+          isOpen={isFeedbackModalOpen}
+          ticketId={ticketId}
+          ticketNo={ticketNo}
+          onClose={() => setIsFeedbackModalOpen(false)}
+        />
+      )}
 
     </div>
   );

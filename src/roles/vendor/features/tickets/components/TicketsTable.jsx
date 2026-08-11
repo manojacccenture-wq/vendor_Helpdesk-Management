@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '../../../../../shared/components/StatusBadge.jsx';
 import { PipelineStepper } from './PipelineStepper.jsx';
 import { Button } from '../../../../../shared/components/Button.jsx';
+import { TicketFeedbackModal } from '../../../../../shared/components/TicketFeedbackModal.jsx';
 import { Table } from '../../../../../shared/components/Table.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
@@ -16,6 +17,8 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
   const navigate = useNavigate();
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [selectedFeedbackTicket, setSelectedFeedbackTicket] = useState(null);
 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
@@ -109,17 +112,31 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
     {
       key: 'actions',
       header: 'Action',
-      width: '100px',
+      width: '180px',
       nowrap: true,
       truncate: false,
       render: (row) => (
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={() => navigate(`/vendor/ticket/${row.id}`)}
-        >
-          👁 View
-        </Button>
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => navigate(`/vendor/ticket/${row.id}`)}
+          >
+            👁 View
+          </Button>
+          {row.statusId === 5 && (
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => {
+                setSelectedFeedbackTicket({ id: row.id, ticketNo: row.ticketNo });
+                setIsFeedbackModalOpen(true);
+              }}
+            >
+              ★ Feedback
+            </Button>
+          )}
+        </div>
       ),
     },
   ], [navigate]);
@@ -133,12 +150,24 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
   }
 
   return (
-    <Table
-      columns={columns}
-      data={filteredTickets}
-      rowKey={(row) => row.id}
-      isLoading={isLoading}
-      emptyMessage='No tickets found.'
-    />
+    <>
+      <Table
+        columns={columns}
+        data={filteredTickets}
+        rowKey={(row) => row.id}
+        isLoading={isLoading}
+        emptyMessage='No tickets found.'
+      />
+
+      <TicketFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        ticketId={selectedFeedbackTicket?.id}
+        ticketNo={selectedFeedbackTicket?.ticketNo}
+        onClose={() => {
+          setIsFeedbackModalOpen(false);
+          setSelectedFeedbackTicket(null);
+        }}
+      />
+    </>
   );
 };

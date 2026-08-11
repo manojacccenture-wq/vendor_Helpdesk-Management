@@ -2,18 +2,16 @@ import React from 'react';
 import { cn } from '../utils/cn.js';
 
 // Centralized status-to-style mapping
-// Using existing semantic tokens: success, warning, danger
+// Fallback colors when API does not provide a colorHex.
+// When colorHex is provided by the API, inline styles override these.
+// Status IDs from DB: 1=Open, 2=In Progress, 3=On Hold, 4=Resolved, 5=Closed, 6=Escalated
 const STATUS_STYLES = {
-  'Open': 'bg-warning-soft text-warning border-warning',
-  'Raised': 'bg-warning-soft text-warning border-warning',
-  'Escalated': 'bg-warning-soft text-warning border-warning',
+  'Open': 'bg-info-soft text-info border-info',
   'In Progress': 'bg-warning-soft text-warning border-warning',
+  'On Hold': 'bg-secondary-soft text-secondary border-secondary',
   'Resolved': 'bg-success-soft text-success border-success',
-  'Closed': 'bg-success-soft text-success border-success',
-  'Completed': 'bg-success-soft text-success border-success',
-  'Rejected': 'bg-danger-soft text-danger border-danger',
-  'Cancelled': 'bg-danger-soft text-danger border-danger',
-  'Failed': 'bg-danger-soft text-danger border-danger',
+  'Closed': 'bg-secondary-soft text-secondary border-secondary',
+  'Escalated': 'bg-danger-soft text-danger border-danger',
 };
 
 export const StatusBadge = ({ status, colorHex, className }) => {
