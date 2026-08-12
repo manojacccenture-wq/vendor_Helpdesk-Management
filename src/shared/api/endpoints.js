@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
   },
   AUTH: {
     LOGIN: '/auth/login',
-    LOGOUT: '/DBSTS/DBSTS/Account/Logout',
+    LOGOUT: '/DBSTS/Account/Logout',
     REFRESH: '/auth/refresh-token'
   }
 };
