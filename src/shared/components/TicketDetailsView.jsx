@@ -73,9 +73,11 @@ export const TicketDetailsView = ({
     skip: !ticketId || !profile?.userCode || !role
   });
 
-  // Fetch ticket statuses for BL1 dynamic button mapping
+  const isDepartmentRole = ['BL1', 'HOD', 'VH', 'MD'].includes(role);
+
+  // Fetch ticket statuses for Department roles dynamic button mapping
   const { data: ticketStatuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery(undefined, {
-    skip: role !== 'BL1'
+    skip: !isDepartmentRole
   });
   
   const [updateTicketStatus, { isLoading: isUpdatingStatus }] = useUpdateTicketStatusMutation();
@@ -418,7 +420,7 @@ export const TicketDetailsView = ({
       {/* Footer */}
       <div className="flex justify-between items-center py-4">
         <div className="flex-1">
-          {role === 'BL1' && (
+          {isDepartmentRole && (
             <div className="flex flex-wrap gap-2">
               <Button 
                 className="bg-priority-low text-priority-low-text hover:opacity-90"

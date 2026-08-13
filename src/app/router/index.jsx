@@ -21,7 +21,7 @@ const RootRedirect = () => {
     redirectPath = '/vendor';
   } else if (role === 'L2' || role === 'HelpdeskExecutive') {
     redirectPath = '/helpdesk';
-  } else if (role === 'BL1') {
+  } else if (['BL1', 'HOD', 'VH', 'MD'].includes(role)) {
     redirectPath = '/department';
   }
   
@@ -38,7 +38,7 @@ const LegacyLogin = () => {
       redirectPath = '/vendor';
     } else if (role === 'L2' || role === 'HelpdeskExecutive') {
       redirectPath = '/helpdesk';
-    } else if (role === 'BL1') {
+    } else if (['BL1', 'HOD', 'VH', 'MD'].includes(role)) {
       redirectPath = '/department';
     }
     return <Navigate to={redirectPath} replace />;

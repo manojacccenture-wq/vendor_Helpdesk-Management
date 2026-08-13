@@ -59,10 +59,10 @@ export const ticketEndpoints = (builder) => ({
   }),
 
   assignTicket: builder.mutation({
-    query: ({ ticketId, assignedDepartmentId, assignedAgentId }) => ({
+    query: ({ ticketId, assignedDepartmentId, assignedDeptBL1UserCode }) => ({
       url: '/api/Tickets/assign',
       method: 'POST',
-      data: { ticketId, assignedDepartmentId, assignedAgentId },
+      data: { ticketId, assignedDepartmentId, assignedDeptBL1UserCode },
     }),
     invalidatesTags: ['Ticket'],
   }),

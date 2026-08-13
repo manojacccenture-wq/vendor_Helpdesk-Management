@@ -61,10 +61,13 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
 
   const handleAssign = async (assignmentData) => {
     try {
+      // Extract user code from format "Name(Code)", fallback to original string if no match
+      const extractedCode = assignmentData.agent?.match(/\(([^)]+)\)/)?.[1] || assignmentData.agent;
+
       const response = await assignTicket({
         ticketId: parseInt(assignmentData.ticketId, 10),
         assignedDepartmentId: parseInt(assignmentData.department, 10),
-        assignedAgentId: assignmentData.agent,
+        assignedDeptBL1UserCode: extractedCode,
       }).unwrap();
 
       if (response?.isSuccessful === false) {

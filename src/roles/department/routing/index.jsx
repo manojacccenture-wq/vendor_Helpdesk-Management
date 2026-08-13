@@ -8,7 +8,7 @@ import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPag
 export const departmentRoutes = {
   path: 'department',
   element: (
-    <RoleGuard requiredRole="BL1" redirectPath="/">
+    <RoleGuard requiredRole={['BL1', 'HOD', 'VH', 'MD']} redirectPath="/">
       <DepartmentLayout />
     </RoleGuard>
   ),
