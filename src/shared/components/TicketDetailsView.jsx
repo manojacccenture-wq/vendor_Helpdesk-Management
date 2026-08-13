@@ -9,10 +9,11 @@ import { StatusBadge } from './StatusBadge.jsx';
 import { UpdateTicketStatusModal } from './UpdateTicketStatusModal.jsx';
 import { TicketFeedbackModal } from './TicketFeedbackModal.jsx';
 import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
-import { useGetTicketDetailsQuery } from '../api/apiSlice.js';
+import { useGetTicketDetailsQuery, useGetTicketStatusesQuery, useUpdateTicketStatusMutation } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
 import { downloadTicketAttachment } from '../utils/download.js';
 import { formatDate, formatFileSize } from '../utils/date.js';
+import { useNotification } from '../notifications/index.js';
 
 // ─── Internal Helper Components (Compact Bill-Style) ───
 
@@ -62,6 +63,7 @@ export const TicketDetailsView = ({
   const [downloadingAttachments, setDownloadingAttachments] = useState(new Set());
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const { showSuccess, showError } = useNotification();
 
   const { data: ticketDetails, isLoading, isError, error } = useGetTicketDetailsQuery({
     ticketId,
@@ -70,6 +72,35 @@ export const TicketDetailsView = ({
   }, {
     skip: !ticketId || !profile?.userCode || !role
   });
+
+  // Fetch ticket statuses for BL1 dynamic button mapping
+  const { data: ticketStatuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery(undefined, {
+    skip: role !== 'BL1'
+  });
+  
+  const [updateTicketStatus, { isLoading: isUpdatingStatus }] = useUpdateTicketStatusMutation();
+
+  const handleStatusAction = async (targetStatusText) => {
+    // Find the correct status ID from the dynamic list
+    const statusObj = ticketStatuses.find(s => (s.text ?? s.Text)?.toLowerCase() === targetStatusText.toLowerCase());
+    if (!statusObj) {
+      showError(`Status '${targetStatusText}' is not currently available from the server.`);
+      return;
+    }
+    
+    const statusId = parseInt(statusObj.value ?? statusObj.Value, 10);
+    
+    try {
+      const response = await updateTicketStatus({ ticketId, status: statusId }).unwrap();
+      if (response?.isSuccessful === false) {
+        showError(response?.message || `Failed to update status to ${targetStatusText}.`);
+        return;
+      }
+      showSuccess(response?.message || `Status successfully updated to ${targetStatusText}.`);
+    } catch (err) {
+      showError(err?.data?.message || `Failed to update status. Please try again.`);
+    }
+  };
 
   const canUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
 
@@ -385,8 +416,54 @@ export const TicketDetailsView = ({
       </Card>
 
       {/* Footer */}
-      <div className="flex justify-end py-4">
-        <Button variant="black" onClick={() => navigate(backPath)}>
+      <div className="flex justify-between items-center py-4">
+        <div className="flex-1">
+          {role === 'BL1' && (
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                className="bg-priority-low text-priority-low-text hover:opacity-90"
+                onClick={() => handleStatusAction('Escalated')}
+                disabled={isUpdatingStatus || isLoadingStatuses}
+              >
+                Escalate to L2
+              </Button>
+              <Button 
+                className="bg-priority-medium text-priority-medium-text hover:opacity-90"
+                onClick={() => handleStatusAction('On Hold')}
+                disabled={isUpdatingStatus || isLoadingStatuses}
+              >
+                Put on hold
+              </Button>
+              <Button 
+                className="bg-info text-white hover:opacity-90"
+                onClick={() => handleStatusAction('Resolved')}
+                disabled={isUpdatingStatus || isLoadingStatuses}
+              >
+                Resolved
+              </Button>
+              {/* Only render Cancel button if the backend provides a Cancel status */}
+              {ticketStatuses.some(s => {
+                const txt = (s.text ?? s.Text)?.toLowerCase();
+                return txt === 'cancel' || txt === 'cancelled';
+              }) && (
+                <Button 
+                  className="bg-priority-escalate text-priority-escalate-text hover:opacity-90"
+                  onClick={() => {
+                    const cancelStr = ticketStatuses.find(s => {
+                      const txt = (s.text ?? s.Text)?.toLowerCase();
+                      return txt === 'cancel' || txt === 'cancelled';
+                    });
+                    handleStatusAction(cancelStr?.text ?? cancelStr?.Text);
+                  }}
+                  disabled={isUpdatingStatus || isLoadingStatuses}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <Button variant="black" onClick={() => navigate(backPath)} className="ml-4">
           Back to Dashboard
         </Button>
       </div>
