@@ -11,6 +11,7 @@ import { StatusBadge } from './StatusBadge.jsx';
 import { UpdateTicketStatusModal } from './UpdateTicketStatusModal.jsx';
 import { TicketFeedbackModal } from './TicketFeedbackModal.jsx';
 import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
+import { TicketHistoryDrawer } from './TicketHistoryDrawer.jsx';
 import { useGetTicketDetailsQuery, useGetTicketStatusesQuery, useUpdateTicketStatusMutation } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
 import { downloadTicketAttachment } from '../utils/download.js';
@@ -216,7 +217,6 @@ export const TicketDetailsView = ({
   const hasAttachments = attachments.length > 0;
 
   const ticketHistoryViewModels = ticketDetails.ticketHistoryViewModels || [];
-  const sortedHistory = [...ticketHistoryViewModels].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
 
 
   return (
@@ -258,7 +258,10 @@ export const TicketDetailsView = ({
                 </div>
               </div>
 
-              <TicketCommentsDrawer ticketId={ticketId} />
+              <div className="flex items-center gap-2">
+                <TicketCommentsDrawer ticketId={ticketId} />
+                <TicketHistoryDrawer history={ticketHistoryViewModels} />
+              </div>
             </div>
 
             <h2 className="text-card-title text-primary">{subject}</h2>
@@ -325,44 +328,7 @@ export const TicketDetailsView = ({
               </div>
             </div>
 
-            {/* Vertical History Feed */}
-            {sortedHistory.length > 0 && (
-              <div className="pt-4 border-t border-default">
-                <h4 className="text-primary text-sm font-semibold mb-4">Ticket History</h4>
-                <div className="relative border-l border-default ml-3 space-y-6">
-                  {sortedHistory.map((history, index) => (
-                    <div key={index} className="relative pl-6">
-                      {/* Timeline dot */}
-                      <span className="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-surface-active border border-default ring-4 ring-surface" />
-                      
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between gap-4 flex-wrap">
-                          <span className="text-body font-medium text-primary">{history.title}</span>
-                          <span className="text-caption text-secondary">
-                            {formatDate(history.changedAt)}
-                          </span>
-                        </div>
-                        
-                        <p className="text-body text-secondary">
-                          {history.description}
-                        </p>
-                        
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-caption text-secondary">By:</span>
-                          <span className="text-caption font-medium text-primary">{history.changedBy || 'System'}</span>
-                        </div>
-                        
-                        {history.remarks && (
-                          <div className="mt-2 p-2 bg-surface-active rounded-control border border-default text-sm text-secondary">
-                            <span className="font-medium">Remarks:</span> {history.remarks}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </CollapsibleSection>
 
           {/* ─── Attachments (Compact) ─── */}

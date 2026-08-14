@@ -12,7 +12,7 @@ export const AuthApi = {
   
   logout: async () => {
     // Use DBSTS client for logout (different server)
-    return dbstsClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    return dbstsClient.get(API_ENDPOINTS.AUTH.LOGOUT);
   },
 
   getProfile: async () => {

@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, X, Maximize2 } from 'lucide-react';
+import { MessageSquare, Maximize2 } from 'lucide-react';
+import { Drawer } from './Drawer.jsx';
 import { CommentForm } from './CommentForm.jsx';
 import { CommentList } from './CommentList.jsx';
 import { useGetTicketCommentsQuery } from '../api/apiSlice.js';
@@ -29,7 +30,9 @@ export const TicketCommentsDrawer = ({ ticketId }) => {
   // Determine the expand path based on role
   const expandPath = role === 'L1'
     ? `/vendor/ticket/${ticketId}/comments`
-    : `/helpdesk/ticket/${ticketId}/comments`;
+    : ['BL1', 'HOD', 'VH', 'MD'].includes(role)
+      ? `/department/ticket/${ticketId}/comments`
+      : `/helpdesk/ticket/${ticketId}/comments`;
 
   // Determine if user can see the internal comment checkbox (Helpdesk/Internal users only)
   const canToggleInternal = role === 'L2' || role === 'HelpdeskExecutive';
@@ -104,78 +107,47 @@ export const TicketCommentsDrawer = ({ ticketId }) => {
       {/* ═══════════════════════════════════════════════════════════
           DRAWER OVERLAY
       ═══════════════════════════════════════════════════════════ */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 transition-opacity"
-            onClick={() => setIsOpen(false)}
+      <Drawer
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={`Comments ${commentCount > 0 ? `(${commentCount})` : ''}`}
+        icon={<MessageSquare className="w-5 h-5 text-success" />}
+        headerActions={(onClose) => (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate(expandPath);
+            }}
+            className="p-2 rounded-control text-secondary hover:bg-surface-active hover:text-primary transition-colors"
+            aria-label="Open full page"
+            title="Open full page"
+          >
+            <Maximize2 className="w-5 h-5" />
+          </button>
+        )}
+        scrollableRef={scrollContainerRef}
+        scrollableClassName="px-6"
+        ariaLabel="Close comments"
+        footer={
+          <CommentForm
+            ticketId={ticketId}
+            onCommentAdded={handleCommentAdded}
+            canToggleInternal={canToggleInternal}
+            userCode={profile?.userCode}
+            role={role}
+            size="sm"
           />
-
-          {/* Drawer Panel */}
-          <div className="relative flex flex-col h-full w-full max-w-[480px] sm:w-[480px] bg-surface shadow-xl animate-slide-in-right">
-            
-            {/* ─── Drawer Header (Fixed) ─── */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-default bg-surface shrink-0">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-success" />
-                <h2 className="text-card-title text-primary">
-                  Comments {commentCount > 0 && `(${commentCount})`}
-                </h2>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    navigate(expandPath);
-                  }}
-                  className="p-2 rounded-control text-secondary hover:bg-surface-active hover:text-primary transition-colors"
-                  aria-label="Open full page"
-                  title="Open full page"
-                >
-                  <Maximize2 className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-control text-secondary hover:bg-surface-active hover:text-primary transition-colors"
-                  aria-label="Close comments"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* ─── Comments List (Scrollable) ─── */}
-            <div
-              ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto px-6"
-            >
-              <CommentList
-                comments={comments}
-                isLoading={isLoading}
-                isError={isError}
-                error={error}
-                size="sm"
-              />
-            </div>
-
-            {/* ─── Add Comment Section (Fixed at Bottom) ─── */}
-            <div className="shrink-0 border-t border-default bg-surface">
-              <CommentForm
-                ticketId={ticketId}
-                onCommentAdded={handleCommentAdded}
-                canToggleInternal={canToggleInternal}
-                userCode={profile?.userCode}
-                role={role}
-                size="sm"
-              />
-            </div>
-
-          </div>
-        </div>
-      )}
+        }
+      >
+        <CommentList
+          comments={comments}
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          size="sm"
+        />
+      </Drawer>
     </>
   );
 };

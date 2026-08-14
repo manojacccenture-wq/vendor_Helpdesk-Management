@@ -28,7 +28,7 @@ export const CollapsibleSection = ({ title, defaultOpen = false, children }) => 
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+        className="flex items-center gap-2 w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
       >
         {isOpen ? (
           <ChevronDown className="w-4 h-4 text-secondary shrink-0" />

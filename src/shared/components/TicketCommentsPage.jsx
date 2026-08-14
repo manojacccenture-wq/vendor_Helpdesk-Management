@@ -1,8 +1,10 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MessageSquare, ArrowLeft } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { MessageSquare } from 'lucide-react';
+import { BackButton } from './BackButton.jsx';
 import { Card, CardHeader, CardTitle } from './Card.jsx';
+import { TicketHistoryDrawer } from './TicketHistoryDrawer.jsx';
 import { CommentForm } from './CommentForm.jsx';
 import { CommentList } from './CommentList.jsx';
 import { useGetTicketCommentsQuery, useGetTicketDetailsQuery } from '../api/apiSlice.js';
@@ -18,7 +20,6 @@ import { selectUserProfile, selectUserRole } from '../../features/user/store/sel
  * @param {string} backPath - Path to navigate back to (e.g., '/vendor/ticket/123')
  */
 export const TicketCommentsPage = ({ backPath }) => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
@@ -72,6 +73,7 @@ export const TicketCommentsPage = ({ backPath }) => {
   // Get ticket number for display
   const ticketNo = ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`;
   const subject = ticketDetails?.subject || ticketDetails?.ticketSubject || '';
+  const ticketHistoryViewModels = ticketDetails?.ticketHistoryViewModels || [];
 
   // Auto-scroll to bottom when new comments are added
   useEffect(() => {
@@ -80,15 +82,6 @@ export const TicketCommentsPage = ({ backPath }) => {
       container.scrollTop = container.scrollHeight;
     }
   }, [commentCount]);
-
-  // Handle back navigation
-  const handleBack = () => {
-    if (backPath) {
-      navigate(backPath);
-    } else {
-      navigate(-1);
-    }
-  };
 
   // Handle comment added callback (refetch is handled by RTK Query invalidation)
   const handleCommentAdded = () => {
@@ -102,14 +95,7 @@ export const TicketCommentsPage = ({ backPath }) => {
           PAGE HEADER
       ═══════════════════════════════════════════════════════════ */}
       <div className="flex items-center gap-4 mb-6">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-body font-medium">Back to Ticket</span>
-        </button>
+        <BackButton to={backPath} label="Back to Ticket" />
       </div>
 
       {/* Ticket Reference */}
@@ -137,10 +123,13 @@ export const TicketCommentsPage = ({ backPath }) => {
       ═══════════════════════════════════════════════════════════ */}
       <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="shrink-0">
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-success" />
-            Comments {commentCount > 0 && `(${commentCount})`}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-success" />
+              Comments {commentCount > 0 && `(${commentCount})`}
+            </CardTitle>
+            <TicketHistoryDrawer history={ticketHistoryViewModels} />
+          </div>
         </CardHeader>
 
         {/* Comments List (Scrollable) */}
