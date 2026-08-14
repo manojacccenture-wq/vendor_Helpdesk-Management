@@ -106,9 +106,9 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       // Base fields
       formData.append('Subject', data.subject);
       formData.append('Description', data.description);
-      formData.append('CategoryId', data.categoryId);
+      formData.append('CategoryId', parseInt(data.categoryId, 10));
       if (data.subCategoryId) {
-        formData.append('SubcategoryId', data.subCategoryId);
+        formData.append('SubcategoryId', parseInt(data.subCategoryId, 10));
       }
       
       // Dynamic Priority mapped to 'MEDIUM'

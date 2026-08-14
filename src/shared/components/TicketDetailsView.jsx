@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle, Tag, Layers, Paperclip, Pencil, Star } from 'lucide-react';
+import { CollapsibleSection, SectionHeading, SectionDivider } from './CollapsibleSection.jsx';
+
 import { Card, CardContent } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { BackButton } from './BackButton.jsx';
@@ -26,15 +28,7 @@ const FieldRow = ({ label, value }) => (
   </div>
 );
 
-/** Section divider */
-const SectionDivider = () => (
-  <div className="border-t border-default my-2" />
-);
 
-/** Section heading */
-const SectionHeading = ({ children }) => (
-  <h3 className="text-section-label text-secondary mb-2">{children}</h3>
-);
 
 /** Chip for displaying tags, categories, etc. */
 const InfoChip = ({ children }) => (
@@ -221,6 +215,10 @@ export const TicketDetailsView = ({
   const attachments = ticketDetails.attachments || [];
   const hasAttachments = attachments.length > 0;
 
+  const ticketHistoryViewModels = ticketDetails.ticketHistoryViewModels || [];
+  const sortedHistory = [...ticketHistoryViewModels].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+
+
   return (
     <div className="flex flex-col w-full max-w-[1000px] mx-auto px-4 sm:px-6">
 
@@ -275,9 +273,7 @@ export const TicketDetailsView = ({
           </div>
 
           {/* ─── Ticket Information (2-Column Key-Value) ─── */}
-          <div className="px-5 py-3 border-b border-default">
-            <SectionHeading>Ticket Information</SectionHeading>
-            <SectionDivider />
+          <CollapsibleSection title="Ticket Information" defaultOpen={true}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <div>
                 <FieldRow label="Vendor" value={vendorName} />
@@ -293,12 +289,10 @@ export const TicketDetailsView = ({
                 <FieldRow label="Bill Submitted" value={billSubmittedDate ? formatDate(billSubmittedDate) : null} />
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* ─── Processing & Assignment (2-Column Key-Value) ─── */}
-          <div className="px-5 py-3 border-b border-default">
-            <SectionHeading>Processing & Assignment</SectionHeading>
-            <SectionDivider />
+          <CollapsibleSection title="Processing & Assignment" defaultOpen={false}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <div>
                 <FieldRow label="Assigned Dept" value={assignedDept ? `Department #${assignedDept}` : null} />
@@ -314,13 +308,11 @@ export const TicketDetailsView = ({
                 <FieldRow label="Reopened" value={reopenedCount ?? null} />
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* ─── Timeline (2-Column Key-Value) ─── */}
-          <div className="px-5 py-3 border-b border-default">
-            <SectionHeading>Timeline</SectionHeading>
-            <SectionDivider />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+          {/* ─── Timeline (2-Column Key-Value & History) ─── */}
+          <CollapsibleSection title="Timeline" defaultOpen={false}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-6">
               <div>
                 <FieldRow label="Created" value={createdAt} />
                 <FieldRow label="Due Date" value={dueAt} />
@@ -332,7 +324,46 @@ export const TicketDetailsView = ({
                 <FieldRow label="Closed" value={closedAt} />
               </div>
             </div>
-          </div>
+
+            {/* Vertical History Feed */}
+            {sortedHistory.length > 0 && (
+              <div className="pt-4 border-t border-default">
+                <h4 className="text-primary text-sm font-semibold mb-4">Ticket History</h4>
+                <div className="relative border-l border-default ml-3 space-y-6">
+                  {sortedHistory.map((history, index) => (
+                    <div key={index} className="relative pl-6">
+                      {/* Timeline dot */}
+                      <span className="absolute left-[-5px] top-1 w-2.5 h-2.5 rounded-full bg-surface-active border border-default ring-4 ring-surface" />
+                      
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between gap-4 flex-wrap">
+                          <span className="text-body font-medium text-primary">{history.title}</span>
+                          <span className="text-caption text-secondary">
+                            {formatDate(history.changedAt)}
+                          </span>
+                        </div>
+                        
+                        <p className="text-body text-secondary">
+                          {history.description}
+                        </p>
+                        
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-caption text-secondary">By:</span>
+                          <span className="text-caption font-medium text-primary">{history.changedBy || 'System'}</span>
+                        </div>
+                        
+                        {history.remarks && (
+                          <div className="mt-2 p-2 bg-surface-active rounded-control border border-default text-sm text-secondary">
+                            <span className="font-medium">Remarks:</span> {history.remarks}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CollapsibleSection>
 
           {/* ─── Attachments (Compact) ─── */}
           <div className="px-5 py-3 border-b border-default">
@@ -422,13 +453,6 @@ export const TicketDetailsView = ({
         <div className="flex-1">
           {isDepartmentRole && (
             <div className="flex flex-wrap gap-2">
-              <Button 
-                className="bg-priority-low text-priority-low-text hover:opacity-90"
-                onClick={() => handleStatusAction('Escalated')}
-                disabled={isUpdatingStatus || isLoadingStatuses}
-              >
-                Escalate to L2
-              </Button>
               <Button 
                 className="bg-priority-medium text-priority-medium-text hover:opacity-90"
                 onClick={() => handleStatusAction('On Hold')}

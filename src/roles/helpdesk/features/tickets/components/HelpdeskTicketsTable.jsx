@@ -1,3 +1,5 @@
+import { usePagination } from '../../../../../shared/hooks/usePagination.js';
+import { Pagination } from '../../../../../shared/components/Pagination.jsx';
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +30,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
     userCode: profile?.userCode,
     role,
     statusId: statusFilter !== 'all' ? statusFilter : undefined,
+    priorityId: priorityFilter !== 'all' ? priorityFilter : undefined,
     categoryId: undefined
   }, {
     skip: !profile?.userCode || !role
@@ -35,7 +38,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
 
   const { data: departments = [] } = useGetDepartmentsQuery({ role, userCode: profile?.userCode }, { skip: !profile?.userCode || !role });
 
-  // Client-side filtering for search and priority
+  // Client-side filtering for search
   const filteredTickets = useMemo(() => {
     return tickets.filter(ticket => {
       if (searchTerm) {
@@ -45,14 +48,11 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
           ticket.subject?.toLowerCase().includes(lowerSearch);
         if (!matchesSearch) return false;
       }
-      if (priorityFilter && priorityFilter !== 'all') {
-        if (ticket.priority?.toLowerCase() !== String(priorityFilter).toLowerCase()) {
-          return false;
-        }
-      }
       return true;
     });
-  }, [tickets, searchTerm, priorityFilter]);
+  }, [tickets, searchTerm]);
+
+  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
 
   const handleAssignClick = (ticket) => {
     setSelectedTicket(ticket);
@@ -159,13 +159,15 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
           >
             👁 View
           </Button>
-          <Button
-            variant='black'
-            size='sm'
-            onClick={() => handleAssignClick(row)}
-          >
-            Assign
-          </Button>
+          {row.status?.toLowerCase() !== 'resolved' && (
+            <Button
+              variant='black'
+              size='sm'
+              onClick={() => handleAssignClick(row)}
+            >
+              Assign
+            </Button>
+          )}
         </div>
       ),
     },
@@ -181,15 +183,21 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
 
   return (
     <>
-      <Table
-        columns={columns}
-        data={filteredTickets}
+      <Table columns={columns}
+        data={paginatedData}
         rowKey={(row) => row.id}
         isLoading={isLoading}
         emptyMessage='No tickets found.'
       />
 
       {/* Assign Ticket Modal */}
+      
+      <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onNext={nextPage} 
+          onPrev={prevPage} 
+        />
       <AssignTicketModal
         isOpen={isModalOpen}
         ticket={selectedTicket}

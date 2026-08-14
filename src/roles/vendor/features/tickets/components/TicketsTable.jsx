@@ -1,3 +1,5 @@
+import { usePagination } from '../../../../../shared/hooks/usePagination.js';
+import { Pagination } from '../../../../../shared/components/Pagination.jsx';
 import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +42,8 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
       );
     });
   }, [tickets, searchTerm]);
+
+  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
 
   // ─── Column Configuration ───
   const columns = useMemo(() => [
@@ -151,14 +155,20 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
 
   return (
     <>
-      <Table
-        columns={columns}
-        data={filteredTickets}
+      <Table columns={columns}
+        data={paginatedData}
         rowKey={(row) => row.id}
         isLoading={isLoading}
         emptyMessage='No tickets found.'
       />
 
+      
+      <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onNext={nextPage} 
+          onPrev={prevPage} 
+        />
       <TicketFeedbackModal
         isOpen={isFeedbackModalOpen}
         ticketId={selectedFeedbackTicket?.id}

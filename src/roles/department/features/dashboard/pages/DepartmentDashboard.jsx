@@ -1,3 +1,5 @@
+import { usePagination } from '../../../../../shared/hooks/usePagination.js';
+import { Pagination } from '../../../../../shared/components/Pagination.jsx';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -49,11 +51,11 @@ export const DepartmentDashboard = () => {
   // ─── Filters Config ───
   const statusOptions = [
     { label: 'All status', value: '' }, 
-    ...(statusesData?.map(s => ({ label: s.statusName, value: s.id })) || [])
+    ...(statusesData?.map(s => ({ label: s.text, value: s.value })) || [])
   ];
   const categoryOptions = [
     { label: 'All categories', value: '' }, 
-    ...(categoriesData?.map(c => ({ label: c.categoryName, value: c.id })) || [])
+    ...(categoriesData?.map(c => ({ label: c.text, value: c.value })) || [])
   ];
 
   const filters = [
@@ -75,6 +77,8 @@ export const DepartmentDashboard = () => {
       return (ticket.subject?.toLowerCase().includes(lowerSearch) || ticket.ticketNo?.toLowerCase().includes(lowerSearch));
     });
   }, [tickets, searchTerm]);
+
+  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
 
   const columns = useMemo(() => [
     {
@@ -135,13 +139,20 @@ export const DepartmentDashboard = () => {
           <span className='text-danger'>Failed to load tickets. Please try again.</span>
         </div>
       ) : (
-        <Table
-          columns={columns}
-          data={filteredTickets}
+        <>
+        <Table columns={columns}
+          data={paginatedData}
           rowKey={(row) => row.id}
           isLoading={isLoadingTickets}
           emptyMessage='No tickets found.'
         />
+        <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onNext={nextPage} 
+            onPrev={prevPage} 
+          />
+      </>
       )}
     </div>
   );

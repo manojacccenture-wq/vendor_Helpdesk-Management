@@ -16,12 +16,13 @@
 
 export const ticketEndpoints = (builder) => ({
   getTicketList: builder.query({
-    query: ({ userCode, role, statusId, categoryId }) => {
+    query: ({ userCode, role, statusId, categoryId, priorityId }) => {
       const params = new URLSearchParams();
       if (userCode) params.append('userCode', userCode);
       if (role) params.append('role', role);
       if (statusId) params.append('statusId', statusId);
       if (categoryId) params.append('categoryId', categoryId);
+      if (priorityId) params.append('priorityId', priorityId);
       return {
         url: `/api/Tickets/ticketlist?${params.toString()}`,
         method: 'GET',
