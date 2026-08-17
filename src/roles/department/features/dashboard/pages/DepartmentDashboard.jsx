@@ -3,7 +3,7 @@ import { Pagination } from '../../../../../shared/components/Pagination.jsx';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Ticket, Hourglass, Check } from 'lucide-react';
+import { Ticket, CircleDot, Hourglass, Clock, Check, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { TicketMetrics } from '../../../../../shared/components/TicketMetrics.jsx';
 import { TicketToolbar } from '../../../../../shared/components/TicketToolbar.jsx';
 import { Table } from '../../../../../shared/components/Table.jsx';
@@ -12,11 +12,11 @@ import { Button } from '../../../../../shared/components/Button.jsx';
 import { PipelineStepper } from '../../../../vendor/features/tickets/components/PipelineStepper.jsx';
 import { 
   useGetTicketListQuery, 
-  useGetTicketCountQuery,
   useGetTicketStatusesQuery,
   useGetCategoriesQuery
 } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
+import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
 export const DepartmentDashboard = () => {
   const navigate = useNavigate();
@@ -30,10 +30,6 @@ export const DepartmentDashboard = () => {
   // ─── Fetch Data ───
   // For BL1, we rely on the backend to filter tickets by the user's mapped department
   // using role="BL1" and their userCode.
-  const { data: metricsData, isLoading: isLoadingMetrics, isError: isErrorMetrics } = useGetTicketCountQuery({ 
-    role, userCode: profile?.userCode 
-  }, { skip: !profile?.userCode || !role });
-
   const { data: tickets = [], isLoading: isLoadingTickets, isError: isErrorTickets } = useGetTicketListQuery({
     role, userCode: profile?.userCode, statusId, categoryId
   }, { skip: !profile?.userCode || !role });
@@ -41,11 +37,30 @@ export const DepartmentDashboard = () => {
   const { data: statusesData } = useGetTicketStatusesQuery();
   const { data: categoriesData } = useGetCategoriesQuery();
 
+  // ─── Derive per-status counts from ticket list ───
+  const counts = useMemo(() => {
+    const result = { total: tickets.length, open: 0, inProgress: 0, onHold: 0, resolved: 0, closed: 0, escalated: 0 };
+    for (const t of tickets) {
+      const s = (t.status || '').toLowerCase();
+      if (s === 'open') result.open++;
+      else if (s === 'in progress') result.inProgress++;
+      else if (s === 'on hold') result.onHold++;
+      else if (s === 'resolved') result.resolved++;
+      else if (s === 'closed') result.closed++;
+      else if (s === 'escalated') result.escalated++;
+    }
+    return result;
+  }, [tickets]);
+
   // ─── Metrics Config ───
   const metrics = [
-    { label: 'Total tickets', value: metricsData?.totalCount, icon: Ticket, iconBg: 'bg-surface-active', iconColor: 'text-primary' },
-    { label: 'In progress', value: metricsData?.inProgress, icon: Hourglass, iconBg: 'bg-warning-soft', iconColor: 'text-warning' },
-    { label: 'Resolved', value: metricsData?.resolved, icon: Check, iconBg: 'bg-success-soft', iconColor: 'text-success' },
+    { label: 'Total tickets', value: counts.total, icon: Ticket, iconBg: 'bg-surface-active', iconColor: 'text-primary' },
+    { label: 'Open', value: counts.open, icon: CircleDot, iconBg: 'bg-info-soft', iconColor: 'text-info' },
+    { label: 'In progress', value: counts.inProgress, icon: Hourglass, iconBg: 'bg-warning-soft', iconColor: 'text-warning' },
+    { label: 'On hold', value: counts.onHold, icon: Clock, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary' },
+    { label: 'Resolved', value: counts.resolved, icon: Check, iconBg: 'bg-success-soft', iconColor: 'text-success' },
+    { label: 'Closed', value: counts.closed, icon: CheckCircle2, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary' },
+    { label: 'Escalated', value: counts.escalated, icon: AlertTriangle, iconBg: 'bg-danger-soft', iconColor: 'text-danger' },
   ];
 
   // ─── Filters Config ───
@@ -78,12 +93,11 @@ export const DepartmentDashboard = () => {
     });
   }, [tickets, searchTerm]);
 
-  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
+  const { paginatedData, currentPage, totalPages, totalItems, itemsPerPage, nextPage, prevPage, setItemsPerPage } = usePagination(filteredTickets, 10);
 
   const columns = useMemo(() => [
     {
-      key: 'ticketNo', header: 'Ticket #', width: '150px',
-      render: (row) => <code className='text-secondary text-sm'>{row.ticketNo}</code>,
+      key: 'ticketNo', header: 'Ticket #', width: '150px',        render: (row) => <code className='text-secondary text-sm'>{formatTicketNo(row.ticketNo)}</code>,
     },
     {
       key: 'subject', header: 'Subject', flex: 1, truncate: true,
@@ -118,7 +132,7 @@ export const DepartmentDashboard = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
       {/* 3 Metric Cards */}
-      <TicketMetrics metrics={metrics} isLoading={isLoadingMetrics} isError={isErrorMetrics} />
+      <TicketMetrics metrics={metrics} isLoading={isLoadingTickets} isError={isErrorTickets} />
       
       {/* Main Page Title */}
       <h1 className="text-primary mt-8 mb-6">
@@ -150,7 +164,10 @@ export const DepartmentDashboard = () => {
             currentPage={currentPage} 
             totalPages={totalPages} 
             onNext={nextPage} 
-            onPrev={prevPage} 
+            onPrev={prevPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
       </>
       )}

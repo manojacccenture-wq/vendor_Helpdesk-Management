@@ -10,6 +10,7 @@ import { TicketFeedbackModal } from '../../../../../shared/components/TicketFeed
 import { Table } from '../../../../../shared/components/Table.jsx';
 import { useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
+import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
 /**
  * TicketsTable — Ticket list for Vendor role.
@@ -43,7 +44,7 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
     });
   }, [tickets, searchTerm]);
 
-  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
+  const { paginatedData, currentPage, totalPages, totalItems, itemsPerPage, nextPage, prevPage, setItemsPerPage } = usePagination(filteredTickets, 10);
 
   // ─── Column Configuration ───
   const columns = useMemo(() => [
@@ -54,7 +55,7 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
       nowrap: true,
       truncate: false,
       render: (row) => (
-        <code className='text-secondary text-sm'>{row.ticketNo}</code>
+        <code className='text-secondary text-sm'>{formatTicketNo(row.ticketNo)}</code>
       ),
     },
     {
@@ -167,7 +168,10 @@ export const TicketsTable = ({ statusId, categoryId, searchTerm }) => {
           currentPage={currentPage} 
           totalPages={totalPages} 
           onNext={nextPage} 
-          onPrev={prevPage} 
+          onPrev={prevPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       <TicketFeedbackModal
         isOpen={isFeedbackModalOpen}

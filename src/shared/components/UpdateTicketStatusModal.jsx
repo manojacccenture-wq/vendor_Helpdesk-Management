@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Select } from './Select.jsx';
+import { Textarea } from './Textarea.jsx';
 import { Button } from './Button.jsx';
 import { StatusBadge } from './StatusBadge.jsx';
 import { useGetTicketStatusesQuery, useUpdateTicketStatusMutation } from '../api/apiSlice.js';
@@ -11,6 +12,7 @@ import { useNotification } from '../notifications/index.js';
  * Responsibilities:
  * - Displays current status via StatusBadge
  * - Provides a dropdown of available statuses from the ticket-statuses API
+ * - Collects required remarks before submitting
  * - Calls the updateTicketStatus mutation on confirm
  * - Handles success/error notifications
  * - Manages its own loading and selection state
@@ -31,15 +33,24 @@ export const UpdateTicketStatusModal = ({
 }) => {
   const { showSuccess, showError } = useNotification();
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [remarksError, setRemarksError] = useState('');
   const [updateTicketStatus, { isLoading: isUpdating }] = useUpdateTicketStatusMutation();
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery();
 
-  // Reset selection when modal opens with a new ticket/currentStatus
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedStatus('');
-    }
-  }, [isOpen, ticketId, currentStatus]);
+  // Centralized form reset — called on every exit path that should clear state
+  const resetForm = useCallback(() => {
+    setSelectedStatus('');
+    setRemarks('');
+    setRemarksError('');
+  }, []);
+
+  // Close handler — reset form before closing (Cancel, overlay click)
+  // MUST be declared before the early return to satisfy Rules of Hooks
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [resetForm, onClose]);
 
   if (!isOpen || !ticketId) return null;
 
@@ -61,10 +72,20 @@ export const UpdateTicketStatusModal = ({
   const handleUpdate = async () => {
     if (!selectedStatus || isSameStatus) return;
 
+    // Validate remarks
+    const trimmedRemarks = remarks.trim();
+    if (!trimmedRemarks) {
+      setRemarksError('Remarks are required.');
+      return;
+    }
+
+    setRemarksError('');
+
     try {
       const response = await updateTicketStatus({
         ticketId,
         status: parseInt(selectedStatus, 10),
+        remarks: trimmedRemarks,
       }).unwrap();
 
       if (response?.isSuccessful === false) {
@@ -72,12 +93,20 @@ export const UpdateTicketStatusModal = ({
         return;
       }
 
+      // Success: reset form, then close and notify parent
+      resetForm();
       showSuccess(response?.message || 'Status updated successfully!');
       onClose();
       if (onSuccess) onSuccess();
     } catch (error) {
+      // Error: keep form values so user can retry
       showError(error?.data?.message || 'Failed to update status. Please try again.');
     }
+  };
+
+  const handleRemarksChange = (e) => {
+    setRemarks(e.target.value);
+    if (remarksError) setRemarksError('');
   };
 
   return (
@@ -85,7 +114,7 @@ export const UpdateTicketStatusModal = ({
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50"
-        onClick={isUpdating ? undefined : onClose}
+        onClick={isUpdating ? undefined : handleClose}
       />
 
       {/* Modal */}
@@ -101,13 +130,25 @@ export const UpdateTicketStatusModal = ({
           </div>
 
           {/* New Status Dropdown */}
-          <Select
-            label="New Status"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            options={statusOptions}
-            placeholder={isLoadingStatuses ? 'Loading statuses...' : 'Select new status'}
-            disabled={isUpdating || isLoadingStatuses}
+          <div className="mb-4">
+            <Select
+              label="New Status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              options={statusOptions}
+              placeholder={isLoadingStatuses ? 'Loading statuses...' : 'Select new status'}
+              disabled={isUpdating || isLoadingStatuses}
+            />
+          </div>
+
+          {/* Remarks Textarea */}
+          <Textarea
+            label="Remarks *"
+            value={remarks}
+            onChange={handleRemarksChange}
+            placeholder="Enter remarks for this status update..."
+            disabled={isUpdating}
+            error={remarksError}
           />
         </div>
 
@@ -115,7 +156,7 @@ export const UpdateTicketStatusModal = ({
         <div className="flex items-center justify-end gap-3 px-6 pb-6">
           <Button
             variant="ghost"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isUpdating}
           >
             Cancel

@@ -1,0 +1,50 @@
+import React from 'react';
+import { StatusBadge } from './StatusBadge.jsx';
+import { InfoChip } from './TicketDetailHelpers.jsx';
+import { TicketActions } from './TicketActions.jsx';
+import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
+import { TicketHistoryDrawer } from './TicketHistoryDrawer.jsx';
+
+/**
+ * TicketHero — Displays ticket identity (number, status, priority) and action buttons.
+ */
+export const TicketHero = ({
+  ticketId,
+  ticketNo,
+  status,
+  statusColorHex,
+  priority,
+  canUpdateStatus,
+  ticketDetails,
+  subject,
+  ticketHistoryViewModels,
+}) => (
+  <div className="px-5 pt-4 pb-3 border-b border-default">
+    <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="flex items-center gap-3">
+        <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
+        <StatusBadge status={status} colorHex={statusColorHex} />
+        <div className="flex items-center gap-2">
+          {priority && (
+            <InfoChip>{priority}</InfoChip>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {canUpdateStatus && (
+          <TicketActions
+            ticketId={ticketId}
+            ticket={ticketDetails}
+            currentStatus={status}
+            onActionComplete={() => {}}
+          />
+        )}
+        <TicketCommentsDrawer ticketId={ticketId} />
+        <TicketHistoryDrawer history={ticketHistoryViewModels} />
+      </div>
+    </div>
+
+    <h2 className="text-card-title text-primary">{subject}</h2>
+  </div>
+);

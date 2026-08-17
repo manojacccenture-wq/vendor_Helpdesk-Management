@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Select } from './Select.jsx';
 import { Button } from './Button.jsx';
 import { useGetUsersByDepartmentQuery } from '../api/apiSlice.js';
+import { formatTicketNo } from '../utils/ticket.js';
 
 /**
  * Modal for assigning a ticket to a helpdesk agent.
@@ -106,7 +107,7 @@ export const AssignTicketModal = ({
 
           {/* Ticket Info */}
           <div className="mb-4">
-            <code className="text-secondary text-sm block mb-1">{ticket.ticketNo}</code>
+            <code className="text-secondary text-sm block mb-1">{formatTicketNo(ticket.ticketNo)}</code>
             <p className="text-primary">{ticket.subject}</p>
           </div>
         </div>

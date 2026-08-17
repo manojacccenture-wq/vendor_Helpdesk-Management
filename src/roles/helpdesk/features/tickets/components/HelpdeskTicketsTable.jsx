@@ -12,6 +12,7 @@ import { useGetTicketListQuery, useGetDepartmentsQuery, useAssignTicketMutation 
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 import { useNotification } from '../../../../../shared/notifications/index.js';
 import { formatDate } from '../../../../../shared/utils/date.js';
+import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
 /**
  * HelpdeskTicketsTable — Ticket list for Helpdesk role.
@@ -52,7 +53,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
     });
   }, [tickets, searchTerm]);
 
-  const { paginatedData, currentPage, totalPages, nextPage, prevPage } = usePagination(filteredTickets, 10);
+  const { paginatedData, currentPage, totalPages, totalItems, itemsPerPage, nextPage, prevPage, setItemsPerPage } = usePagination(filteredTickets, 10);
 
   const handleAssignClick = (ticket) => {
     setSelectedTicket(ticket);
@@ -97,7 +98,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
       nowrap: true,
       truncate: false,
       render: (row) => (
-        <code className='text-secondary text-sm'>{row.ticketNo}</code>
+        <code className='text-secondary text-sm'>{formatTicketNo(row.ticketNo)}</code>
       ),
     },
     {
@@ -196,7 +197,10 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
           currentPage={currentPage} 
           totalPages={totalPages} 
           onNext={nextPage} 
-          onPrev={prevPage} 
+          onPrev={prevPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       <AssignTicketModal
         isOpen={isModalOpen}

@@ -1,46 +1,31 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Download, FileText, Calendar, User, Building2, Clock, AlertCircle, Tag, Layers, Paperclip, Pencil, Star } from 'lucide-react';
-import { CollapsibleSection, SectionHeading, SectionDivider } from './CollapsibleSection.jsx';
+import { FileText, AlertCircle, Star } from 'lucide-react';
+import { SectionHeading, SectionDivider } from './CollapsibleSection.jsx';
 
 import { Card, CardContent } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { BackButton } from './BackButton.jsx';
 import { StatusBadge } from './StatusBadge.jsx';
-import { UpdateTicketStatusModal } from './UpdateTicketStatusModal.jsx';
+import { TicketHero } from './TicketHero.jsx';
+import { TicketInformation } from './TicketInformation.jsx';
+import { TicketProcessing } from './TicketProcessing.jsx';
+import { TicketTimeline } from './TicketTimeline.jsx';
+import { TicketAttachments } from './TicketAttachments.jsx';
+import { TicketFooter } from './TicketFooter.jsx';
+import { RemarksConfirmationModal } from './RemarksConfirmationModal.jsx';
 import { TicketFeedbackModal } from './TicketFeedbackModal.jsx';
-import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
-import { TicketHistoryDrawer } from './TicketHistoryDrawer.jsx';
-import { useGetTicketDetailsQuery, useGetTicketStatusesQuery, useUpdateTicketStatusMutation } from '../api/apiSlice.js';
+import { useGetTicketDetailsQuery, useGetTicketStatusesQuery } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
-import { downloadTicketAttachment } from '../utils/download.js';
-import { formatDate, formatFileSize } from '../utils/date.js';
-import { useNotification } from '../notifications/index.js';
-
-// ─── Internal Helper Components (Compact Bill-Style) ───
-
-/** Compact key-value row for bill-style layout */
-const FieldRow = ({ label, value }) => (
-  <div className="flex items-baseline gap-2 py-1">
-    <span className="text-caption text-secondary whitespace-nowrap">{label}</span>
-    <span className="text-caption text-secondary">:</span>
-    <span className="text-body text-primary truncate">{value || '—'}</span>
-  </div>
-);
-
-
-
-/** Chip for displaying tags, categories, etc. */
-const InfoChip = ({ children }) => (
-  <span className="inline-flex items-center px-3 py-1 rounded-full text-caption bg-surface-active text-secondary border border-default">
-    {children}
-  </span>
-);
+import { formatDate } from '../utils/date.js';
+import { formatTicketNo } from '../utils/ticket.js';
 
 /**
  * TicketDetailsView — Single shared Ticket Details component.
  * Compact bill/invoice-style layout.
+ *
+ * Orchestrates child components for each logical section.
  *
  * @param {Object} props
  * @param {string|number} props.ticketId - The ticket ID (from useParams)
@@ -55,10 +40,10 @@ export const TicketDetailsView = ({
   const navigate = useNavigate();
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
-  const [downloadingAttachments, setDownloadingAttachments] = useState(new Set());
-  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const { showSuccess, showError } = useNotification();
+  const [remarksModalOpen, setRemarksModalOpen] = useState(false);
+  const [pendingStatusText, setPendingStatusText] = useState('');
+  const [pendingStatusId, setPendingStatusId] = useState(null);
 
   const { data: ticketDetails, isLoading, isError, error } = useGetTicketDetailsQuery({
     ticketId,
@@ -70,33 +55,18 @@ export const TicketDetailsView = ({
 
   const isDepartmentRole = ['BL1', 'HOD', 'VH', 'MD'].includes(role);
 
-  // Fetch ticket statuses for Department roles dynamic button mapping
   const { data: ticketStatuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery(undefined, {
     skip: !isDepartmentRole
   });
-  
-  const [updateTicketStatus, { isLoading: isUpdatingStatus }] = useUpdateTicketStatusMutation();
 
-  const handleStatusAction = async (targetStatusText) => {
-    // Find the correct status ID from the dynamic list
+  const handleStatusAction = (targetStatusText) => {
     const statusObj = ticketStatuses.find(s => (s.text ?? s.Text)?.toLowerCase() === targetStatusText.toLowerCase());
-    if (!statusObj) {
-      showError(`Status '${targetStatusText}' is not currently available from the server.`);
-      return;
-    }
-    
+    if (!statusObj) return;
+
     const statusId = parseInt(statusObj.value ?? statusObj.Value, 10);
-    
-    try {
-      const response = await updateTicketStatus({ ticketId, status: statusId }).unwrap();
-      if (response?.isSuccessful === false) {
-        showError(response?.message || `Failed to update status to ${targetStatusText}.`);
-        return;
-      }
-      showSuccess(response?.message || `Status successfully updated to ${targetStatusText}.`);
-    } catch (err) {
-      showError(err?.data?.message || `Failed to update status. Please try again.`);
-    }
+    setPendingStatusText(targetStatusText);
+    setPendingStatusId(statusId);
+    setRemarksModalOpen(true);
   };
 
   const canUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
@@ -177,7 +147,7 @@ export const TicketDetailsView = ({
   }
 
   // ─── Extract fields from API response ───
-  const ticketNo = ticketDetails.ticketNo || ticketDetails.ticketNumber || `#${ticketId}`;
+  const ticketNo = formatTicketNo(ticketDetails.ticketNo || ticketDetails.ticketNumber || `#${ticketId}`);
   const subject = ticketDetails.subject || ticketDetails.ticketSubject || 'No subject';
   const category = ticketDetails.category || ticketDetails.ticketCategory;
   const subcategory = ticketDetails.subcategory;
@@ -187,7 +157,6 @@ export const TicketDetailsView = ({
   const status = ticketDetails.status || 'Unknown';
   const statusColorHex = ticketDetails.statusColorHex;
 
-  // Vendor-submitted fields
   const vendorName = ticketDetails.vendorName;
   const refNo = ticketDetails.refNo;
   const tags = ticketDetails.tags;
@@ -195,11 +164,9 @@ export const TicketDetailsView = ({
   const billSubmittedDate = ticketDetails.billSubmittedDate;
   const processingDays = ticketDetails.noProcessingDays;
 
-  // Workflow/system-generated fields
   const createdAt = formatDate(ticketDetails.ticketCreatedAt || ticketDetails.createdAt || ticketDetails.createAt);
   const updatedAt = formatDate(ticketDetails.ticketUpdatedAt);
   const createdBy = ticketDetails.ticketCreatedBy;
-  const updatedBy = ticketDetails.ticketUpdatedBy;
   const dueAt = formatDate(ticketDetails.dueAt);
   const firstResponseAt = formatDate(ticketDetails.firstResponseAt);
   const resolvedAt = formatDate(ticketDetails.resolvedAt);
@@ -208,16 +175,12 @@ export const TicketDetailsView = ({
   const assignedDept = ticketDetails.assignedDepartmentId;
   const assignedAgent = ticketDetails.assignedAgentId;
 
-  // Escalation fields
   const isEscalated = ticketDetails.isEscalated;
   const escalationLevel = ticketDetails.escalationLevel;
   const reopenedCount = ticketDetails.reopenedCount;
 
   const attachments = ticketDetails.attachments || [];
-  const hasAttachments = attachments.length > 0;
-
   const ticketHistoryViewModels = ticketDetails.ticketHistoryViewModels || [];
-
 
   return (
     <div className="flex flex-col w-full max-w-[1000px] mx-auto px-4 sm:px-6">
@@ -228,46 +191,24 @@ export const TicketDetailsView = ({
         <h1 className="text-primary">Ticket Details</h1>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          SINGLE CARD — Compact Bill-Style Layout
-      ═══════════════════════════════════════════════════════════ */}
+      {/* Single Card — Compact Bill-Style Layout */}
       <Card className="w-full">
         <CardContent className="p-0">
 
-          {/* ─── Hero: Ticket Number + Status + Subject (UNCHANGED) ─── */}
-          <div className="px-5 pt-4 pb-3 border-b border-default">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="flex items-center gap-3">
-                <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
-                <StatusBadge status={status} colorHex={statusColorHex} />
-                {canUpdateStatus && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsStatusModalOpen(true)}
-                    className="p-1 h-auto hover:text-primary"
-                    title="Update status"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-                <div className="flex items-center gap-2">
-                  {priority && (
-                    <InfoChip>{priority}</InfoChip>
-                  )}
-                </div>
-              </div>
+          {/* Hero */}
+          <TicketHero
+            ticketId={ticketId}
+            ticketNo={ticketNo}
+            status={status}
+            statusColorHex={statusColorHex}
+            priority={priority}
+            canUpdateStatus={canUpdateStatus}
+            ticketDetails={ticketDetails}
+            subject={subject}
+            ticketHistoryViewModels={ticketHistoryViewModels}
+          />
 
-              <div className="flex items-center gap-2">
-                <TicketCommentsDrawer ticketId={ticketId} />
-                <TicketHistoryDrawer history={ticketHistoryViewModels} />
-              </div>
-            </div>
-
-            <h2 className="text-card-title text-primary">{subject}</h2>
-          </div>
-
-          {/* ─── Description (Compact) ─── */}
+          {/* Description */}
           <div className="px-5 py-3 border-b border-default">
             <SectionHeading>Description</SectionHeading>
             <div className="bg-surface-hover rounded-control px-4 py-3 border border-default">
@@ -275,123 +216,43 @@ export const TicketDetailsView = ({
             </div>
           </div>
 
-          {/* ─── Ticket Information (2-Column Key-Value) ─── */}
-          <CollapsibleSection title="Ticket Information" defaultOpen={true}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-              <div>
-                <FieldRow label="Vendor" value={vendorName} />
-                <FieldRow label="Reference No" value={refNo} />
-                <FieldRow label="Source" value={source} />
-                <FieldRow label="BTS Number" value={btsNo} />
-                <FieldRow label="Processing Days" value={processingDays} />
-              </div>
-              <div>
-                <FieldRow label="Category" value={category} />
-                <FieldRow label="Sub Category" value={subcategory} />
-                <FieldRow label="Tags" value={tags} />
-                <FieldRow label="Bill Submitted" value={billSubmittedDate ? formatDate(billSubmittedDate) : null} />
-              </div>
-            </div>
-          </CollapsibleSection>
+          {/* Ticket Information */}
+          <TicketInformation
+            vendorName={vendorName}
+            refNo={refNo}
+            source={source}
+            btsNo={btsNo}
+            processingDays={processingDays}
+            category={category}
+            subcategory={subcategory}
+            tags={tags}
+            billSubmittedDate={billSubmittedDate}
+          />
 
-          {/* ─── Processing & Assignment (2-Column Key-Value) ─── */}
-          <CollapsibleSection title="Processing & Assignment" defaultOpen={false}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-              <div>
-                <FieldRow label="Assigned Dept" value={assignedDept ? `Department #${assignedDept}` : null} />
-                <FieldRow label="Assigned Agent" value={assignedAgent ? `Agent #${assignedAgent}` : null} />
-                <FieldRow label="Escalated" value={isEscalated === true ? 'Yes' : isEscalated === false ? 'No' : null} />
-                <FieldRow label="Escalation Level" value={escalationLevel ?? null} />
-              </div>
-              <div>
-                <FieldRow label="Created By" value={createdBy} />
-                {/* {showUpdatedBy && (
-                  <FieldRow label="Updated By" value={updatedBy} />
-                )} */}
-                <FieldRow label="Reopened" value={reopenedCount ?? null} />
-              </div>
-            </div>
-          </CollapsibleSection>
+          {/* Processing & Assignment */}
+          <TicketProcessing
+            assignedDept={assignedDept}
+            assignedAgent={assignedAgent}
+            isEscalated={isEscalated}
+            escalationLevel={escalationLevel}
+            createdBy={createdBy}
+            reopenedCount={reopenedCount}
+          />
 
-          {/* ─── Timeline (2-Column Key-Value & History) ─── */}
-          <CollapsibleSection title="Timeline" defaultOpen={false}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-6">
-              <div>
-                <FieldRow label="Created" value={createdAt} />
-                <FieldRow label="Due Date" value={dueAt} />
-                <FieldRow label="Resolved" value={resolvedAt} />
-              </div>
-              <div>
-                <FieldRow label="Updated" value={updatedAt} />
-                <FieldRow label="First Response" value={firstResponseAt} />
-                <FieldRow label="Closed" value={closedAt} />
-              </div>
-            </div>
+          {/* Timeline */}
+          <TicketTimeline
+            createdAt={createdAt}
+            dueAt={dueAt}
+            resolvedAt={resolvedAt}
+            updatedAt={updatedAt}
+            firstResponseAt={firstResponseAt}
+            closedAt={closedAt}
+          />
 
+          {/* Attachments */}
+          <TicketAttachments attachments={attachments} />
 
-          </CollapsibleSection>
-
-          {/* ─── Attachments (Compact) ─── */}
-          <div className="px-5 py-3 border-b border-default">
-            <SectionHeading>Attachments</SectionHeading>
-            <SectionDivider />
-            {hasAttachments ? (
-              <div className="flex flex-col gap-1">
-                {attachments.map((attachment, index) => (
-                  <div
-                    key={attachment.uuid || index}
-                    className="flex items-center justify-between py-1.5"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-secondary shrink-0" />
-                      <span className="text-body text-primary truncate">{attachment.originalFileName}</span>
-                      <span className="text-caption text-secondary">
-                        {formatFileSize(attachment.fileSizeBytes)} • {attachment.mimeType}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`Download ${attachment.originalFileName}`}
-                      disabled={downloadingAttachments.has(attachment.uuid)}
-                      onClick={async () => {
-                        if (downloadingAttachments.has(attachment.uuid)) return;
-
-                        setDownloadingAttachments(prev => new Set([...prev, attachment.uuid]));
-                        try {
-                          await downloadTicketAttachment(
-                            attachment.uuid,
-                            attachment.originalFileName
-                          );
-                        } catch {
-                          // Error already handled in download utility
-                        } finally {
-                          setDownloadingAttachments(prev => {
-                            const newSet = new Set(prev);
-                            newSet.delete(attachment.uuid);
-                            return newSet;
-                          });
-                        }
-                      }}
-                    >
-                      {downloadingAttachments.has(attachment.uuid) ? (
-                        <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Download className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 py-1">
-                <FileText className="w-4 h-4 text-secondary" />
-                <span className="text-caption text-secondary">No attachments available</span>
-              </div>
-            )}
-          </div>
-
-          {/* ─── Feedback (Vendor only, Closed status only) ─── */}
+          {/* Feedback (Vendor only, Closed status only) */}
           {role === 'L1' && ticketDetails?.statusId === 5 && (
             <div className="px-5 py-3">
               <SectionHeading>Feedback</SectionHeading>
@@ -415,60 +276,23 @@ export const TicketDetailsView = ({
       </Card>
 
       {/* Footer */}
-      <div className="flex justify-between items-center py-4">
-        <div className="flex-1">
-          {isDepartmentRole && (
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                className="bg-priority-medium text-priority-medium-text hover:opacity-90"
-                onClick={() => handleStatusAction('On Hold')}
-                disabled={isUpdatingStatus || isLoadingStatuses}
-              >
-                Put on hold
-              </Button>
-              <Button 
-                className="bg-info text-white hover:opacity-90"
-                onClick={() => handleStatusAction('Resolved')}
-                disabled={isUpdatingStatus || isLoadingStatuses}
-              >
-                Resolved
-              </Button>
-              {/* Only render Cancel button if the backend provides a Cancel status */}
-              {ticketStatuses.some(s => {
-                const txt = (s.text ?? s.Text)?.toLowerCase();
-                return txt === 'cancel' || txt === 'cancelled';
-              }) && (
-                <Button 
-                  className="bg-priority-escalate text-priority-escalate-text hover:opacity-90"
-                  onClick={() => {
-                    const cancelStr = ticketStatuses.find(s => {
-                      const txt = (s.text ?? s.Text)?.toLowerCase();
-                      return txt === 'cancel' || txt === 'cancelled';
-                    });
-                    handleStatusAction(cancelStr?.text ?? cancelStr?.Text);
-                  }}
-                  disabled={isUpdatingStatus || isLoadingStatuses}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-        <Button variant="black" onClick={() => navigate(backPath)} className="ml-4">
-          Back to Dashboard
-        </Button>
-      </div>
+      <TicketFooter
+        isDepartmentRole={isDepartmentRole}
+        onStatusAction={handleStatusAction}
+        isUpdatingStatus={false}
+        isLoadingStatuses={isLoadingStatuses}
+        ticketStatuses={ticketStatuses}
+        backPath={backPath}
+      />
 
-      {/* Status Update Modal (Helpdesk Executive only) */}
-      {canUpdateStatus && (
-        <UpdateTicketStatusModal
-          isOpen={isStatusModalOpen}
-          ticketId={ticketId}
-          currentStatus={status}
-          onClose={() => setIsStatusModalOpen(false)}
-        />
-      )}
+      {/* Remarks Confirmation Modal (Department roles) */}
+      <RemarksConfirmationModal
+        isOpen={remarksModalOpen}
+        ticketId={ticketId}
+        targetStatusText={pendingStatusText}
+        targetStatusId={pendingStatusId}
+        onClose={() => setRemarksModalOpen(false)}
+      />
 
       {/* Feedback Modal (Vendor only) */}
       {role === 'L1' && (

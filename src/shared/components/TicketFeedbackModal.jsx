@@ -6,6 +6,7 @@ import { Input } from './Input.jsx';
 import { useSubmitFeedbackMutation } from '../api/apiSlice.js';
 import { useNotification } from '../notifications/index.js';
 import { cn } from '../utils/cn.js';
+import { formatTicketNo } from '../utils/ticket.js';
 
 /**
  * TicketFeedbackModal — Reusable modal for submitting ticket feedback.
@@ -113,7 +114,7 @@ export const TicketFeedbackModal = ({
           </h2>
           {ticketNo && (
             <p className="text-secondary text-sm mt-1">
-              Ticket: <code>{ticketNo}</code>
+              Ticket: <code>{formatTicketNo(ticketNo)}</code>
             </p>
           )}
         </div>

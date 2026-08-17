@@ -9,6 +9,7 @@ import { CommentForm } from './CommentForm.jsx';
 import { CommentList } from './CommentList.jsx';
 import { useGetTicketCommentsQuery, useGetTicketDetailsQuery } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
+import { formatTicketNo } from '../utils/ticket.js';
 
 /**
  * TicketCommentsPage — Full-page comments view for a ticket.
@@ -71,7 +72,7 @@ export const TicketCommentsPage = ({ backPath }) => {
   const commentCount = comments.length;
 
   // Get ticket number for display
-  const ticketNo = ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`;
+  const ticketNo = formatTicketNo(ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`);
   const subject = ticketDetails?.subject || ticketDetails?.ticketSubject || '';
   const ticketHistoryViewModels = ticketDetails?.ticketHistoryViewModels || [];
 

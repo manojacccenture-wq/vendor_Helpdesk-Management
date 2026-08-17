@@ -69,10 +69,10 @@ export const ticketEndpoints = (builder) => ({
   }),
 
   updateTicketStatus: builder.mutation({
-    query: ({ ticketId, status }) => ({
+    query: ({ ticketId, status, remarks }) => ({
       url: `/api/Tickets/updatestatus?ticketId=${ticketId}`,
       method: 'POST',
-      data: { status },
+      data: { status, remarks },
       headers: {
         'Accept': 'text/plain',
       },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { Button } from './Button.jsx';
+import { formatTicketNo } from '../utils/ticket.js';
 
 /**
  * Success modal displayed after a ticket is created successfully.
@@ -44,7 +45,7 @@ export const TicketSuccessModal = ({
           
           {/* Ticket Number */}
           <p className="text-primary mb-6 highlight-text">
-            {ticketNo || 'N/A'}
+            {formatTicketNo(ticketNo) || 'N/A'}
           </p>
           
           {/* Description */}
