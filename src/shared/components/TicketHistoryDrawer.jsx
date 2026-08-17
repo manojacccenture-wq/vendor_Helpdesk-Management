@@ -170,7 +170,9 @@ export const TicketHistoryDrawer = ({ history = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const sorted = useMemo(
-    () => [...history].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
+    () => [...history]
+      .filter(item => item.title !== "Status Changed")
+      .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
     [history]
   );
 
