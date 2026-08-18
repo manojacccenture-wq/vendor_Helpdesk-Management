@@ -168,6 +168,7 @@ export const TicketActions = ({
       <AssignTicketModal
         isOpen={activeModal === 'assign'}
         ticket={ticket}
+        ticketId={ticketId}
         departments={departments}
         onAssign={handleAssign}
         onCancel={handleModalClose}

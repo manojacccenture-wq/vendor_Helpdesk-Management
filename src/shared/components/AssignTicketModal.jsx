@@ -14,6 +14,7 @@ import { formatTicketNo } from '../utils/ticket.js';
 export const AssignTicketModal = ({
   isOpen,
   ticket,
+  ticketId: ticketIdProp,
   departments = [],
   onAssign,
   onCancel,
@@ -78,7 +79,7 @@ export const AssignTicketModal = ({
   const handleAssign = () => {
     if (onAssign && !isSubmitting && selectedDepartment && selectedAgent) {
       onAssign({
-        ticketId: ticket.id,
+        ticketId: ticketIdProp ?? ticket.id,
         department: selectedDepartment,
         agent: selectedAgent, // Already in "Name(userCode)" format
         priority: selectedPriority

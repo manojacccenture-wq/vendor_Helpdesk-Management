@@ -8,6 +8,7 @@ import { formatDate } from '../utils/date.js';
  */
 export const TicketInformation = ({
   vendorName,
+  vendorCode,
   refNo,
   source,
   btsNo,
@@ -16,11 +17,14 @@ export const TicketInformation = ({
   subcategory,
   tags,
   billSubmittedDate,
+  sesNo,
+  won,
 }) => (
   <CollapsibleSection title="Ticket Information" defaultOpen={true}>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
       <div>
         <FieldRow label="Vendor" value={vendorName} />
+        <FieldRow label="Vendor Code" value={vendorCode} />
         <FieldRow label="Reference No" value={refNo} />
         <FieldRow label="Source" value={source} />
         <FieldRow label="BTS Number" value={btsNo} />
@@ -31,6 +35,8 @@ export const TicketInformation = ({
         <FieldRow label="Sub Category" value={subcategory} />
         <FieldRow label="Tags" value={tags} />
         <FieldRow label="Bill Submitted" value={billSubmittedDate ? formatDate(billSubmittedDate) : null} />
+        <FieldRow label="SES No" value={sesNo} />
+        <FieldRow label="WOn" value={won} />
       </div>
     </div>
   </CollapsibleSection>

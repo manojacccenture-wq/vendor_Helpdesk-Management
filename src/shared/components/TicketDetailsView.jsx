@@ -158,22 +158,27 @@ export const TicketDetailsView = ({
   const statusColorHex = ticketDetails.statusColorHex;
 
   const vendorName = ticketDetails.vendorName;
+  const vendorCode = ticketDetails.vendorCode;
   const refNo = ticketDetails.refNo;
   const tags = ticketDetails.tags;
   const btsNo = ticketDetails.btsNo;
   const billSubmittedDate = ticketDetails.billSubmittedDate;
   const processingDays = ticketDetails.noProcessingDays;
+  const sesNo = ticketDetails.sesNo;
+  const won = ticketDetails.won;
 
   const createdAt = formatDate(ticketDetails.ticketCreatedAt || ticketDetails.createdAt || ticketDetails.createAt);
   const updatedAt = formatDate(ticketDetails.ticketUpdatedAt);
   const createdBy = ticketDetails.ticketCreatedBy;
+  const ticketUpdatedBy = ticketDetails.ticketUpdatedBy;
   const dueAt = formatDate(ticketDetails.dueAt);
   const firstResponseAt = formatDate(ticketDetails.firstResponseAt);
   const resolvedAt = formatDate(ticketDetails.resolvedAt);
   const closedAt = formatDate(ticketDetails.closedAt);
 
   const assignedDept = ticketDetails.assignedDepartmentId;
-  const assignedAgent = ticketDetails.assignedAgentId;
+  const assignedAgent = ticketDetails.assignedDeptUserCode || ticketDetails.assignedAgentId;
+  const helpdeskAgentId = ticketDetails.helpdeskAgentId;
 
   const isEscalated = ticketDetails.isEscalated;
   const escalationLevel = ticketDetails.escalationLevel;
@@ -219,6 +224,7 @@ export const TicketDetailsView = ({
           {/* Ticket Information */}
           <TicketInformation
             vendorName={vendorName}
+            vendorCode={vendorCode}
             refNo={refNo}
             source={source}
             btsNo={btsNo}
@@ -227,15 +233,19 @@ export const TicketDetailsView = ({
             subcategory={subcategory}
             tags={tags}
             billSubmittedDate={billSubmittedDate}
+            sesNo={sesNo}
+            won={won}
           />
 
           {/* Processing & Assignment */}
           <TicketProcessing
             assignedDept={assignedDept}
             assignedAgent={assignedAgent}
+            helpdeskAgentId={helpdeskAgentId}
             isEscalated={isEscalated}
             escalationLevel={escalationLevel}
             createdBy={createdBy}
+            ticketUpdatedBy={ticketUpdatedBy}
             reopenedCount={reopenedCount}
           />
 

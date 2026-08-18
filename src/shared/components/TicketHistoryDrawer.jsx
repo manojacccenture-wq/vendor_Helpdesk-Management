@@ -19,7 +19,8 @@ import { cn } from '../utils/cn.js';
 const DEFAULT_EVENT_STYLE = {
   icon: Clock,
   colorClass: 'text-secondary',
-  dotClass: 'border-secondary bg-transparent',
+  dotClass: 'border-secondary/40 bg-secondary/10',
+  dotFilledClass: 'border-secondary bg-secondary',
   badgeBg: 'bg-surface-active',
 };
 
@@ -27,37 +28,43 @@ const EVENT_CONFIG = {
   'ticket created':  {
     icon: PlusCircle,
     colorClass: 'text-success',
-    dotClass: 'border-success bg-transparent',
+    dotClass: 'border-success/40 bg-success/10',
+    dotFilledClass: 'border-success bg-success',
     badgeBg: 'bg-success-soft',
   },
   'status changed':  {
     icon: RefreshCw,
     colorClass: 'text-info',
-    dotClass: 'border-info bg-transparent',
+    dotClass: 'border-info/40 bg-info/10',
+    dotFilledClass: 'border-info bg-info',
     badgeBg: 'bg-info-soft',
   },
   'ticket assigned': {
     icon: UserPlus,
     colorClass: 'text-warning',
-    dotClass: 'border-warning bg-transparent',
+    dotClass: 'border-warning/40 bg-warning/10',
+    dotFilledClass: 'border-warning bg-warning',
     badgeBg: 'bg-warning-soft',
   },
   'ticket reopened': {
     icon: RotateCcw,
     colorClass: 'text-purple',
-    dotClass: 'border-accent bg-transparent',
+    dotClass: 'border-accent/40 bg-accent/10',
+    dotFilledClass: 'border-accent bg-accent',
     badgeBg: 'bg-accent-soft',
   },
   'ticket closed':   {
     icon: CheckCircle,
     colorClass: 'text-success',
-    dotClass: 'border-success bg-transparent',
+    dotClass: 'border-success/40 bg-success/10',
+    dotFilledClass: 'border-success bg-success',
     badgeBg: 'bg-success-soft',
   },
   'escalated':       {
     icon: AlertTriangle,
     colorClass: 'text-danger',
-    dotClass: 'border-danger bg-transparent',
+    dotClass: 'border-danger/40 bg-danger/10',
+    dotFilledClass: 'border-danger bg-danger',
     badgeBg: 'bg-danger-soft',
   },
 };
@@ -69,8 +76,8 @@ const getEventConfig = (title) => {
 
 // ─── Single History Event ───
 
-const HistoryEvent = ({ event }) => {
-  const { icon: Icon, colorClass, dotClass, badgeBg } = getEventConfig(event.title);
+const HistoryEvent = ({ event, isLatest }) => {
+  const { icon: Icon, colorClass, dotClass, dotFilledClass, badgeBg } = getEventConfig(event.title);
 
   return (
     <div className="flex gap-3 group">
@@ -80,7 +87,7 @@ const HistoryEvent = ({ event }) => {
           className={cn(
             'w-2.5 h-2.5 rounded-full border-[1.5px] shrink-0 z-10',
             'transition-transform duration-150 group-hover:scale-125',
-            dotClass
+            isLatest ? dotFilledClass : dotClass
           )}
         />
         <div className="w-px flex-1 bg-default my-0.5" />
@@ -130,6 +137,19 @@ const HistoryEvent = ({ event }) => {
             {event.changedBy || 'System'}
           </span>
         </div>
+
+        {/* Pending With (only when metadata available) */}
+        {(event.metadata?.pendingWithUser || event.metadata?.pendingWithRole) && (
+          <div className="flex items-center gap-1.5 mt-1 pl-10">
+            <span className="text-caption text-muted">Pending with:</span>
+            <span className="text-caption font-medium text-primary">
+              {event.metadata.pendingWithUser || event.metadata.pendingWithRole}
+              {event.metadata.pendingWithUser && event.metadata.pendingWithRole
+                ? ` (${event.metadata.pendingWithRole})`
+                : ''}
+            </span>
+          </div>
+        )}
 
         {/* Remarks (only when present) */}
         {event.remarks && (
@@ -220,7 +240,7 @@ export const TicketHistoryDrawer = ({ history = [] }) => {
         {hasHistory ? (
           <div>
             {sorted.map((event, index) => (
-              <HistoryEvent key={index} event={event} />
+              <HistoryEvent key={index} event={event} isLatest={index === 0} />
             ))}
           </div>
         ) : (
