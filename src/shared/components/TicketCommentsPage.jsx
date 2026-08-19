@@ -104,7 +104,7 @@ export const TicketCommentsPage = ({ backPath }) => {
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-success" />
           <h1 className="text-page-title text-primary">
-            Comments
+            Conversation
           </h1>
         </div>
         {ticketNo && (
@@ -127,13 +127,13 @@ export const TicketCommentsPage = ({ backPath }) => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-success" />
-              Comments {commentCount > 0 && `(${commentCount})`}
+              Conversation {commentCount > 0 && `(${commentCount})`}
             </CardTitle>
             <TicketHistoryDrawer ticketId={id} history={ticketHistoryViewModels} />
           </div>
         </CardHeader>
 
-        {/* Comments List (Scrollable) */}
+        {/* Conversation List (Scrollable) */}
         <div
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto px-6"

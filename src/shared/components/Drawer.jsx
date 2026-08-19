@@ -14,7 +14,7 @@ import { cn } from '../utils/cn.js';
  *   - Optional fixed footer
  *   - Optional resize handle on the left edge
  *
- * Does NOT contain any domain-specific logic (Comments, History, Tickets, etc.).
+ * Does NOT contain any domain-specific logic (Conversation, History, Tickets, etc.).
  *
  * @param {Object}   props
  * @param {boolean}  props.open              - Whether the drawer is visible

@@ -61,7 +61,7 @@ export const CommentList = ({
         </div>
       )}
 
-      {/* Comments List */}
+      {/* Conversation List */}
       {!isLoading && !isError && commentCount > 0 && (
         <div className="divide-y divide-default py-2">
           {comments.map((comment) => (

@@ -96,7 +96,7 @@ export const TicketCommentsDrawer = ({ ticketId }) => {
         )}
       >
         <MessageSquare className="w-4 h-4 text-success" />
-        <span className="font-medium">Comments</span>
+        <span className="font-medium">Conversation</span>
         {commentCount > 0 && (
           <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-success text-white text-caption font-medium">
             {commentCount}
@@ -110,7 +110,7 @@ export const TicketCommentsDrawer = ({ ticketId }) => {
       <Drawer
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={`Comments ${commentCount > 0 ? `(${commentCount})` : ''}`}
+        title={`Conversation ${commentCount > 0 ? `(${commentCount})` : ''}`}
         icon={<MessageSquare className="w-5 h-5 text-success" />}
         headerActions={(onClose) => (
           <button
