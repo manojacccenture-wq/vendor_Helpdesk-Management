@@ -23,6 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { baseTicketSchema } from '../validation/createTicketSchema.js';
 import { buildDynamicSchema } from '../utils/dynamicSchemaBuilder.js';
 import { DynamicField } from './DynamicField.jsx';
+import { Paperclip } from 'lucide-react';
 
 export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
@@ -75,6 +76,25 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
   });
 
   const previousControlsRef = useRef([]);
+
+  // Derive metadata from the selected subcategory
+  const selectedSubCategory = subCategories.find(
+    (sc) => String(sc.value ?? sc.Value) === String(selectedSubCategoryId)
+  );
+
+  const parsedMetadata = (() => {
+    const raw = selectedSubCategory?.metadata;
+    if (!raw || typeof raw !== 'string') return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  })();
+
+  const isMetadataRequired = parsedMetadata?.required === true;
+  const metadataAttachments = parsedMetadata?.attachments;
+  const hasMetadata = parsedMetadata !== null && Array.isArray(metadataAttachments) && metadataAttachments.length > 0;
 
   // Cascade clear subCategory when category changes
   useEffect(() => {
@@ -256,12 +276,34 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
           {/* File Upload Section */}
           <div className="w-full pt-2 border-t border-default mt-2">
+            {hasMetadata && (
+              <div className="mb-3 p-3 rounded-control border border-default bg-surface-hover">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Paperclip className="h-4 w-4" />
+                  <span className={`text-sm font-medium ${isMetadataRequired ? 'text-danger' : 'text-primary-hover'}`}>
+                    Attachments {isMetadataRequired ? 'Required' : 'Optional'}{isMetadataRequired && ' *'}
+                  </span>
+                </div>
+                <p className="text-xs text-secondary mb-1">
+                  {isMetadataRequired
+                    ? 'The following documents are required:'
+                    : 'The following documents can be uploaded:'}
+                </p>
+                <ul className="list-none pl-0 m-0">
+                  {metadataAttachments.map((att, idx) => (
+                    <li key={idx} className="text-xs text-secondary">
+                      • {att.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <Controller
               name="attachments"
               control={control}
               render={({ field: { onChange, value, ref } }) => (
                 <FileUpload 
-                  label="Attachments (Optional)"
+                  label={isMetadataRequired ? 'Attachments *' : 'Attachments (Optional)'}
                   onChange={onChange}
                   value={value}
                   ref={ref}
