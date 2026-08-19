@@ -1,3 +1,4 @@
+import { useState, useCallback, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from './Button.jsx';
 import { cn } from '../utils/cn.js';
@@ -11,6 +12,7 @@ import { cn } from '../utils/cn.js';
  *   - Header with optional icon, title, close button, and custom actions
  *   - Scrollable content area
  *   - Optional fixed footer
+ *   - Optional resize handle on the left edge
  *
  * Does NOT contain any domain-specific logic (Comments, History, Tickets, etc.).
  *
@@ -27,6 +29,10 @@ import { cn } from '../utils/cn.js';
  * @param {string}   [props.scrollableClassName] - Additional classes applied to the scrollable content area
  * @param {Object}   [props.scrollableRef]   - Ref forwarded to the scrollable content div
  * @param {string}   [props.ariaLabel]       - Accessible label for the close button
+ * @param {boolean}  [props.resizable]       - Enable resize handle on the left edge (default: false)
+ * @param {number}   [props.defaultWidth]    - Initial width when resizable (default: 640)
+ * @param {number}   [props.minWidth]        - Minimum width when resizable (default: 400)
+ * @param {number}   [props.maxWidth]        - Maximum width when resizable (default: 900)
  */
 export const Drawer = ({
   open,
@@ -41,7 +47,44 @@ export const Drawer = ({
   scrollableClassName,
   scrollableRef,
   ariaLabel,
+  resizable = false,
+  defaultWidth = 640,
+  minWidth = 400,
+  maxWidth = 900,
 }) => {
+  const [width, setWidth] = useState(defaultWidth);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e) => {
+      const newWidth = window.innerWidth - e.clientX;
+      setWidth(Math.min(maxWidth, Math.max(minWidth, newWidth)));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isDragging, minWidth, maxWidth]);
+
   if (!open) return null;
 
   return (
@@ -53,7 +96,26 @@ export const Drawer = ({
       />
 
       {/* Drawer Panel */}
-      <div className="relative flex flex-col h-full w-full max-w-[480px] sm:w-[480px] bg-surface shadow-xl animate-slide-in-right">
+      <div
+        className={cn(
+          'relative flex flex-col h-full bg-surface shadow-xl animate-slide-in-right',
+          resizable ? '' : 'w-full max-w-[480px] sm:w-[480px]'
+        )}
+        style={resizable ? { width } : undefined}
+      >
+        {/* ─── Resize Handle (left edge) ─── */}
+        {resizable && (
+          <div
+            onMouseDown={handleMouseDown}
+            className={cn(
+              'absolute left-0 top-0 bottom-0 w-1 z-10',
+              'cursor-col-resize transition-colors',
+              'hover:bg-info/40',
+              isDragging ? 'bg-info/40' : 'bg-transparent'
+            )}
+            aria-label="Resize drawer"
+          />
+        )}
 
         {/* ─── Header (Fixed) ─── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-default bg-surface shrink-0">

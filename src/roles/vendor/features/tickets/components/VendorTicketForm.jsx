@@ -274,6 +274,16 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
             <div className="text-secondary italic">Loading category requirements...</div>
           )}
 
+          {/* Description Section */}
+          <div className="w-full">
+            <Textarea 
+              label="Detailed Description *"
+              placeholder="Provide detailed description..."
+              error={errors.description?.message}
+              {...register('description')}
+            />
+          </div>
+
           {/* File Upload Section */}
           <div className="w-full pt-2 border-t border-default mt-2">
             {hasMetadata && (
@@ -311,16 +321,6 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
                   multiple={true}
                 />
               )}
-            />
-          </div>
-
-          {/* Description Section */}
-          <div className="w-full">
-            <Textarea 
-              label="Detailed Description *"
-              placeholder="Provide detailed description..."
-              error={errors.description?.message}
-              {...register('description')}
             />
           </div>
 

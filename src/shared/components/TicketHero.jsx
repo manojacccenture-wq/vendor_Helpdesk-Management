@@ -22,7 +22,10 @@ export const TicketHero = ({
   <div className="px-5 pt-4 pb-3 border-b border-default">
     <div className="flex items-center justify-between gap-3 mb-2">
       <div className="flex items-center gap-3">
-        <span className="text-ticket-id font-mono text-secondary">{ticketNo}</span>
+        <h1 
+        
+        className=" font-mono text-secondary"
+        >#{ticketNo}</h1>
         <StatusBadge status={status} colorHex={statusColorHex} />
         <div className="flex items-center gap-2">
           {priority && (
@@ -41,7 +44,7 @@ export const TicketHero = ({
           />
         )}
         <TicketCommentsDrawer ticketId={ticketId} />
-        <TicketHistoryDrawer history={ticketHistoryViewModels} />
+        <TicketHistoryDrawer ticketId={ticketId} history={ticketHistoryViewModels} />
       </div>
     </div>
 

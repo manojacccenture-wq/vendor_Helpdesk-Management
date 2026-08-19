@@ -129,7 +129,7 @@ export const TicketCommentsPage = ({ backPath }) => {
               <MessageSquare className="w-5 h-5 text-success" />
               Comments {commentCount > 0 && `(${commentCount})`}
             </CardTitle>
-            <TicketHistoryDrawer history={ticketHistoryViewModels} />
+            <TicketHistoryDrawer ticketId={id} history={ticketHistoryViewModels} />
           </div>
         </CardHeader>
 

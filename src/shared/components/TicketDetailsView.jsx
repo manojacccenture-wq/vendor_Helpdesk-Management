@@ -7,18 +7,14 @@ import { SectionHeading, SectionDivider } from './CollapsibleSection.jsx';
 import { Card, CardContent } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { BackButton } from './BackButton.jsx';
-import { StatusBadge } from './StatusBadge.jsx';
 import { TicketHero } from './TicketHero.jsx';
-import { TicketInformation } from './TicketInformation.jsx';
-import { TicketProcessing } from './TicketProcessing.jsx';
-import { TicketTimeline } from './TicketTimeline.jsx';
+import { DynamicSection } from './DynamicSection.jsx';
 import { TicketAttachments } from './TicketAttachments.jsx';
 import { TicketFooter } from './TicketFooter.jsx';
 import { RemarksConfirmationModal } from './RemarksConfirmationModal.jsx';
 import { TicketFeedbackModal } from './TicketFeedbackModal.jsx';
 import { useGetTicketDetailsQuery, useGetTicketStatusesQuery } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
-import { formatDate } from '../utils/date.js';
 import { formatTicketNo } from '../utils/ticket.js';
 
 /**
@@ -146,46 +142,17 @@ export const TicketDetailsView = ({
     );
   }
 
-  // ─── Extract fields from API response ───
+  // ─── Extract top-level fields from API response ───
   const ticketNo = formatTicketNo(ticketDetails.ticketNo || ticketDetails.ticketNumber || `#${ticketId}`);
   const subject = ticketDetails.subject || ticketDetails.ticketSubject || 'No subject';
-  const category = ticketDetails.category || ticketDetails.ticketCategory;
-  const subcategory = ticketDetails.subcategory;
-  const source = ticketDetails.ticketSource;
-  const description = ticketDetails.ticketDescription;
+  const description = ticketDetails.description || ticketDetails.ticketDescription;
   const priority = ticketDetails.priority;
   const status = ticketDetails.status || 'Unknown';
   const statusColorHex = ticketDetails.statusColorHex;
 
-  const vendorName = ticketDetails.vendorName;
-  const vendorCode = ticketDetails.vendorCode;
-  const refNo = ticketDetails.refNo;
-  const tags = ticketDetails.tags;
-  const btsNo = ticketDetails.btsNo;
-  const billSubmittedDate = ticketDetails.billSubmittedDate;
-  const processingDays = ticketDetails.noProcessingDays;
-  const sesNo = ticketDetails.sesNo;
-  const won = ticketDetails.won;
-
-  const createdAt = formatDate(ticketDetails.ticketCreatedAt || ticketDetails.createdAt || ticketDetails.createAt);
-  const updatedAt = formatDate(ticketDetails.ticketUpdatedAt);
-  const createdBy = ticketDetails.ticketCreatedBy;
-  const ticketUpdatedBy = ticketDetails.ticketUpdatedBy;
-  const dueAt = formatDate(ticketDetails.dueAt);
-  const firstResponseAt = formatDate(ticketDetails.firstResponseAt);
-  const resolvedAt = formatDate(ticketDetails.resolvedAt);
-  const closedAt = formatDate(ticketDetails.closedAt);
-
-  const assignedDept = ticketDetails.assignedDepartmentId;
-  const assignedAgent = ticketDetails.assignedDeptUserCode || ticketDetails.assignedAgentId;
-  const helpdeskAgentId = ticketDetails.helpdeskAgentId;
-
-  const isEscalated = ticketDetails.isEscalated;
-  const escalationLevel = ticketDetails.escalationLevel;
-  const reopenedCount = ticketDetails.reopenedCount;
-
   const attachments = ticketDetails.attachments || [];
   const ticketHistoryViewModels = ticketDetails.ticketHistoryViewModels || [];
+  const sections = ticketDetails.sections || [];
 
   return (
     <div className="flex flex-col w-full max-w-[1000px] mx-auto px-4 sm:px-6">
@@ -221,49 +188,21 @@ export const TicketDetailsView = ({
             </div>
           </div>
 
-          {/* Ticket Information */}
-          <TicketInformation
-            vendorName={vendorName}
-            vendorCode={vendorCode}
-            refNo={refNo}
-            source={source}
-            btsNo={btsNo}
-            processingDays={processingDays}
-            category={category}
-            subcategory={subcategory}
-            tags={tags}
-            billSubmittedDate={billSubmittedDate}
-            sesNo={sesNo}
-            won={won}
-          />
-
-          {/* Processing & Assignment */}
-          <TicketProcessing
-            assignedDept={assignedDept}
-            assignedAgent={assignedAgent}
-            helpdeskAgentId={helpdeskAgentId}
-            isEscalated={isEscalated}
-            escalationLevel={escalationLevel}
-            createdBy={createdBy}
-            ticketUpdatedBy={ticketUpdatedBy}
-            reopenedCount={reopenedCount}
-          />
-
-          {/* Timeline */}
-          <TicketTimeline
-            createdAt={createdAt}
-            dueAt={dueAt}
-            resolvedAt={resolvedAt}
-            updatedAt={updatedAt}
-            firstResponseAt={firstResponseAt}
-            closedAt={closedAt}
-          />
+          {/* Dynamic Sections from API */}
+          {sections.map((section, index) => (
+            <DynamicSection
+              key={section.title || index}
+              title={section.title}
+              fields={section.fields || []}
+              defaultOpen={index === 0}
+            />
+          ))}
 
           {/* Attachments */}
           <TicketAttachments attachments={attachments} />
 
           {/* Feedback (Vendor only, Closed status only) */}
-          {role === 'L1' && ticketDetails?.statusId === 5 && (
+          {role === 'L1' && (ticketDetails?.statusId === 5 || status?.toLowerCase() === 'closed') && (
             <div className="px-5 py-3">
               <SectionHeading>Feedback</SectionHeading>
               <SectionDivider />

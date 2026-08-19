@@ -3,6 +3,7 @@ import { HelpdeskLayout } from '../layout/HelpdeskLayout.jsx';
 import { HelpdeskDashboard } from '../features/dashboard/pages/HelpdeskDashboard.jsx';
 import { HelpdeskTicketView } from '../features/tickets/pages/HelpdeskTicketView.jsx';
 import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
+import { TicketHistoryPage } from '../../../shared/components/TicketHistoryPage.jsx';
 
 export const helpdeskRoutes = {
   path: 'helpdesk',
@@ -29,6 +30,14 @@ export const helpdeskRoutes = {
       element: (
         <div className="px-6 py-8 h-[calc(100vh-64px)]">
           <TicketCommentsPage />
+        </div>
+      )
+    },
+    {
+      path: 'ticket/:id/history',
+      element: (
+        <div className="px-6 py-8 h-[calc(100vh-64px)]">
+          <TicketHistoryPage backPath="/helpdesk" />
         </div>
       )
     }

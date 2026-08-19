@@ -4,6 +4,7 @@ import { VendorDashboard } from '../features/dashboard/pages/VendorDashboard.jsx
 import { CreateVendorTicketPage } from '../features/tickets/pages/CreateVendorTicketPage.jsx';
 import { TicketDetailsPage } from '../features/tickets/pages/TicketDetailsPage.jsx';
 import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
+import { TicketHistoryPage } from '../../../shared/components/TicketHistoryPage.jsx';
 
 export const vendorRoutes = {
   path: 'vendor',
@@ -38,6 +39,14 @@ export const vendorRoutes = {
       element: (
         <div className="px-6 py-8 h-[calc(100vh-64px)]">
           <TicketCommentsPage />
+        </div>
+      )
+    },
+    {
+      path: 'ticket/:id/history',
+      element: (
+        <div className="px-6 py-8 h-[calc(100vh-64px)]">
+          <TicketHistoryPage backPath="/vendor" />
         </div>
       )
     }
