@@ -78,10 +78,17 @@ export const AssignTicketModal = ({
 
   const handleAssign = () => {
     if (onAssign && !isSubmitting && selectedDepartment && selectedAgent) {
+      // Find the selected user's email from the users API response
+      const agentEmail = users.find(u => {
+        const userLabel = `${u.name || u.username || ''}(${u.userCode || ''})`;
+        return userLabel === selectedAgent;
+      })?.email || '';
+
       onAssign({
         ticketId: ticketIdProp ?? ticket.id,
         department: selectedDepartment,
         agent: selectedAgent, // Already in "Name(userCode)" format
+        agentEmail,
         priority: selectedPriority
       });
     }

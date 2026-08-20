@@ -1,10 +1,13 @@
 import { useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { Select } from './Select.jsx';
 import { Textarea } from './Textarea.jsx';
 import { Button } from './Button.jsx';
 import { StatusBadge } from './StatusBadge.jsx';
 import { useGetTicketStatusesQuery, useUpdateTicketStatusMutation } from '../api/apiSlice.js';
 import { useNotification } from '../notifications/index.js';
+import { sendNotification, detectStatusChangeType, getSectionField } from '../services/emailNotifications.js';
+import { selectUserProfile } from '../../features/user/store/selectors.js';
 
 /**
  * UpdateTicketStatusModal — Reusable modal for updating a ticket's status.
@@ -28,9 +31,11 @@ export const UpdateTicketStatusModal = ({
   isOpen,
   ticketId,
   currentStatus,
+  ticketDetails,
   onClose,
   onSuccess,
 }) => {
+  const profile = useSelector(selectUserProfile);
   const { showSuccess, showError } = useNotification();
   const [selectedStatus, setSelectedStatus] = useState('');
   const [remarks, setRemarks] = useState('');
@@ -96,6 +101,30 @@ export const UpdateTicketStatusModal = ({
       // Success: reset form, then close and notify parent
       resetForm();
       showSuccess(response?.message || 'Status updated successfully!');
+
+      // Determine notification type from status change
+      const selectedStatusObj = statuses.find(
+        s => String(s.value ?? s.Value) === String(parseInt(selectedStatus, 10))
+      );
+      const selectedStatusText = (selectedStatusObj?.text ?? selectedStatusObj?.Text) || '';
+      const notificationType = detectStatusChangeType(selectedStatusText, currentStatus);
+
+      if (notificationType) {
+        const sections = ticketDetails?.sections || [];
+        const assignedEmail = getSectionField(sections, 'Processing & Assignment', 'Assigned To Email');
+        const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
+
+        sendNotification(notificationType, {
+          ticketNo: ticketDetails?.ticketNo,
+          subject: ticketDetails?.subject,
+          status: selectedStatusText,
+          remarks: trimmedRemarks,
+          vendorEmail,
+          assignedEmail,
+          deptUserEmail: profile?.email,
+        });
+      }
+
       onClose();
       if (onSuccess) onSuccess();
     } catch (error) {

@@ -11,6 +11,7 @@ import { Table } from '../../../../../shared/components/Table.jsx';
 import { useGetTicketListQuery, useGetDepartmentsQuery, useAssignTicketMutation } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
 import { useNotification } from '../../../../../shared/notifications/index.js';
+import { sendNotification, NOTIFICATION_TYPES } from '../../../../../shared/services/emailNotifications.js';
 import { formatDate } from '../../../../../shared/utils/date.js';
 import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
@@ -77,6 +78,14 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
       }
 
       showSuccess('Ticket assigned successfully.');
+
+      // Matrix: Ticket Assigned/Reassigned → TO=Assigned Person, CC=VHD, Vendor=NO
+      sendNotification(NOTIFICATION_TYPES.ASSIGNED, {
+        ticketNo: selectedTicket?.ticketNo,
+        subject: selectedTicket?.subject,
+        assignedEmail: assignmentData.agentEmail,
+      });
+
       setIsModalOpen(false);
       setSelectedTicket(null);
     } catch (error) {

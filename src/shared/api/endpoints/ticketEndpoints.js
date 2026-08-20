@@ -14,13 +14,15 @@
  *   - getSubCategoryCtrlMapping: Fetch dynamic form controls for sub-category
  */
 
+import { adaptTicketDetails } from '../../adapters/ticketDetailsAdapter.js';
+
 export const ticketEndpoints = (builder) => ({
   getTicketList: builder.query({
     query: ({ userCode, role, statusId, categoryId, priorityId }) => {
       const params = new URLSearchParams();
       if (userCode) params.append('userCode', userCode);
       if (role) params.append('role', role);
-      if (statusId) params.append('statusId', statusId);
+      if (statusId != null && statusId !== '') params.append('statusId', statusId);
       if (categoryId) params.append('categoryId', categoryId);
       if (priorityId) params.append('priorityId', priorityId);
       return {
@@ -36,6 +38,7 @@ export const ticketEndpoints = (builder) => ({
       url: `/api/Tickets/ticketdetails?ticketId=${ticketId}&role=${role}&userCode=${userCode}`,
       method: 'GET',
     }),
+    transformResponse: adaptTicketDetails,
     providesTags: ['Ticket'],
   }),
 

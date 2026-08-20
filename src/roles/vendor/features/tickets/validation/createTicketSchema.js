@@ -8,6 +8,9 @@ export const baseTicketSchema = z.object({
   departmentId: z.string()
     .min(1, { message: 'Please select a department' }),
 
+  issueOwner: z.string()
+    .min(1, { message: 'Please select an issue owner' }),
+
   subject: z.string()
     .trim()
     .min(1, { message: 'Subject is required' })

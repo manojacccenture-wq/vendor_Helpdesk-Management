@@ -19,8 +19,10 @@ import { cn } from '../utils/cn.js';
  * - Any future ticket view page
  *
  * @param {number|string} ticketId - The ID of the current ticket
+ * @param {string} [ticketNo] - Formatted ticket number for email notifications
+ * @param {string} [ticketSubject] - Ticket subject for email notifications
  */
-export const TicketCommentsDrawer = ({ ticketId }) => {
+export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const profile = useSelector(selectUserProfile);
@@ -132,6 +134,8 @@ export const TicketCommentsDrawer = ({ ticketId }) => {
         footer={
           <CommentForm
             ticketId={ticketId}
+            ticketNo={ticketNo}
+            ticketSubject={ticketSubject}
             onCommentAdded={handleCommentAdded}
             canToggleInternal={canToggleInternal}
             userCode={profile?.userCode}

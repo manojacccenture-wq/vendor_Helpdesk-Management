@@ -7,7 +7,7 @@ import { TicketsTable } from '../../tickets/components/TicketsTable.jsx';
 
 export const VendorDashboard = () => {
   const navigate = useNavigate();
-  
+
   const [statusId, setStatusId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,10 +24,10 @@ export const VendorDashboard = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-8">
-      
+
       {/* 3 Metric Cards */}
-      <DashboardMetrics />
-      
+      <DashboardMetrics statusId={statusId} onStatusChange={setStatusId} />
+
       {/* Navigation Tabs (MY TICKETS, CREATE TICKET, PROFILE) */}
       <VendorTabs />
 
@@ -37,7 +37,7 @@ export const VendorDashboard = () => {
       </h1>
 
       {/* Toolbar (Search, Filters, Button) */}
-      <TicketsToolbar 
+      <TicketsToolbar
         statusId={statusId}
         categoryId={categoryId}
         searchTerm={searchTerm}
@@ -45,11 +45,11 @@ export const VendorDashboard = () => {
         onCategoryChange={setCategoryId}
         onSearchChange={setSearchTerm}
         onClearFilters={handleClearFilters}
-        onRaiseTicket={handleRaiseTicket} 
+        onRaiseTicket={handleRaiseTicket}
       />
 
       {/* Data Table */}
-      <TicketsTable 
+      <TicketsTable
         statusId={statusId}
         categoryId={categoryId}
         searchTerm={searchTerm}

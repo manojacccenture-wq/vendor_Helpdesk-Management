@@ -122,7 +122,7 @@ export const Drawer = ({
           <div className="flex items-center gap-3">
             {icon}
             <div>
-              <h2 className="text-card-title text-primary leading-tight">{title}</h2>
+              <h2 className="text-page-head text-primary leading-tight">{title}</h2>
               {subtitle && (
                 <p className="text-caption text-secondary mt-0.5">{subtitle}</p>
               )}

@@ -3,7 +3,7 @@ import { Input } from '../../../../../shared/components/Input.jsx';
 import { Select } from '../../../../../shared/components/Select.jsx';
 import { Textarea } from '../../../../../shared/components/Textarea.jsx';
 
-export const DynamicField = ({ control, register, error, disabled }) => {
+export const DynamicField = React.memo(({ control, register, error, disabled }) => {
   const { label, columnName, controlType, required, dataType } = control;
   const displayLabel = required ? `${label} *` : label;
 
@@ -64,4 +64,6 @@ export const DynamicField = ({ control, register, error, disabled }) => {
         />
       );
   }
-};
+});
+
+DynamicField.displayName = 'DynamicField';

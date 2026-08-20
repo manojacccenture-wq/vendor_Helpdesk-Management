@@ -17,7 +17,7 @@ export const TicketHero = ({
   canUpdateStatus,
   ticketDetails,
   subject,
-  ticketHistoryViewModels,
+  ticketHistoryStages,
 }) => (
   <div className="px-5 pt-4 pb-3 border-b border-default">
     <div className="flex items-center justify-between gap-3 mb-2">
@@ -43,11 +43,11 @@ export const TicketHero = ({
             onActionComplete={() => {}}
           />
         )}
-        <TicketCommentsDrawer ticketId={ticketId} />
-        <TicketHistoryDrawer ticketId={ticketId} history={ticketHistoryViewModels} />
+        <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} />
+        <TicketHistoryDrawer ticketId={ticketId} stages={ticketHistoryStages} />
       </div>
     </div>
 
-    <h2 className="text-card-title text-primary">{subject}</h2>
+    <h2 className="page-heading text-primary">{subject}</h2>
   </div>
 );

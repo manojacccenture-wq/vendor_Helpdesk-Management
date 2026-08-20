@@ -10,19 +10,19 @@ import { cn } from '../utils/cn.js';
 
 /**
  * TicketHistoryDrawer — Compact trigger button + slide-out drawer for ticket history.
- * Uses the shared TicketHistoryList for rendering events.
+ * Uses the shared TicketHistoryList for rendering stage-based history.
  *
  * @param {Object} props
  * @param {string|number} props.ticketId - The ticket ID (for expand navigation)
- * @param {Array} props.history - Array of ticketHistoryViewModels
+ * @param {Array} props.stages - Array of { stage, histories[] } from ticketHistoryStages
  */
-export const TicketHistoryDrawer = ({ ticketId, history = [] }) => {
+export const TicketHistoryDrawer = ({ ticketId, stages = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const role = useSelector(selectUserRole);
 
-  // Filter and count (matching TicketHistoryList logic)
-  const displayCount = history.filter(item => item.title !== "Status Changed").length;
+  // Count total history events across all stages
+  const displayCount = stages.reduce((sum, s) => sum + (s.histories?.length || 0), 0);
   const hasHistory = displayCount > 0;
 
   // Determine expand path based on role (same pattern as TicketCommentsDrawer)
@@ -83,7 +83,7 @@ export const TicketHistoryDrawer = ({ ticketId, history = [] }) => {
           )
         }
       >
-        <TicketHistoryList history={history} />
+        <TicketHistoryList stages={stages} />
       </Drawer>
     </>
   );

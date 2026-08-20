@@ -11,6 +11,7 @@ import {
 } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
 import { useNotification } from '../notifications/index.js';
+import { sendNotification, NOTIFICATION_TYPES } from '../services/emailNotifications.js';
 
 /**
  * TicketActions — Reusable dropdown menu for ticket-editing actions.
@@ -105,6 +106,14 @@ export const TicketActions = ({
       }
 
       showSuccess('Ticket assigned successfully.');
+
+      // Matrix: Ticket Assigned/Reassigned → TO=Assigned Person, CC=VHD, Vendor=NO
+      sendNotification(NOTIFICATION_TYPES.ASSIGNED, {
+        ticketNo: ticket?.ticketNo,
+        subject: ticket?.subject,
+        assignedEmail: assignmentData.agentEmail,
+      });
+
       handleActionComplete();
     } catch (error) {
       showError(error?.data?.message || 'Failed to assign ticket. Please try again.');
@@ -180,6 +189,7 @@ export const TicketActions = ({
         isOpen={activeModal === 'status'}
         ticketId={ticketId}
         currentStatus={currentStatus}
+        ticketDetails={ticket}
         onClose={handleModalClose}
         onSuccess={handleActionComplete}
       />

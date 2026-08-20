@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -17,13 +17,18 @@ import {
   useGetTicketStatusesQuery,
   useGetPrioritiesQuery,
   useCreateTicketMutation,
-  useGetSubCategoryCtrlMappingQuery
+  useGetSubCategoryCtrlMappingQuery,
+  useGetUsersByDepartmentQuery
 } from '../../../../../shared/api/apiSlice.js';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { baseTicketSchema } from '../validation/createTicketSchema.js';
 import { buildDynamicSchema } from '../utils/dynamicSchemaBuilder.js';
 import { DynamicField } from './DynamicField.jsx';
+import { SubjectField } from './SubjectField.jsx';
 import { Paperclip } from 'lucide-react';
+import { mailService } from '../../../../../shared/services';
+import { sendNotification, NOTIFICATION_TYPES } from '../../../../../shared/services/emailNotifications.js';
+import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
 export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
@@ -36,11 +41,11 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
   const [createdTicketNo, setCreatedTicketNo] = useState('');
   const pendingResponseRef = useRef(null);
   
-  // Map userDepartments from Redux to dropdown format
-  const departments = userDepartments?.map(d => ({
-    label: d.deptName,
-    value: d.deptId
-  })) || [];
+  // Map userDepartments from Redux to dropdown format (memoized)
+  const departments = useMemo(
+    () => userDepartments?.map(d => ({ label: d.deptName, value: d.deptId })) || [],
+    [userDepartments]
+  );
   const { data: categories = [], isLoading: isLoadingCategories } = useGetCategoriesQuery();
   const { data: statuses = [] } = useGetTicketStatusesQuery();
   const { data: priorities = [] } = useGetPrioritiesQuery();
@@ -53,6 +58,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     mode: 'onTouched',
     defaultValues: {
       departmentId: '',
+      issueOwner: '',
       subject: '',
       categoryId: '',
       subCategoryId: '',
@@ -61,15 +67,41 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     }
   });
 
+  // Destructure register results for fields that need custom onChange cascade logic
+  const categoryFieldProps = register('categoryId');
+  const departmentFieldProps = register('departmentId');
+
+  const selectedDepartmentId = watch('departmentId');
   const selectedCategoryId = watch('categoryId');
+
+  // Fetch users for selected department (Issue Owner)
+  const { data: issueOwnerUsers = [], isLoading: isLoadingIssueOwners, isFetching: isFetchingIssueOwners } =
+    useGetUsersByDepartmentQuery(selectedDepartmentId, { skip: !selectedDepartmentId });
+
+  // Map users to Select-compatible format (memoized)
+  const issueOwnerOptions = useMemo(
+    () => (issueOwnerUsers || []).map(u => ({
+      label: `${u.name || u.username || ''} (${u.userCode || ''})`,
+      value: u.userCode || ''
+    })),
+    [issueOwnerUsers]
+  );
+
   const selectedSubCategoryId = watch('subCategoryId');
-  const subjectValue = watch('subject') || '';
-  const isSubjectAtLimit = subjectValue.length >= 40;
-  const isSubjectNearLimit = subjectValue.length >= 35;
 
   const { data: subCategories = [], isLoading: isLoadingSubCategories, isFetching: isFetchingSubCategories } = useGetSubCategoriesQuery(selectedCategoryId, {
     skip: !selectedCategoryId
   });
+
+  // Memoized option arrays for Category and Sub Category dropdowns
+  const categoryOptions = useMemo(
+    () => categories?.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value })) || [],
+    [categories]
+  );
+  const subCategoryOptions = useMemo(
+    () => subCategories?.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value })) || [],
+    [subCategories]
+  );
 
   const { data: dynamicControls = [], isFetching: isFetchingControls } = useGetSubCategoryCtrlMappingQuery(selectedSubCategoryId, {
     skip: !selectedSubCategoryId
@@ -77,12 +109,13 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   const previousControlsRef = useRef([]);
 
-  // Derive metadata from the selected subcategory
-  const selectedSubCategory = subCategories.find(
-    (sc) => String(sc.value ?? sc.Value) === String(selectedSubCategoryId)
+  // Derive metadata from the selected subcategory (memoized)
+  const selectedSubCategory = useMemo(
+    () => subCategories.find((sc) => String(sc.value ?? sc.Value) === String(selectedSubCategoryId)),
+    [subCategories, selectedSubCategoryId]
   );
 
-  const parsedMetadata = (() => {
+  const parsedMetadata = useMemo(() => {
     const raw = selectedSubCategory?.metadata;
     if (!raw || typeof raw !== 'string') return null;
     try {
@@ -90,16 +123,11 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     } catch {
       return null;
     }
-  })();
+  }, [selectedSubCategory?.metadata]);
 
   const isMetadataRequired = parsedMetadata?.required === true;
   const metadataAttachments = parsedMetadata?.attachments;
   const hasMetadata = parsedMetadata !== null && Array.isArray(metadataAttachments) && metadataAttachments.length > 0;
-
-  // Cascade clear subCategory when category changes
-  useEffect(() => {
-    setValue('subCategoryId', '');
-  }, [selectedCategoryId, setValue]);
 
   // Handle Dynamic Schema and Unregistering Old Fields
   useEffect(() => {
@@ -110,12 +138,12 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     // 2. Cleanup old fields from form state if they don't exist in new controls
     const previousNames = previousControlsRef.current.map(c => c.columnName);
     const currentNames = dynamicControls.map(c => c.columnName);
-    
+
     const namesToRemove = previousNames.filter(name => !currentNames.includes(name));
     if (namesToRemove.length > 0) {
       unregister(namesToRemove);
     }
-    
+
     previousControlsRef.current = dynamicControls;
   }, [dynamicControls, unregister]);
 
@@ -144,8 +172,18 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
         formData.append('StatusId', initialStatus.value || 1);
       }
 
+      // VendorDeptId (selected department)
+      if (data.departmentId) {
+        formData.append('VendorDeptId', parseInt(data.departmentId, 10));
+      }
+
+      // Issue Owner (userCode)
+      if (data.issueOwner) {
+        formData.append('IssueOwnerUserCode', data.issueOwner);
+      }
+
       // Append Dynamic Fields
-      const baseKeys = ['departmentId', 'subject', 'categoryId', 'subCategoryId', 'attachments', 'description'];
+      const baseKeys = ['departmentId', 'issueOwner', 'subject', 'categoryId', 'subCategoryId', 'attachments', 'description'];
       Object.keys(data).forEach(key => {
         if (!baseKeys.includes(key)) {
           if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
@@ -171,10 +209,20 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       // Store response for later callback after modal is dismissed
       pendingResponseRef.current = response;
       
-      // Show success modal
+      // Show success modal immediately — do NOT wait for email
       setShowSuccessModal(true);
-      reset(); 
-      
+      reset();
+
+      // Non-blocking email notification (fire-and-forget)
+      // Matrix: Ticket Created → TO=VHD, CC=Vendor, Vendor Mail=YES
+      sendNotification(NOTIFICATION_TYPES.TICKET_CREATED, {
+        ticketNo,
+        subject: data.subject,
+        status: initialStatus?.text || 'Open',
+        priority: mediumPriority?.text || 'Medium',
+        vendorEmail: profile?.email,
+      });
+
     } catch (error) {
       // TODO: Implement standard error toast handling
       console.error('Failed to create ticket', error);
@@ -205,51 +253,67 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           
-          <div className="w-full relative">
-            <div className="absolute top-0 right-0 flex items-center h-[20px]">
-              <small className={`${isSubjectAtLimit ? 'text-danger' : isSubjectNearLimit ? 'text-warning' : 'text-secondary'}`}>
-                {subjectValue.length} / 40
-              </small>
-            </div>
-            <Input 
-              label="Subject *" 
-              placeholder="Enter brief issue subject"
-              error={errors.subject?.message}
-              maxLength={40}
-              {...register('subject')}
-            />
-            {isSubjectAtLimit && !errors.subject && (
-              <small className="text-warning mt-1.5 block">
-                Maximum 40 characters allowed.
-              </small>
-            )}
-          </div>
+          <SubjectField control={control} register={register} subjectError={errors.subject?.message} />
 
           {/* Base Dropdowns Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Select
               label="Department *"
               placeholder={departments.length === 0 ? 'No departments assigned' : 'Select Department'}
               error={errors.departmentId?.message}
               options={departments}
               disabled={departments.length === 0}
-              {...register('departmentId')}
+              name={departmentFieldProps.name}
+              ref={departmentFieldProps.ref}
+              onBlur={departmentFieldProps.onBlur}
+              onChange={(e) => {
+                departmentFieldProps.onChange(e);
+                setValue('issueOwner', '');
+              }}
+            />
+
+            <Select
+              label="Issue Owner *"
+              placeholder={
+                !selectedDepartmentId
+                  ? 'Select Department first'
+                  : isLoadingIssueOwners
+                    ? 'Loading...'
+                    : issueOwnerOptions.length === 0
+                      ? 'No users available'
+                      : 'Select Issue Owner'
+              }
+              error={errors.issueOwner?.message}
+              options={issueOwnerOptions}
+              disabled={
+                !selectedDepartmentId ||
+                isLoadingIssueOwners ||
+                isFetchingIssueOwners ||
+                issueOwnerOptions.length === 0
+              }
+              {...register('issueOwner')}
             />
 
             <Select
               label="Category *"
               placeholder={isLoadingCategories ? 'Loading...' : 'Select Category'}
               error={errors.categoryId?.message}
-              options={categories?.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value })) || []}
+              options={categoryOptions}
               disabled={isLoadingCategories}
-              {...register('categoryId')}
+              name={categoryFieldProps.name}
+              ref={categoryFieldProps.ref}
+              onBlur={categoryFieldProps.onBlur}
+              onChange={(e) => {
+                categoryFieldProps.onChange(e);
+                setValue('subCategoryId', '');
+              }}
             />
             
             <Select
               label="Sub Category"
               placeholder={isFetchingSubCategories ? 'Loading...' : 'Select Sub Category'}
               error={errors.subCategoryId?.message}
-              options={subCategories?.map(c => ({ label: c.text ?? c.Text, value: c.value ?? c.Value })) || []}
+              options={subCategoryOptions}
               disabled={!selectedCategoryId || isFetchingSubCategories}
               {...register('subCategoryId')}
             />

@@ -36,7 +36,7 @@ export const TicketHistoryPage = ({ backPath }) => {
 
   const ticketNo = formatTicketNo(ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`);
   const subject = ticketDetails?.subject || ticketDetails?.ticketSubject || '';
-  const ticketHistoryViewModels = ticketDetails?.ticketHistoryViewModels || [];
+  const ticketHistoryStages = ticketDetails?.ticketHistoryStages || [];
 
   return (
     <div className="flex flex-col h-full w-full max-w-[1200px] mx-auto">
@@ -79,7 +79,7 @@ export const TicketHistoryPage = ({ backPath }) => {
               </div>
             </div>
           ) : (
-            <TicketHistoryList history={ticketHistoryViewModels} />
+            <TicketHistoryList stages={ticketHistoryStages} />
           )}
         </CardContent>
       </Card>

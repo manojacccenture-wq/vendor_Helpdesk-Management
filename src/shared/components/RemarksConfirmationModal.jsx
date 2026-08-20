@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Button } from './Button.jsx';
 import { StatusBadge } from './StatusBadge.jsx';
 import { Textarea } from './Textarea.jsx';
 import { useUpdateTicketStatusMutation } from '../api/apiSlice.js';
 import { useNotification } from '../notifications/index.js';
+import { sendNotification, detectStatusChangeType, getSectionField } from '../services/emailNotifications.js';
+import { selectUserProfile } from '../../features/user/store/selectors.js';
 
 /**
  * RemarksConfirmationModal — Self-contained modal for department role status updates.
@@ -22,9 +25,11 @@ export const RemarksConfirmationModal = ({
   ticketId,
   targetStatusText,
   targetStatusId,
+  ticketDetails,
   onClose,
   onSuccess,
 }) => {
+  const profile = useSelector(selectUserProfile);
   const { showSuccess, showError } = useNotification();
   const [remarks, setRemarks] = useState('');
   const [remarksError, setRemarksError] = useState('');
@@ -54,6 +59,27 @@ export const RemarksConfirmationModal = ({
       }
 
       showSuccess(response?.message || `Status successfully updated to ${targetStatusText}.`);
+
+      // Determine notification type from status change
+      const currentStatus = ticketDetails?.status || '';
+      const notificationType = detectStatusChangeType(targetStatusText, currentStatus);
+
+      if (notificationType) {
+        const sections = ticketDetails?.sections || [];
+        const assignedEmail = getSectionField(sections, 'Processing & Assignment', 'Assigned To Email');
+        const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
+
+        sendNotification(notificationType, {
+          ticketNo: ticketDetails?.ticketNo,
+          subject: ticketDetails?.subject,
+          status: targetStatusText,
+          remarks: trimmedRemarks,
+          vendorEmail,
+          assignedEmail,
+          deptUserEmail: profile?.email,
+        });
+      }
+
       setRemarks('');
       setRemarksError('');
       onClose();

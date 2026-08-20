@@ -74,7 +74,7 @@ export const TicketCommentsPage = ({ backPath }) => {
   // Get ticket number for display
   const ticketNo = formatTicketNo(ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`);
   const subject = ticketDetails?.subject || ticketDetails?.ticketSubject || '';
-  const ticketHistoryViewModels = ticketDetails?.ticketHistoryViewModels || [];
+  const ticketHistoryStages = ticketDetails?.ticketHistoryStages || [];
 
   // Auto-scroll to bottom when new comments are added
   useEffect(() => {
@@ -129,7 +129,7 @@ export const TicketCommentsPage = ({ backPath }) => {
               <MessageSquare className="w-5 h-5 text-success" />
               Conversation {commentCount > 0 && `(${commentCount})`}
             </CardTitle>
-            <TicketHistoryDrawer ticketId={id} history={ticketHistoryViewModels} />
+            <TicketHistoryDrawer ticketId={id} stages={ticketHistoryStages} />
           </div>
         </CardHeader>
 
@@ -153,6 +153,8 @@ export const TicketCommentsPage = ({ backPath }) => {
         <div className="shrink-0 border-t border-default">
           <CommentForm
             ticketId={id}
+            ticketNo={ticketNo}
+            ticketSubject={subject}
             onCommentAdded={handleCommentAdded}
             canToggleInternal={canToggleInternal}
             userCode={profile?.userCode}

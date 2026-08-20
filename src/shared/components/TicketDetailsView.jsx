@@ -151,8 +151,13 @@ export const TicketDetailsView = ({
   const statusColorHex = ticketDetails.statusColorHex;
 
   const attachments = ticketDetails.attachments || [];
-  const ticketHistoryViewModels = ticketDetails.ticketHistoryViewModels || [];
+  const ticketHistoryStages = ticketDetails.ticketHistoryStages || [];
   const sections = ticketDetails.sections || [];
+
+  // Hide "Processing & Assignment" section from Vendor role
+  const visibleSections = role === 'L1'
+    ? sections.filter(s => s.title !== 'Processing & Assignment')
+    : sections;
 
   return (
     <div className="flex flex-col w-full max-w-[1000px] mx-auto px-4 sm:px-6">
@@ -177,7 +182,7 @@ export const TicketDetailsView = ({
             canUpdateStatus={canUpdateStatus}
             ticketDetails={ticketDetails}
             subject={subject}
-            ticketHistoryViewModels={ticketHistoryViewModels}
+            ticketHistoryStages={ticketHistoryStages}
           />
 
           {/* Description */}
@@ -189,7 +194,7 @@ export const TicketDetailsView = ({
           </div>
 
           {/* Dynamic Sections from API */}
-          {sections.map((section, index) => (
+          {visibleSections.map((section, index) => (
             <DynamicSection
               key={section.title || index}
               title={section.title}
@@ -240,6 +245,7 @@ export const TicketDetailsView = ({
         ticketId={ticketId}
         targetStatusText={pendingStatusText}
         targetStatusId={pendingStatusId}
+        ticketDetails={ticketDetails}
         onClose={() => setRemarksModalOpen(false)}
       />
 

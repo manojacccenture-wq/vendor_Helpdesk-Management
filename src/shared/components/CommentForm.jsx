@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { EyeOff } from 'lucide-react';
 import { Button } from './Button.jsx';
 import { Textarea } from './Textarea.jsx';
 import { useAddCommentMutation } from '../api/apiSlice.js';
 import { useNotification } from '../notifications/index.js';
 import { cn } from '../utils/cn.js';
+import { sendNotification, NOTIFICATION_TYPES } from '../services/emailNotifications.js';
+import { selectUserProfile } from '../../features/user/store/selectors.js';
 
 /**
  * CommentForm — Reusable comment form with textarea, internal toggle, and submit button.
@@ -28,6 +31,8 @@ import { cn } from '../utils/cn.js';
  */
 export const CommentForm = ({
   ticketId,
+  ticketNo,
+  ticketSubject,
   onCommentAdded,
   canToggleInternal = false,
   userCode,
@@ -36,6 +41,7 @@ export const CommentForm = ({
   textareaClassName,
   size = 'sm',
 }) => {
+  const profile = useSelector(selectUserProfile);
   const [commentText, setCommentText] = useState('');
   const [isInternal, setIsInternal] = useState(false);
   const [addComment, { isLoading: isAddingComment }] = useAddCommentMutation();
@@ -56,7 +62,7 @@ export const CommentForm = ({
         ticketId: parseInt(ticketId, 10),
         parentCommentId: 0,
         body: trimmedText,
-        isInternal: canToggleInternal ? isInternal : false,
+        isInternal: showInternalToggle ? isInternal : false,
         isEdited: false,
         userCode,
         role,
@@ -68,6 +74,25 @@ export const CommentForm = ({
       }
 
       showSuccess('Comment added successfully.');
+
+      // Email notification for non-internal comments
+      // Matrix:
+      //   Dept Response (role != L1, non-internal) → TO=VHD, CC=Dept User, Vendor=NO
+      //   Vendor Clarification Received (role=L1, non-internal) → TO=VHD, CC=Vendor, Vendor=YES
+      if (!isInternal) {
+        const notificationType = role === 'L1'
+          ? NOTIFICATION_TYPES.CLARIFICATION_RECEIVED
+          : NOTIFICATION_TYPES.DEPT_RESPONSE;
+
+        sendNotification(notificationType, {
+          ticketId,
+          ticketNo,
+          subject: ticketSubject,
+          deptUserEmail: profile?.email,
+          vendorEmail: profile?.email,
+        });
+      }
+
       setCommentText('');
       setIsInternal(false);
       onCommentAdded?.();
@@ -83,6 +108,10 @@ export const CommentForm = ({
     }
   };
 
+  // Vendor role (L1) must never see the internal/visibility toggle
+  const isVendorRole = role === 'L1';
+  const showInternalToggle = canToggleInternal && !isVendorRole;
+
   const isCompact = size === 'sm';
 
   return (
@@ -97,7 +126,7 @@ export const CommentForm = ({
       />
 
       {/* Internal comment toggle — only for Helpdesk/Internal users */}
-      {canToggleInternal && (
+      {showInternalToggle && (
         <div className="flex items-center gap-2">
           <label className="relative inline-flex items-center cursor-pointer">
             <input

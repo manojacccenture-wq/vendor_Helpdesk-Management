@@ -109,7 +109,8 @@ export const TicketMetrics = ({
             return (
               <Card
                 key={metric.label || index}
-                className={`flex-none p-6 rounded-card shadow-sm flex items-center justify-between metric-card scroll-snap-start ${metric.cardClassName || ''}`}
+                className={`relative flex-none p-6 rounded-card shadow-sm flex items-center justify-between metric-card scroll-snap-start ${metric.cardClassName || ''} ${metric.onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                onClick={metric.onClick}
               >
                 <div className="min-w-0">
                   <p className={`${labelColor} mb-1 truncate`}>{metric.label}</p>
@@ -117,6 +118,9 @@ export const TicketMetrics = ({
                     {isLoading ? '...' : metric.value ?? 0}
                   </h2>
                 </div>
+                {metric.active && (
+                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                )}
                 <div className={`w-12 h-12 rounded-control ${metric.iconBg || 'bg-surface-active'} flex items-center justify-center flex-shrink-0`}>
                   {Icon && <Icon className={`w-6 h-6 ${metric.iconColor || 'text-primary'}`} />}
                 </div>
