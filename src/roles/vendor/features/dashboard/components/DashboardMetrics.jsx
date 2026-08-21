@@ -2,8 +2,9 @@ import { useMemo, useCallback } from 'react';
 import { Ticket, CircleDot, Hourglass, Clock, Check, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { TicketMetrics } from '../../../../../shared/components/TicketMetrics.jsx';
-import { useGetTicketCountQuery, useGetTicketListQuery, useGetTicketStatusesQuery } from '../../../../../shared/api/apiSlice.js';
+import { useGetTicketCountQuery, useGetTicketListQuery } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
+import { useMetricStatusClick } from '../../../../../shared/hooks/useMetricStatusClick.js';
 
 /**
  * DashboardMetrics — Vendor-specific metrics configuration.
@@ -29,20 +30,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
     skip: !profile?.userCode || !role,
   });
 
-  const { data: statuses = [] } = useGetTicketStatusesQuery();
-
-  // Build a map: lowercase label → status value (string)
-  const labelToId = useMemo(() => {
-    const map = {};
-    for (const s of statuses) {
-      const text = (s.text ?? s.Text ?? '').toLowerCase();
-      const value = String(s.value ?? s.Value ?? '');
-      if (text && value) {
-        map[text] = value;
-      }
-    }
-    return map;
-  }, [statuses]);
+  const { onCardClick, isActive } = useMetricStatusClick(statusId, onStatusChange);
 
   // Derive per-status counts from the ticket list
   const counts = useMemo(() => {
@@ -67,31 +55,6 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
     return result;
   }, [tickets, countData]);
 
-  // Click handler: maps label to status ID and updates the filter
-  const handleClick = useCallback((label) => {
-    if (!onStatusChange) return;
-    // "Total tickets" clears the filter
-    if (label === 'Total tickets') {
-      onStatusChange('');
-      return;
-    }
-    const id = labelToId[label.toLowerCase()];
-    if (id) {
-      // Toggle: clicking the same card again clears the filter
-      onStatusChange(String(statusId) === id ? '' : id);
-    }
-  }, [onStatusChange, labelToId, statusId]);
-
-  // Check which card is currently active
-  const isActive = useCallback((label) => {
-    if (statusId === '' || statusId == null) {
-      return label === 'Total tickets';
-    }
-    if (label === 'Total tickets') return false;
-    const id = labelToId[label.toLowerCase()];
-    return id != null && String(statusId) === id;
-  }, [statusId, labelToId]);
-
   const metrics = [
     {
       label: 'Total tickets',
@@ -99,7 +62,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: Ticket,
       iconBg: 'bg-surface-active',
       iconColor: 'text-primary',
-      onClick: () => handleClick('Total tickets'),
+      onClick: () => onCardClick('Total tickets'),
       active: isActive('Total tickets'),
     },
     {
@@ -108,7 +71,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: CircleDot,
       iconBg: 'bg-info-soft',
       iconColor: 'text-info',
-      onClick: () => handleClick('Open'),
+      onClick: () => onCardClick('Open'),
       active: isActive('Open'),
     },
     {
@@ -117,7 +80,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: Hourglass,
       iconBg: 'bg-warning-soft',
       iconColor: 'text-warning',
-      onClick: () => handleClick('In progress'),
+      onClick: () => onCardClick('In progress'),
       active: isActive('In progress'),
     },
     {
@@ -126,7 +89,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: Clock,
       iconBg: 'bg-secondary-soft',
       iconColor: 'text-secondary',
-      onClick: () => handleClick('On hold'),
+      onClick: () => onCardClick('On hold'),
       active: isActive('On hold'),
     },
     {
@@ -135,7 +98,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: Check,
       iconBg: 'bg-success-soft',
       iconColor: 'text-success',
-      onClick: () => handleClick('Resolved'),
+      onClick: () => onCardClick('Resolved'),
       active: isActive('Resolved'),
     },
     {
@@ -144,7 +107,7 @@ export const DashboardMetrics = ({ statusId = '', onStatusChange }) => {
       icon: CheckCircle2,
       iconBg: 'bg-secondary-soft',
       iconColor: 'text-secondary',
-      onClick: () => handleClick('Closed'),
+      onClick: () => onCardClick('Closed'),
       active: isActive('Closed'),
     },
     {

@@ -72,7 +72,7 @@ export const TicketHistoryDrawer = ({ ticketId, stages = [] }) => {
             </Button>
           )
         )}
-        scrollableClassName="px-5 py-4"
+        scrollableClassName="px-4 py-4"
         ariaLabel="Close ticket history"
         footer={
           hasHistory && (

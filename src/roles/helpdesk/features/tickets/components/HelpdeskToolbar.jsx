@@ -18,8 +18,8 @@ export const HelpdeskToolbar = ({
   const { data: priorities = [], isLoading: isLoadingPriorities } = useGetPrioritiesQuery();
 
   const statusOptions = [
-    { label: isLoadingStatuses ? 'Loading...' : 'All status', value: 'all' },
-    ...statuses.map(s => ({ label: s.text ?? s.Text, value: s.value ?? s.Value }))
+    { label: isLoadingStatuses ? 'Loading...' : 'All status', value: '' },
+    ...statuses.map(s => ({ label: s.text ?? s.Text, value: String(s.value ?? s.Value) }))
   ];
 
   const priorityOptions = [

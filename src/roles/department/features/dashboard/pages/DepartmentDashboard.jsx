@@ -16,6 +16,7 @@ import {
   useGetCategoriesQuery
 } from '../../../../../shared/api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../../../../features/user/store/selectors.js';
+import { useMetricStatusClick } from '../../../../../shared/hooks/useMetricStatusClick.js';
 import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
 
 export const DepartmentDashboard = () => {
@@ -53,14 +54,16 @@ export const DepartmentDashboard = () => {
   }, [tickets]);
 
   // ─── Metrics Config ───
+  const { onCardClick, isActive } = useMetricStatusClick(statusId, setStatusId);
+
   const metrics = [
-    { label: 'Total tickets', value: counts.total, icon: Ticket, iconBg: 'bg-surface-active', iconColor: 'text-primary' },
-    { label: 'Open', value: counts.open, icon: CircleDot, iconBg: 'bg-info-soft', iconColor: 'text-info' },
-    { label: 'In progress', value: counts.inProgress, icon: Hourglass, iconBg: 'bg-warning-soft', iconColor: 'text-warning' },
-    { label: 'On hold', value: counts.onHold, icon: Clock, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary' },
-    { label: 'Resolved', value: counts.resolved, icon: Check, iconBg: 'bg-success-soft', iconColor: 'text-success' },
-    { label: 'Closed', value: counts.closed, icon: CheckCircle2, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary' },
-    { label: 'Escalated', value: counts.escalated, icon: AlertTriangle, iconBg: 'bg-danger-soft', iconColor: 'text-danger' },
+    { label: 'Total tickets', value: counts.total, icon: Ticket, iconBg: 'bg-surface-active', iconColor: 'text-primary', onClick: () => onCardClick('Total tickets'), active: isActive('Total tickets') },
+    { label: 'Open', value: counts.open, icon: CircleDot, iconBg: 'bg-info-soft', iconColor: 'text-info', onClick: () => onCardClick('Open'), active: isActive('Open') },
+    { label: 'In progress', value: counts.inProgress, icon: Hourglass, iconBg: 'bg-warning-soft', iconColor: 'text-warning', onClick: () => onCardClick('In progress'), active: isActive('In progress') },
+    { label: 'On hold', value: counts.onHold, icon: Clock, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary', onClick: () => onCardClick('On hold'), active: isActive('On hold') },
+    { label: 'Resolved', value: counts.resolved, icon: Check, iconBg: 'bg-success-soft', iconColor: 'text-success', onClick: () => onCardClick('Resolved'), active: isActive('Resolved') },
+    { label: 'Closed', value: counts.closed, icon: CheckCircle2, iconBg: 'bg-secondary-soft', iconColor: 'text-secondary', onClick: () => onCardClick('Closed'), active: isActive('Closed') },
+    { label: 'Escalated', value: counts.escalated, icon: AlertTriangle, iconBg: 'bg-danger-soft', iconColor: 'text-danger', onClick: () => onCardClick('Escalated'), active: isActive('Escalated') },
   ];
 
   // ─── Filters Config ───

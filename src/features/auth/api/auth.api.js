@@ -16,7 +16,7 @@ export const AuthApi = {
   // },
 
   logout: async () => {
-    window.location.href = 'https://servicedesk.tsusl.co.in/DBSTS/Account/Logout';
+    window.location.href = 'https://servicesdev.tsuisl.co.in/DBSTS/Account/Logout';
   },
 
   getProfile: async () => {

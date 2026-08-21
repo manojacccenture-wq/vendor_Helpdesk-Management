@@ -5,12 +5,12 @@ import { HelpdeskTicketsTable } from '../../tickets/components/HelpdeskTicketsTa
 
 export const HelpdeskDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('all');
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setStatusFilter('all');
+    setStatusFilter('');
     setPriorityFilter('all');
   };
 
@@ -18,7 +18,7 @@ export const HelpdeskDashboard = () => {
     <div className="max-w-[1400px] mx-auto px-6 py-8">
       
       {/* 4 Metric Cards */}
-      <HelpdeskMetrics />
+      <HelpdeskMetrics statusId={statusFilter} onStatusChange={setStatusFilter} />
 
       {/* Main Page Title */}
       <h1 className="text-primary mb-6">

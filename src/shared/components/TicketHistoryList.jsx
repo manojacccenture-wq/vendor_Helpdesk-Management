@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   History,
   PlusCircle,
@@ -14,6 +14,8 @@ import {
   Building2,
   Truck,
   Zap,
+  ArrowRight,
+  MessageSquare,
 } from 'lucide-react';
 import { formatDate } from '../utils/date.js';
 import { cn } from '../utils/cn.js';
@@ -24,52 +26,52 @@ import { TruncatedText } from './TruncatedText.jsx';
 const DEFAULT_EVENT_STYLE = {
   icon: Clock,
   colorClass: 'text-secondary',
-  dotClass: 'border-secondary/40 bg-secondary/10',
-  dotFilledClass: 'border-secondary bg-secondary',
+  stageColor: 'border-l-secondary',
+  dotClass: 'bg-secondary',
   badgeBg: 'bg-surface-active',
 };
 
 const EVENT_CONFIG = {
-  'ticket created':  {
+  'ticket created': {
     icon: PlusCircle,
     colorClass: 'text-success',
-    dotClass: 'border-success/40 bg-success/10',
-    dotFilledClass: 'border-success bg-success',
+    stageColor: 'border-l-success',
+    dotClass: 'bg-success',
     badgeBg: 'bg-success-soft',
   },
-  'status changed':  {
+  'status changed': {
     icon: RefreshCw,
     colorClass: 'text-info',
-    dotClass: 'border-info/40 bg-info/10',
-    dotFilledClass: 'border-info bg-info',
+    stageColor: 'border-l-info',
+    dotClass: 'bg-info',
     badgeBg: 'bg-info-soft',
   },
   'ticket assigned': {
     icon: UserPlus,
     colorClass: 'text-warning',
-    dotClass: 'border-warning/40 bg-warning/10',
-    dotFilledClass: 'border-warning bg-warning',
+    stageColor: 'border-l-warning',
+    dotClass: 'bg-warning',
     badgeBg: 'bg-warning-soft',
   },
   'ticket reopened': {
     icon: RotateCcw,
     colorClass: 'text-purple',
-    dotClass: 'border-accent/40 bg-accent/10',
-    dotFilledClass: 'border-accent bg-accent',
+    stageColor: 'border-l-accent',
+    dotClass: 'bg-accent',
     badgeBg: 'bg-accent-soft',
   },
-  'ticket closed':   {
+  'ticket closed': {
     icon: CheckCircle,
     colorClass: 'text-success',
-    dotClass: 'border-success/40 bg-success/10',
-    dotFilledClass: 'border-success bg-success',
+    stageColor: 'border-l-success',
+    dotClass: 'bg-success',
     badgeBg: 'bg-success-soft',
   },
-  'escalated':       {
+  'escalated': {
     icon: AlertTriangle,
     colorClass: 'text-danger',
-    dotClass: 'border-danger/40 bg-danger/10',
-    dotFilledClass: 'border-danger bg-danger',
+    stageColor: 'border-l-danger',
+    dotClass: 'bg-danger',
     badgeBg: 'bg-danger-soft',
   },
 };
@@ -79,130 +81,167 @@ const getEventConfig = (title) => {
   return EVENT_CONFIG[key] || DEFAULT_EVENT_STYLE;
 };
 
-// ─── Stage Icon Mapping ───
-
-const STAGE_ICONS = {
-  helpdesk: Users,
-  department: Building2,
-  vendor: Truck,
-};
-
-const getStageIcon = (stageName) => {
-  const key = (stageName || '').toLowerCase().trim();
-  return STAGE_ICONS[key] || History;
-};
-
-// ─── Current Activity Card ───
+/**
+ * Determine if an event represents a completed lifecycle state.
+ * Uses event title and status transition data from the existing API response.
+ */
+function isCompletedEvent(event) {
+  const title = (event.title || '').toLowerCase().trim();
+  if (title === 'ticket closed') return true;
+  const transition = parseStatusTransition(event.description);
+  if (transition) {
+    const target = transition.to.toLowerCase();
+    if (target === 'closed' || target === 'resolved') return true;
+  }
+  return false;
+}
 
 /**
- * CurrentActivityCard — Prominent display of the most recent history event.
- * Always fully expanded, visually distinct from older events.
+ * Find the event that represents the current pending/workflow state.
+ * Determined by the most recent changedAt timestamp among events
+ * that have pendingWith metadata — data-driven, not positional.
  */
-const CurrentActivityCard = ({ event, stage }) => {
-  const { icon: Icon, colorClass, badgeBg } = getEventConfig(event.title);
+function findCurrentPendingEvent(events) {
+  let candidate = null;
+  for (const event of events) {
+    if (event.metadata?.pendingWithUser || event.metadata?.pendingWithRole) {
+      if (!candidate || new Date(event.changedAt) > new Date(candidate.changedAt)) {
+        candidate = event;
+      }
+    }
+  }
+  return candidate;
+}
+
+// ─── Stage Configuration ───
+
+const STAGE_CONFIG = {
+  helpdesk: { icon: Users, label: 'Helpdesk', color: 'text-info', bg: 'bg-info-soft', border: 'border-info/30' },
+  department: { icon: Building2, label: 'Department', color: 'text-warning', bg: 'bg-warning-soft', border: 'border-warning/30' },
+  vendor: { icon: Truck, label: 'Vendor', color: 'text-success', bg: 'bg-success-soft', border: 'border-success/30' },
+};
+
+const getStageConfig = (stageName) => {
+  if (!stageName) {
+    return { icon: Zap, label: 'Activity', color: 'text-secondary', bg: 'bg-surface-active', border: 'border-default' };
+  }
+  const key = stageName.toLowerCase().trim();
+  return STAGE_CONFIG[key] || { icon: History, label: stageName, color: 'text-secondary', bg: 'bg-surface-active', border: 'border-default' };
+};
+
+// ─── Status Transition Parser ───
+
+/**
+ * Parse a description string like "Status changed from 'In Progress' to 'Resolved'"
+ * into { from: 'In Progress', to: 'Resolved' }.
+ * Returns null if not a status change description.
+ */
+function parseStatusTransition(description) {
+  if (!description) return null;
+  const match = description.match(/(?:status\s+changed\s+)?from\s+['"](.+?)['"]\s+to\s+['"](.+?)['"]/i);
+  if (match) {
+    return { from: match[1], to: match[2] };
+  }
+  return null;
+}
+
+// ─── Pending With Banner ───
+
+/**
+ * PendingWithBanner — Sticky banner showing who the ticket is currently pending with.
+ * Extracted from the latest event's metadata.
+ */
+const PendingWithBanner = ({ pendingWithUser, pendingWithRole }) => {
+  if (!pendingWithUser && !pendingWithRole) return null;
+
+  const displayName = pendingWithUser || pendingWithRole;
+  const roleText = pendingWithUser && pendingWithRole ? ` (${pendingWithRole})` : '';
 
   return (
-    <div className="mb-5">
-      {/* Section label */}
-      <div className="flex items-center gap-2 mb-2.5">
-        <Zap className="w-3.5 h-3.5 text-info" />
-        <span className="text-section-label text-secondary uppercase tracking-wide">
-          Current Activity
-        </span>
-        {stage && (
-          <span className="text-caption text-muted">· {stage}</span>
-        )}
-      </div>
-
-      {/* Card */}
-      <div
-        className={cn(
-          'relative p-4 rounded-lg border',
-          'bg-info-soft/30 border-info/20',
-          'shadow-sm'
-        )}
-      >
-        {/* Left accent bar */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-info" />
-
-        <div className="pl-3">
-          {/* Header: Icon + Title + Date */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center shrink-0',
-                  'w-8 h-8 rounded-full',
-                  badgeBg
-                )}
-              >
-                <Icon className={cn('w-4 h-4', colorClass)} />
-              </span>
-              <div className="min-w-0">
-                <TruncatedText as="span" className="text-body font-semibold text-primary block">
-                  {event.title}
-                </TruncatedText>
-                {event.description && (
-                  <TruncatedText as="p" className="text-caption text-secondary mt-0.5">
-                    {event.description}
-                  </TruncatedText>
-                )}
-              </div>
-            </div>
-            <span className="text-caption text-secondary whitespace-nowrap shrink-0 mt-0.5">
-              {formatDate(event.changedAt)}
-            </span>
-          </div>
-
-          {/* Changed By */}
-          <div className="flex items-center gap-1.5 mt-2.5 min-w-0 truncate">
-            <span className="text-caption text-muted shrink-0">By:</span>
-            <TruncatedText className="text-caption font-medium text-primary min-w-0">
-              {event.changedBy || 'System'}
-            </TruncatedText>
-          </div>
-
-          {/* Pending With */}
-          {(event.metadata?.pendingWithUser || event.metadata?.pendingWithRole) && (
-            <div className="flex items-center gap-1.5 mt-1 min-w-0 truncate">
-              <span className="text-caption text-muted shrink-0">Pending with:</span>
-              <TruncatedText className="text-caption font-medium text-primary min-w-0">
-                {event.metadata.pendingWithUser || event.metadata.pendingWithRole}
-                {event.metadata.pendingWithUser && event.metadata.pendingWithRole
-                  ? ` (${event.metadata.pendingWithRole})`
-                  : ''}
-              </TruncatedText>
-            </div>
-          )}
-
-          {/* Remarks */}
-          {event.remarks && (
-            <TruncatedText as="div" className="mt-2 p-2 bg-surface-active/60 rounded-md border border-default">
-              <span className="text-caption font-semibold text-primary">Remarks: </span>
-              <span className="text-caption text-secondary">{event.remarks}</span>
-            </TruncatedText>
-          )}
-        </div>
-      </div>
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-info-soft/40 border border-info/20 mb-5">
+      <Clock className="w-4 h-4 text-info shrink-0" />
+      <span className="text-caption text-secondary">Pending with</span>
+      <span className="text-caption font-semibold text-primary">
+        {displayName}{roleText}
+      </span>
     </div>
   );
 };
 
-// ─── Single History Event ───
+// ─── Stage Divider ───
 
-const HistoryEvent = ({ event, isLatest, defaultExpanded = false }) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const { icon: Icon, colorClass, badgeBg } = getEventConfig(event.title);
+/**
+ * StageDivider — Visual separator between stage groups in the timeline.
+ * Shows the stage name with an icon and event count.
+ */
+const StageDivider = ({ stage, eventCount, isExpanded, onClick }) => {
+  const config = getStageConfig(stage);
+  const StageIcon = config.icon;
 
   return (
-    <div className="flex gap-3 group">
-      {/* Timeline column: open dot + connecting line */}
-      <div className="flex flex-col items-center shrink-0 pt-3.5">
+    <div className="flex items-center gap-2.5 py-2 my-1">
+      <button 
+        type="button"
+        onClick={onClick}
+        className={cn('flex items-center gap-2 px-3 py-1 rounded-full border hover:bg-surface-hover transition-colors cursor-pointer', config.bg, config.border)}
+      >
+        <StageIcon className={cn('w-3.5 h-3.5', config.color)} />
+        <span className={cn('text-caption font-semibold', config.color)}>{config.label}</span>
+        <span className="text-caption text-secondary">({eventCount})</span>
+        <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', config.color, isExpanded ? 'rotate-180' : '')} />
+      </button>
+      <div className="flex-1 h-px bg-default" />
+    </div>
+  );
+};
+
+// ─── Status Transition Badge ───
+
+/**
+ * StatusTransition — Visual before→after badge for status changes.
+ */
+const StatusTransition = ({ from, to }) => (
+  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-medium bg-surface-active text-secondary border border-default">
+      {from}
+    </span>
+    <ArrowRight className="w-3 h-3 text-secondary shrink-0" />
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-medium bg-info-soft text-info border border-info/20">
+      {to}
+    </span>
+  </div>
+);
+
+// ─── Timeline Event ───
+
+/**
+ * TimelineEvent — A single event in the unified timeline.
+ * Compact by default, expandable for remarks and full details.
+ */
+const TimelineEvent = ({ event, isLatest, isCurrentPending = false }) => {
+  const [isExpanded, setIsExpanded] = useState(isLatest);
+  const { icon: Icon, colorClass, badgeBg } = getEventConfig(event.title);
+  const transition = parseStatusTransition(event.description);
+  const completed = isCompletedEvent(event);
+  const hasRemarks = !!event.remarks;
+  const hasDetails = hasRemarks || event.description;
+
+  const toggleExpand = useCallback(() => {
+    if (hasDetails) setIsExpanded(prev => !prev);
+  }, [hasDetails]);
+
+  return (
+    <div className={cn('flex gap-3 group', isLatest && 'mb-1')}>
+      {/* Timeline dot + line */}
+      <div className="flex flex-col items-center shrink-0 pt-3">
         <span
           className={cn(
-            'w-2.5 h-2.5 rounded-full border-[1.5px] shrink-0 z-10',
+            'w-2.5 h-2.5 rounded-full shrink-0 z-10',
             'transition-transform duration-150 group-hover:scale-125',
-            isLatest ? 'border-warning bg-warning' : 'border-success bg-success'
+            cn(
+              isCurrentPending && 'ring-4 ring-warning/20',
+              isCurrentPending ? 'bg-warning' : 'bg-success'
+            )
           )}
         />
         <div className="w-px flex-1 bg-default my-0.5" />
@@ -211,42 +250,54 @@ const HistoryEvent = ({ event, isLatest, defaultExpanded = false }) => {
       {/* Event card */}
       <div
         className={cn(
-          'flex-1 min-w-0 mb-2.5 p-3',
-          'bg-surface-hover rounded-lg border border-default',
-          'transition-shadow duration-200 hover:shadow-sm',
-          'cursor-pointer'
+          'flex-1 min-w-0 mb-2 p-3 rounded-lg border transition-all duration-150',
+          isLatest
+            ? 'bg-info-soft/30 border-info/20 shadow-sm'
+            : 'bg-surface-hover border-default hover:shadow-sm',
+          hasDetails && 'cursor-pointer'
         )}
-        onClick={() => setIsExpanded(!isExpanded)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
+        onClick={toggleExpand}
+        role={hasDetails ? 'button' : undefined}
+        tabIndex={hasDetails ? 0 : undefined}
+        onKeyDown={hasDetails ? (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setIsExpanded(!isExpanded);
+            toggleExpand();
           }
-        }}
+        } : undefined}
       >
-        {/* Header: Icon badge + Title + Date */}
+        {/* Header: Icon + Title + Timestamp */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            {/* Circular icon badge */}
+          <div className="flex items-center gap-2 min-w-0">
             <span
               className={cn(
                 'inline-flex items-center justify-center shrink-0',
-                'w-8 h-8 rounded-full',
+                'w-7 h-7 rounded-full',
                 badgeBg
               )}
             >
-              <Icon className={cn('w-4 h-4', colorClass)} />
+              <Icon className={cn('w-3.5 h-3.5', colorClass)} />
             </span>
             <div className="min-w-0">
-              <TruncatedText as="span" className="text-body font-semibold text-primary block">
-                {event.title}
-              </TruncatedText>
-              {!isExpanded && event.description && (
-                <TruncatedText as="p" className="text-caption text-secondary mt-0.5">
-                  {event.description}
+              <div className="flex items-center gap-2">
+                <TruncatedText as="span" className="text-body font-semibold text-primary">
+                  {event.title}
                 </TruncatedText>
+                {isLatest && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-info text-white shrink-0">
+                    Latest
+                  </span>
+                )}
+              </div>
+              {/* Status Transition or Description preview */}
+              {transition ? (
+                <StatusTransition from={transition.from} to={transition.to} />
+              ) : (
+                !isExpanded && event.description && (
+                  <TruncatedText as="p" className="text-caption text-secondary mt-0.5">
+                    {event.description}
+                  </TruncatedText>
+                )
               )}
             </div>
           </div>
@@ -255,111 +306,57 @@ const HistoryEvent = ({ event, isLatest, defaultExpanded = false }) => {
           </span>
         </div>
 
-        {/* Expanded content */}
+        {/* Actor + Pending With — always visible */}
+        <div className="flex items-center gap-3 mt-2 pl-9 flex-wrap">
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-caption text-muted shrink-0">By</span>
+            <TruncatedText className="text-caption font-medium text-primary">
+              {event.changedBy || 'System'}
+            </TruncatedText>
+          </div>
+          {(event.metadata?.pendingWithUser || event.metadata?.pendingWithRole) && (
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-caption text-muted shrink-0">→</span>
+              <TruncatedText className="text-caption text-secondary">
+                {event.metadata.pendingWithUser || event.metadata.pendingWithRole}
+                {event.metadata.pendingWithUser && event.metadata.pendingWithRole
+                  ? ` (${event.metadata.pendingWithRole})`
+                  : ''}
+              </TruncatedText>
+            </div>
+          )}
+        </div>
+
+        {/* Expanded: Description (if not status change) + Remarks */}
         {isExpanded && (
-          <>
-            {/* Description */}
-            {event.description && (
-              <TruncatedText as="p" className="text-caption text-secondary mt-2 pl-10">
+          <div className="mt-2 pl-9 space-y-1.5">
+            {/* Description (for non-status-change events) */}
+            {event.description && !transition && (
+              <TruncatedText as="p" className="text-caption text-secondary">
                 {event.description}
               </TruncatedText>
             )}
 
-            {/* Changed By */}
-            <div className="flex items-center gap-1.5 mt-2 pl-10 min-w-0 truncate">
-              <span className="text-caption text-muted shrink-0">By:</span>
-              <TruncatedText className="text-caption font-medium text-primary min-w-0">
-                {event.changedBy || 'System'}
-              </TruncatedText>
-            </div>
-
-            {/* Pending With (only when metadata available) */}
-            {(event.metadata?.pendingWithUser || event.metadata?.pendingWithRole) && (
-              <div className="flex items-center gap-1.5 mt-1 pl-10 min-w-0 truncate">
-                <span className="text-caption text-muted shrink-0">Pending with:</span>
-                <TruncatedText className="text-caption font-medium text-primary min-w-0">
-                  {event.metadata.pendingWithUser || event.metadata.pendingWithRole}
-                  {event.metadata.pendingWithUser && event.metadata.pendingWithRole
-                    ? ` (${event.metadata.pendingWithRole})`
-                    : ''}
+            {/* Remarks */}
+            {hasRemarks && (
+              <div className="flex items-start gap-1.5 p-2 bg-surface-active/60 rounded-md border border-default">
+                <MessageSquare className="w-3 h-3 text-secondary shrink-0 mt-0.5" />
+                <TruncatedText as="span" className="text-caption text-secondary">
+                  {event.remarks}
                 </TruncatedText>
               </div>
             )}
+          </div>
+        )}
 
-            {/* Remarks (only when present) */}
-            {event.remarks && (
-              <TruncatedText as="div" className="mt-1.5 ml-10 p-2 bg-surface-active rounded-md border border-default">
-                <span className="text-caption font-semibold text-primary">Remarks: </span>
-                <span className="text-caption text-secondary">{event.remarks}</span>
-              </TruncatedText>
-            )}
-          </>
+        {/* Expand indicator */}
+        {hasDetails && !isExpanded && (
+          <div className="flex items-center gap-1 mt-1.5 pl-9">
+            <ChevronRight className="w-3 h-3 text-muted" />
+            <span className="text-caption text-muted">Show details</span>
+          </div>
         )}
       </div>
-    </div>
-  );
-};
-
-// ─── Stage Section ───
-
-/**
- * StageSection — Renders a single stage (Helpdesk/Department/Vendor)
- * with its header and history events underneath.
- */
-const StageSection = ({ stage, histories, defaultOpen = true }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const StageIcon = getStageIcon(stage);
-
-  // Sort histories within stage by changedAt ascending (chronological)
-  const sorted = useMemo(
-    () => [...histories].sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt)),
-    [histories]
-  );
-
-  if (sorted.length === 0) return null;
-
-  return (
-    <div className="mb-4 last:mb-0">
-      {/* Stage Header */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'flex items-center justify-between w-full px-4 py-2.5',
-          'bg-surface-hover rounded-lg border border-default',
-          'transition-colors duration-150',
-          'hover:border-hover cursor-pointer',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          isOpen ? 'rounded-b-none border-b-0' : ''
-        )}
-      >
-        <div className="flex items-center gap-2.5">
-          {isOpen ? (
-            <ChevronDown className="w-4 h-4 text-secondary shrink-0" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-secondary shrink-0" />
-          )}
-          <StageIcon className="w-4 h-4 text-info shrink-0" />
-          <span className="text-body font-semibold text-primary">{stage}</span>
-        </div>
-        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-info text-white text-caption font-medium">
-          {sorted.length}
-        </span>
-      </button>
-
-      {/* Stage Content — Histories */}
-      {isOpen && (
-        <div className="pl-2 pt-2 pb-1 border-l-2 border-default ml-5">
-          {sorted.map((event, index) => (
-            <HistoryEvent
-              key={index}
-              event={event}
-              isLatest={index === sorted.length - 1}
-              defaultExpanded={index === sorted.length - 1}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 };
@@ -378,92 +375,130 @@ const EmptyHistory = () => (
   </div>
 );
 
-// ─── Shared History List (Current Activity + Stage-Based) ───
+// ─── Unified Timeline ───
 
 /**
- * TicketHistoryList — Reusable ticket history timeline renderer.
+ * TicketHistoryList — Unified vertical timeline for ticket history.
  *
- * Layout:
- *   1. Current Activity card (global latest event across all stages)
- *   2. History section with stage-based grouped events
- *
- * Used by both the Drawer and the full-screen page.
+ * Flattens all stages into a single chronological timeline (newest first).
+ * Stage names appear as visual dividers between event groups.
+ * The latest event is highlighted at the top.
+ * A "Pending With" banner shows the current assignee.
  *
  * @param {Object} props
  * @param {Array} props.stages - Array of { stage, histories[] } from ticketHistoryStages
  */
 export const TicketHistoryList = ({ stages = [] }) => {
-  // Filter out stages with no histories
-  const activeStages = useMemo(
-    () => stages.filter(s => s.histories && s.histories.length > 0),
-    [stages]
-  );
-
-  // Find the global latest event across all stages and build stages without it
-  const { latestEvent, latestStageName, stagesWithoutLatest } = useMemo(() => {
-    let latest = null;
-    let latestStageIdx = -1;
-    let latestHistIdx = -1;
-
-    for (let si = 0; si < activeStages.length; si++) {
-      const stage = activeStages[si];
-      for (let hi = 0; hi < stage.histories.length; hi++) {
-        const h = stage.histories[hi];
-        if (!latest || new Date(h.changedAt) > new Date(latest.changedAt)) {
-          latest = h;
-          latestStageIdx = si;
-          latestHistIdx = hi;
-        }
+  // Flatten, sort, and enrich all events
+  const { flattenedEvents, latestEvent, pendingWith, currentPendingEvent } = useMemo(() => {
+    // Flatten all stages into a single array, tagging each event with its stage
+    const allEvents = [];
+    for (const stageData of stages) {
+      if (!stageData.histories || stageData.histories.length === 0) continue;
+      for (const event of stageData.histories) {
+        allEvents.push({
+          ...event,
+          _stage: stageData.stage,
+        });
       }
     }
 
-    const stagesWithoutLatest = activeStages.map((stage, si) => {
-      if (si !== latestStageIdx) return stage;
-      return {
-        ...stage,
-        histories: stage.histories.filter((_, hi) => hi !== latestHistIdx),
-      };
-    }).filter(s => s.histories.length > 0);
+    // Sort by changedAt descending (newest first)
+    allEvents.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+
+    // Find the latest event
+    const latest = allEvents.length > 0 ? allEvents[0] : null;
+
+    // Extract pending-with from the latest event's metadata
+    const pending = latest?.metadata
+      ? { user: latest.metadata.pendingWithUser, role: latest.metadata.pendingWithRole }
+      : null;
+
+    // Find the current pending event (most recent event with pendingWith metadata)
+    const currentPending = findCurrentPendingEvent(allEvents);
 
     return {
+      flattenedEvents: allEvents,
       latestEvent: latest,
-      latestStageName: latestStageIdx >= 0 ? activeStages[latestStageIdx]?.stage : null,
-      stagesWithoutLatest,
+      pendingWith: pending,
+      currentPendingEvent: currentPending,
     };
-  }, [activeStages]);
+  }, [stages]);
 
-  const hasHistory = stagesWithoutLatest.some(s => s.histories.length > 0) || latestEvent;
+  // Group consecutive events by stage for dividers
+  const groupedEvents = useMemo(() => {
+    const groups = [];
+    let currentStage = null;
+    let groupCounter = 0;
 
-  if (!hasHistory) {
+    for (const event of flattenedEvents) {
+      if (groups.length === 0 || event._stage !== currentStage) {
+        currentStage = event._stage;
+        groups.push({ id: `group-${groupCounter++}-${event.changedAt}`, stage: currentStage, events: [] });
+      }
+      groups[groups.length - 1].events.push(event);
+    }
+
+    return groups;
+  }, [flattenedEvents]);
+
+  const totalCount = flattenedEvents.length;
+
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = useCallback((groupId, defaultExpanded) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: prev[groupId] !== undefined ? !prev[groupId] : !defaultExpanded
+    }));
+  }, []);
+
+  if (totalCount === 0) {
     return <EmptyHistory />;
   }
 
   return (
     <div>
-      {/* Current Activity */}
-      {latestEvent && (
-        <CurrentActivityCard event={latestEvent} stage={latestStageName} />
-      )}
-
-      {/* History label */}
-      {stagesWithoutLatest.length > 0 && (
-        <div className="flex items-center gap-2 mb-3">
-          <History className="w-3.5 h-3.5 text-secondary" />
-          <span className="text-section-label text-secondary uppercase tracking-wide">
-            History
-          </span>
-        </div>
-      )}
-
-      {/* Stage-based history */}
-      {stagesWithoutLatest.map((stageData, index) => (
-        <StageSection
-          key={stageData.stage || index}
-          stage={stageData.stage}
-          histories={stageData.histories}
-          defaultOpen={true}
+      {/* Pending With Banner */}
+      {pendingWith && (
+        <PendingWithBanner
+          pendingWithUser={pendingWith.user}
+          pendingWithRole={pendingWith.role}
         />
-      ))}
+      )}
+
+      {/* Unified Timeline */}
+      <div className="relative">
+        {groupedEvents.map((group, groupIndex) => {
+          const defaultExpanded = groupIndex === 0;
+          const isExpanded = expandedGroups[group.id] ?? defaultExpanded;
+          return (
+            <div key={group.id}>
+              {/* Stage Divider */}
+              <StageDivider 
+                stage={group.stage} 
+                eventCount={group.events.length} 
+                isExpanded={isExpanded}
+                onClick={() => toggleGroup(group.id, defaultExpanded)}
+              />
+
+              {/* Events in this stage */}
+              {isExpanded && group.events.map((event, eventIndex) => {
+                const isLatest = event === latestEvent;
+                const isCurrentPending = event === currentPendingEvent;
+                return (
+                  <TimelineEvent
+                    key={`${group.stage}-${eventIndex}`}
+                    event={event}
+                    isLatest={isLatest}
+                    isCurrentPending={isCurrentPending}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

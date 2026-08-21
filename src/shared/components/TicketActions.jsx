@@ -121,12 +121,13 @@ export const TicketActions = ({
   };
 
   const actions = [
-    {
+    // Conditionally include assign action if status is 'Open'
+    ...(currentStatus?.toLowerCase() === 'open' ? [{
       key: 'assign',
       label: 'Assign Ticket',
       icon: UserPlus,
       onClick: () => handleActionSelect('assign'),
-    },
+    }] : []),
     {
       key: 'status',
       label: 'Change Status',

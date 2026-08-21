@@ -113,7 +113,12 @@ export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject, vendor
       <Drawer
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title={`Conversation ${commentCount > 0 ? `(${commentCount})` : ''}`}
+        resizable
+        title={
+          <span className="text-body font-semibold">
+            Conversation {commentCount > 0 ? `(${commentCount})` : ''}
+          </span>
+        }
         icon={<MessageSquare className="w-5 h-5 text-success" />}
         headerActions={(onClose) => (
           <button

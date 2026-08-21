@@ -31,7 +31,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
   const { data: tickets = [], isLoading, isError } = useGetTicketListQuery({
     userCode: profile?.userCode,
     role,
-    statusId: statusFilter !== 'all' ? statusFilter : undefined,
+    statusId: statusFilter || undefined,
     priorityId: priorityFilter !== 'all' ? priorityFilter : undefined,
     categoryId: undefined
   }, {
@@ -169,7 +169,7 @@ export const HelpdeskTicketsTable = ({ searchTerm, statusFilter, priorityFilter 
           >
             👁 View
           </Button>
-          {row.status?.toLowerCase() !== 'resolved' && (
+          {row.status?.toLowerCase() === 'open' && (
             <Button
               variant='black'
               size='sm'

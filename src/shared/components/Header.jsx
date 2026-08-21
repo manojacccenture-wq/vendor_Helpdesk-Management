@@ -17,22 +17,17 @@ export const Header = ({ portalName = "Vendor helpdesk portal" }) => {
 
   const handleLogout = async () => {
     try {
-      const response = await AuthApi.logout();
-
-      // Only proceed with logout if API succeeds
-      if (response?.isSuccessful === false) {
-        showError(response?.message || 'Logout failed. Please try again.');
-        return;
-      }
-
-n      // API succeeded - clear state and redirect
+      // Clear Redux state and localStorage BEFORE redirect
+      // (window.location.href causes immediate navigation,
+      // so code after it never executes)
       dispatch(clearUser());
       TokenService.clearAll();
-      navigate('/DBSTS/Account/Login');
+
+      // Redirect to server-side logout endpoint
+      AuthApi.logout();
     } catch (error) {
-      // API failed - show error, keep user on page
-      const errorMessage = error?.response?.data?.message 
-        || error?.response?.data?.detail 
+      const errorMessage = error?.response?.data?.message
+        || error?.response?.data?.detail
         || error?.response?.data?.title
         || error?.message
         || 'Logout failed. Please try again.';
