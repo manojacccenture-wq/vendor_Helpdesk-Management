@@ -78,14 +78,14 @@ export const departmentConfig = {
         <StatusBadge status={row.status} />
       ),
     },
-    {
-      key: 'pipeline',
-      header: 'Pipeline',
-      width: '120px',
-      render: (row) => (
-        <PipelineStepper status={row.status} />
-      ),
-    },
+    // {
+    //   key: 'pipeline',
+    //   header: 'Pipeline',
+    //   width: '120px',
+    //   render: (row) => (
+    //     <PipelineStepper status={row.status} />
+    //   ),
+    // },
     {
       key: 'createAt',
       header: 'Created',

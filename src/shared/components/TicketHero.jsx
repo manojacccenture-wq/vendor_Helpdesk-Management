@@ -46,7 +46,7 @@ export const TicketHero = ({
         {canUpdateStatus && (
           <TicketActions
             ticketId={ticketId}
-            ticket={ticketDetails}
+            ticket={{ ...ticketDetails, visibleAssignButton }}
             currentStatus={status}
             onActionComplete={() => {}}
           />

@@ -268,7 +268,7 @@ export const DashboardPage = () => {
       )}
 
       {/* Role-specific Row Action Modals */}
-      {config.RowActionModals && config === getDashboardConfig('vendor') && (
+      {config.RowActionModals && config.roleId === 'vendor' && (
         <config.RowActionModals
           isOpen={isFeedbackModalOpen}
           ticketId={selectedFeedbackTicket?.id}
@@ -280,7 +280,7 @@ export const DashboardPage = () => {
         />
       )}
 
-      {config.RowActionModals && config === getDashboardConfig('helpdesk') && (
+      {config.RowActionModals && config.roleId === 'helpdesk' && (
         <config.RowActionModals
           isOpen={isAssignModalOpen}
           ticket={selectedAssignTicket}
