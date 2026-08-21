@@ -218,6 +218,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       sendNotification(NOTIFICATION_TYPES.TICKET_CREATED, {
         ticketNo,
         subject: data.subject,
+        description: data.description,
         status: initialStatus?.text || 'Open',
         priority: mediumPriority?.text || 'Medium',
         vendorEmail: profile?.email,

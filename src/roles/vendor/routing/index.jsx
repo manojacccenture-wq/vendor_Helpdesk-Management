@@ -1,10 +1,5 @@
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { VendorLayout } from '../layout/VendorLayout.jsx';
-import { DashboardPage } from '../../../shared/features/dashboard/DashboardPage.jsx';
-import { CreateVendorTicketPage } from '../features/tickets/pages/CreateVendorTicketPage.jsx';
-import { TicketDetailsPage } from '../features/tickets/pages/TicketDetailsPage.jsx';
-import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
-import { TicketHistoryPage } from '../../../shared/components/TicketHistoryPage.jsx';
 
 export const vendorRoutes = {
   path: 'vendor',
@@ -16,39 +11,58 @@ export const vendorRoutes = {
   children: [
     {
       index: true,
-      element: <DashboardPage />
+      async lazy() {
+        const { DashboardPage } = await import('../../../shared/features/dashboard/DashboardPage.jsx');
+        return { Component: DashboardPage };
+      }
     },
     {
       path: 'create',
-      element: (
-        <div className="py-8">
-          <CreateVendorTicketPage />
-        </div>
-      )
+      async lazy() {
+        const { CreateVendorTicketPage } = await import('../features/tickets/pages/CreateVendorTicketPage.jsx');
+        const Component = () => (
+          <div className="py-8">
+            <CreateVendorTicketPage />
+          </div>
+        );
+        return { Component };
+      }
     },
     {
       path: 'ticket/:id',
-      element: (
-        <div className="py-8">
-          <TicketDetailsPage />
-        </div>
-      )
+      async lazy() {
+        const { TicketDetailsPage } = await import('../features/tickets/pages/TicketDetailsPage.jsx');
+        const Component = () => (
+          <div className="py-8">
+            <TicketDetailsPage />
+          </div>
+        );
+        return { Component };
+      }
     },
     {
       path: 'ticket/:id/comments',
-      element: (
-        <div className="py-8 h-[calc(100vh-64px)]">
-          <TicketCommentsPage />
-        </div>
-      )
+      async lazy() {
+        const { TicketCommentsPage } = await import('../../../shared/components/TicketCommentsPage.jsx');
+        const Component = () => (
+          <div className="py-8 h-[calc(100vh-64px)]">
+            <TicketCommentsPage />
+          </div>
+        );
+        return { Component };
+      }
     },
     {
       path: 'ticket/:id/history',
-      element: (
-        <div className="py-8 h-[calc(100vh-64px)]">
-          <TicketHistoryPage backPath="/vendor" />
-        </div>
-      )
+      async lazy() {
+        const { TicketHistoryPage } = await import('../../../shared/components/TicketHistoryPage.jsx');
+        const Component = () => (
+          <div className="py-8 h-[calc(100vh-64px)]">
+            <TicketHistoryPage backPath="/vendor" />
+          </div>
+        );
+        return { Component };
+      }
     }
   ]
 };

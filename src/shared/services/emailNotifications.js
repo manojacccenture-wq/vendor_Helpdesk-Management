@@ -238,7 +238,9 @@ function buildBody(type, context) {
 
   const templates = {
     [NOTIFICATION_TYPES.TICKET_CREATED]: [
-      `<p>A Ticket (${safeTicketNo}) has been raised/assigned and requires your action.</p>`,
+`<p>A Ticket (${safeTicketNo}) has been raised/assigned and requires your action.</p>`,
+      `<p><strong>Subject:</strong> ${escapeHtml(context.subject || '')}</p>`,
+      `<p><strong>Description:</strong> ${escapeHtml(context.description || '').replace(/\n/g, '<br/>')}</p>`,
       `<p>Please click the link below to view the query details and take the necessary action:</p>`,
       `<p>${appLink}</p>`,
     ].join(''),
