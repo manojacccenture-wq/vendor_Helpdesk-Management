@@ -21,8 +21,9 @@ import { cn } from '../utils/cn.js';
  * @param {number|string} ticketId - The ID of the current ticket
  * @param {string} [ticketNo] - Formatted ticket number for email notifications
  * @param {string} [ticketSubject] - Ticket subject for email notifications
+ * @param {string} [vendorEmail] - Vendor's email address for notification recipients
  */
-export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject }) => {
+export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject, vendorEmail }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const profile = useSelector(selectUserProfile);
@@ -140,6 +141,7 @@ export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject }) => {
             canToggleInternal={canToggleInternal}
             userCode={profile?.userCode}
             role={role}
+            vendorEmail={vendorEmail}
             size="sm"
           />
         }

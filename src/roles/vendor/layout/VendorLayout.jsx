@@ -10,7 +10,9 @@ export const VendorLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-x-hidden overflow-y-auto pb-12">
-        <Outlet />
+        <div className="max-w-[1200px] mx-auto px-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

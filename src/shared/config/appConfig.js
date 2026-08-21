@@ -6,5 +6,18 @@
  * in individual components or services.
  */
 
-/** VHD (Vendor Helpdesk) support email — used in all email notification TO/CC addresses. */
-export const VHD_EMAIL = 'support@lhsindia.com';
+/**
+ * VHD (Vendor Helpdesk) support email addresses.
+ * Both addresses represent the centralized VHD recipient.
+ * Wherever the email matrix says "VHD", both addresses are used.
+ */
+export const VHD_EMAILS = [
+  'support@lhsindia.com',
+  'vendorhelpdesktsuisl@tatasteel.com',
+];
+
+/**
+ * Application URL used in email body links.
+ * Shared across all email notification templates.
+ */
+export const APP_URL = 'https://services.tsuisl.co.in/DBSTS';

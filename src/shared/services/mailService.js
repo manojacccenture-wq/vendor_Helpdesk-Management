@@ -12,10 +12,11 @@ import { sanitizeHtml } from '../utils/sanitize.js';
  * Usage:
  *   import { mailService } from '@/shared/services';
  *   await mailService.sendMail({
- *     emailId: 'user@example.com',
+ *     emailId: 'user@example.com',        // single recipient
+ *     emailId: ['a@x.com', 'b@x.com'],   // multiple recipients (joined with comma)
  *     subject: 'Ticket Created',
  *     body: '<p>Your ticket has been created.</p>',
- *     cc: 'manager@example.com'  // optional
+ *     cc: 'manager@example.com'            // optional, string or array
  *   });
  */
 
@@ -54,6 +55,37 @@ function isValidSubject(subject) {
   return true;
 }
 
+/**
+ * Validate and deduplicate an email list (string or array).
+ * Returns a comma-separated string of valid, trimmed, unique emails.
+ * @param {string|string[]|undefined|null} emails
+ * @returns {string} Comma-separated valid emails, or empty string
+ */
+function resolveEmailList(emails) {
+  if (!emails) return '';
+
+  const list = Array.isArray(emails) ? emails : [emails];
+  const valid = [];
+  const seen = new Set();
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed.length === 0) continue;
+
+    // Handle comma-separated strings within array entries
+    const parts = trimmed.split(',').map(p => p.trim()).filter(Boolean);
+    for (const part of parts) {
+      if (isValidEmail(part) && !seen.has(part.toLowerCase())) {
+        seen.add(part.toLowerCase());
+        valid.push(part);
+      }
+    }
+  }
+
+  return valid.join(',');
+}
+
 // --- Main Service ---
 
 export const mailService = {
@@ -64,17 +96,22 @@ export const mailService = {
    * The service does not know which business event triggered the email.
    *
    * @param {Object} params
-   * @param {string} params.emailId - Recipient email address (validated)
+   * @param {string|string[]} params.emailId - Recipient email address(es) for TO.
+   *   String for single recipient, array for multiple recipients (joined with comma).
    * @param {string} params.subject - Email subject line (validated, no newlines)
-   * @param {string} params.body    - HTML email body (sanitized via DOMPurify) * @param {string|string[]} [params.cc] - Optional CC email address(es). String for single, array for multiple.
- * @returns {Promise<any>} API response data
- * @throws {Error} If required parameters fail validation
- */
+   * @param {string} params.body    - HTML email body (sanitized via DOMPurify)
+   * @param {string|string[]} [params.cc] - Optional CC email address(es). String for single, array for multiple.
+   * @returns {Promise<any>} API response data
+   * @throws {Error} If required parameters fail validation or no valid recipients
+   */
   sendMail: async ({ emailId, subject, body, cc }) => {
-    // --- Validate required fields ---
-    if (!isValidEmail(emailId)) {
-      throw new Error('Invalid recipient email address');
+    // --- Validate and resolve TO recipients ---
+    const toValue = resolveEmailList(emailId);
+    if (!toValue) {
+      throw new Error('No valid recipient email address provided');
     }
+
+    // --- Validate required fields ---
     if (!isValidSubject(subject)) {
       throw new Error('Invalid email subject');
     }
@@ -82,28 +119,15 @@ export const mailService = {
       throw new Error('Email body is required');
     }
 
-    // --- Validate optional CC (single string or array of strings) ---
-    let ccValue = '';
-    if (cc !== undefined && cc !== null && cc !== '') {
-      if (Array.isArray(cc)) {
-        const validEmails = cc.filter(e => isValidEmail(e));
-        if (validEmails.length > 0) {
-          ccValue = validEmails.join(',');
-        }
-      } else {
-        if (!isValidEmail(cc)) {
-          throw new Error('Invalid CC email address');
-        }
-        ccValue = cc.trim();
-      }
-    }
+    // --- Validate and resolve CC recipients ---
+    const ccValue = resolveEmailList(cc);
 
     // --- Sanitize HTML body ---
     const cleanBody = sanitizeHtml(body);
 
     // --- Build query parameters ---
     const params = new URLSearchParams();
-    params.append('emailId', emailId.trim());
+    params.append('emailId', toValue);
     params.append('subject', subject.trim());
     params.append('body', cleanBody);
     if (ccValue) {

@@ -10,6 +10,7 @@ import { CommentList } from './CommentList.jsx';
 import { useGetTicketCommentsQuery, useGetTicketDetailsQuery } from '../api/apiSlice.js';
 import { selectUserProfile, selectUserRole } from '../../features/user/store/selectors.js';
 import { formatTicketNo } from '../utils/ticket.js';
+import { getSectionField } from '../services/emailNotifications.js';
 
 /**
  * TicketCommentsPage — Full-page comments view for a ticket.
@@ -75,6 +76,8 @@ export const TicketCommentsPage = ({ backPath }) => {
   const ticketNo = formatTicketNo(ticketDetails?.ticketNo || ticketDetails?.ticketNumber || `#${id}`);
   const subject = ticketDetails?.subject || ticketDetails?.ticketSubject || '';
   const ticketHistoryStages = ticketDetails?.ticketHistoryStages || [];
+  const sections = ticketDetails?.sections || [];
+  const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
 
   // Auto-scroll to bottom when new comments are added
   useEffect(() => {
@@ -159,6 +162,7 @@ export const TicketCommentsPage = ({ backPath }) => {
             canToggleInternal={canToggleInternal}
             userCode={profile?.userCode}
             role={role}
+            vendorEmail={vendorEmail}
             size="md"
           />
         </div>

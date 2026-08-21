@@ -70,7 +70,7 @@ export const TicketDetailsView = ({
   // ─── Loading State ───
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 w-full max-w-[1000px] mx-auto px-4 sm:px-6">
+      <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <BackButton to={backPath} />
           <div className="flex flex-col gap-1">
@@ -93,7 +93,7 @@ export const TicketDetailsView = ({
   // ─── Error State ───
   if (isError) {
     return (
-      <div className="flex flex-col gap-4 w-full max-w-[1000px] mx-auto px-4 sm:px-6">
+      <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <BackButton to={backPath} />
           <h1 className="text-primary">Ticket Details</h1>
@@ -119,7 +119,7 @@ export const TicketDetailsView = ({
   // ─── Ticket Not Found ───
   if (!ticketDetails) {
     return (
-      <div className="flex flex-col gap-4 w-full max-w-[1000px] mx-auto px-4 sm:px-6">
+      <div className="flex flex-col gap-4 w-full max-w-[1200px] mx-auto px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <BackButton to={backPath} />
           <h1 className="text-primary">Ticket Details</h1>
@@ -160,7 +160,7 @@ export const TicketDetailsView = ({
     : sections;
 
   return (
-    <div className="flex flex-col w-full max-w-[1000px] mx-auto px-4 sm:px-6">
+    <div className="flex flex-col w-full max-w-[1200px] mx-auto px-4 sm:px-6">
 
       {/* Page Header */}
       <div className="flex items-center gap-4 mb-4">

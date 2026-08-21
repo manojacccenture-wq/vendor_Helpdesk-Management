@@ -25,6 +25,7 @@ import { selectUserProfile } from '../../features/user/store/selectors.js';
  * @param {boolean} props.canToggleInternal - Whether to show the internal toggle (Helpdesk/Internal users)
  * @param {number|string} props.userCode - Current user's code
  * @param {string} props.role - Current user's role
+ * @param {string} [props.vendorEmail] - Vendor's email address (for notification recipients)
  * @param {string} props.className - Additional class for the form container
  * @param {string} props.textareaClassName - Additional class for the textarea
  * @param {string} props.size - 'sm' for compact (drawer) or 'md' for full (page)
@@ -37,6 +38,7 @@ export const CommentForm = ({
   canToggleInternal = false,
   userCode,
   role,
+  vendorEmail,
   className,
   textareaClassName,
   size = 'sm',
@@ -77,7 +79,7 @@ export const CommentForm = ({
 
       // Email notification for non-internal comments
       // Matrix:
-      //   Dept Response (role != L1, non-internal) → TO=VHD, CC=Dept User, Vendor=NO
+      //   Dept Response (role != L1, non-internal) → TO=Vendor+VHD, CC=Dept User, Vendor=NO
       //   Vendor Clarification Received (role=L1, non-internal) → TO=VHD, CC=Vendor, Vendor=YES
       if (!isInternal) {
         const notificationType = role === 'L1'
@@ -89,7 +91,7 @@ export const CommentForm = ({
           ticketNo,
           subject: ticketSubject,
           deptUserEmail: profile?.email,
-          vendorEmail: profile?.email,
+          vendorEmail,
         });
       }
 

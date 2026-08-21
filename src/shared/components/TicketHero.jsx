@@ -4,6 +4,7 @@ import { InfoChip } from './TicketDetailHelpers.jsx';
 import { TicketActions } from './TicketActions.jsx';
 import { TicketCommentsDrawer } from './TicketCommentsDrawer.jsx';
 import { TicketHistoryDrawer } from './TicketHistoryDrawer.jsx';
+import { getSectionField } from '../services/emailNotifications.js';
 
 /**
  * TicketHero — Displays ticket identity (number, status, priority) and action buttons.
@@ -18,7 +19,11 @@ export const TicketHero = ({
   ticketDetails,
   subject,
   ticketHistoryStages,
-}) => (
+}) => {
+  const sections = ticketDetails?.sections || [];
+  const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
+
+  return (
   <div className="px-5 pt-4 pb-3 border-b border-default">
     <div className="flex items-center justify-between gap-3 mb-2">
       <div className="flex items-center gap-3">
@@ -43,11 +48,12 @@ export const TicketHero = ({
             onActionComplete={() => {}}
           />
         )}
-        <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} />
+        <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} vendorEmail={vendorEmail} />
         <TicketHistoryDrawer ticketId={ticketId} stages={ticketHistoryStages} />
       </div>
     </div>
 
     <h2 className="page-heading text-primary">{subject}</h2>
   </div>
-);
+  );
+};

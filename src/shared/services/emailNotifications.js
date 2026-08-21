@@ -2,20 +2,18 @@
  * Email Notification Orchestration
  *
  * Centralized module that handles all ticket-related email notifications.
- * Follows the Email Notification Matrix:
+ * Follows the Email Notification Matrix exactly:
  *
  *   Trigger                         | TO              | CC                        | Vendor Mail
  *   ────────────────────────────────┼─────────────────┼───────────────────────────┼────────────
  *   Ticket Created                  | VHD             | Vendor                    | YES
  *   Ticket Assigned/Reassigned      | Assigned Person | VHD                       | NO
  *   VHD → Dept User L1              | Assigned Person | VHD                       | NO
- *   Dept User L1 → Dept User L2     | Dept User L2    | VHD + Dept User L1        | NO
- *   Dept User L2 → Dept User L3     | Dept User L3    | VHD + Dept User L2        | NO
- *   Dept User L3 → Dept User L4     | Dept User L4    | VHD + Dept User L3        | NO
- *   Department Response             | VHD             | Dept User                 | NO
- *   Vendor Clarification Required   | Vendor          | VHD                       | YES
+ *   Dept User L1 → L2/L2→L3/L3→L4  | Next Level User | VHD + Previous Level User | NO
+ *   Department Response             | Vendor + VHD    | Dept User                 | NO
+ *   VHD Clarification Required      | Vendor          | VHD                       | YES
  *   Vendor Clarification Received   | VHD             | Vendor                    | YES
- *   Resolved                        | Dept User       | VHD                       | NO
+ *   Resolved                        | VHD             | Dept User L1/BL1          | NO
  *   Closed                          | Vendor          | VHD                       | YES
  *   Reopened                        | VHD             | Vendor                    | YES
  *
@@ -26,13 +24,14 @@
  *   4. sendNotification() orchestrator (fire-and-forget)
  *
  * Reuses:
- *   - mailService for sending
+ *   - mailService for sending (supports array emailId and cc)
  *   - sanitizeHtml (via mailService) for body sanitization
  *   - formatTicketNo for VHD ticket number formatting
- *   - VHD_EMAIL from appConfig for the centralized VHD email
+ *   - VHD_EMAILS from appConfig for the centralized VHD email list
+ *   - APP_URL from appConfig for the centralized application URL
  */
 
-import { VHD_EMAIL } from '../config/appConfig.js';
+import { VHD_EMAILS, APP_URL } from '../config/appConfig.js';
 import { mailService } from './mailService.js';
 import { formatTicketNo } from '../utils/ticket.js';
 
@@ -94,51 +93,101 @@ export function detectStatusChangeType(targetStatusText, currentStatus) {
 /**
  * Resolve TO and CC recipients for a given notification type.
  *
+ * Returns arrays for both to and cc. The orchestrator will deduplicate
+ * and flatten before passing to mailService.
+ *
+ * VHD_EMAILS is always used as the centralized VHD recipient list.
+ * "VHD" in the matrix means BOTH support@lhsindia.com AND vendorhelpdesktsuisl@tatasteel.com.
+ *
  * @param {string} type - Notification type from NOTIFICATION_TYPES
  * @param {Object} context - Notification context data
  * @param {string} context.vendorEmail - Vendor's email address
  * @param {string} context.assignedEmail - Assigned person's email
  * @param {string} context.deptUserEmail - Department user's email (current user)
  * @param {string} context.prevLevelEmail - Previous escalation level user's email
- * @returns {{ to: string|null, cc: string|string[]|null }} Resolved recipients (cc may be array for multi-CC)
+ * @returns {{ to: string[], cc: string[] }} Resolved recipients as arrays
  */
 function resolveRecipients(type, context) {
   const { vendorEmail, assignedEmail, deptUserEmail, prevLevelEmail } = context;
 
   switch (type) {
     case NOTIFICATION_TYPES.TICKET_CREATED:
-      return { to: VHD_EMAIL, cc: vendorEmail || null };
+      // TO: VHD | CC: Vendor
+      return { to: [...VHD_EMAILS], cc: [vendorEmail].filter(Boolean) };
 
     case NOTIFICATION_TYPES.ASSIGNED:
+      // TO: Assigned Person | CC: VHD
+      return { to: [assignedEmail].filter(Boolean), cc: [...VHD_EMAILS] };
+
     case NOTIFICATION_TYPES.VHD_TO_DEPT_L1:
-      return { to: assignedEmail || null, cc: VHD_EMAIL };
+      // TO: Assigned Person (Dept User L1) | CC: VHD
+      return { to: [assignedEmail].filter(Boolean), cc: [...VHD_EMAILS] };
 
     case NOTIFICATION_TYPES.DEPT_L1_TO_L2:
+      // TO: Dept User L2 | CC: VHD + Dept User L1
+      return {
+        to: [assignedEmail].filter(Boolean),
+        cc: [...VHD_EMAILS, prevLevelEmail].filter(Boolean),
+      };
+
     case NOTIFICATION_TYPES.DEPT_L2_TO_L3:
+      // TO: Dept User L3 | CC: VHD + Dept User L2
+      return {
+        to: [assignedEmail].filter(Boolean),
+        cc: [...VHD_EMAILS, prevLevelEmail].filter(Boolean),
+      };
+
     case NOTIFICATION_TYPES.DEPT_L3_TO_L4:
-      // Multi-CC: VHD + previous level user
-      return { to: assignedEmail || null, cc: [VHD_EMAIL, prevLevelEmail].filter(Boolean) };
+      // TO: Dept User L4 | CC: VHD + Dept User L3
+      return {
+        to: [assignedEmail].filter(Boolean),
+        cc: [...VHD_EMAILS, prevLevelEmail].filter(Boolean),
+      };
 
     case NOTIFICATION_TYPES.DEPT_RESPONSE:
-      return { to: VHD_EMAIL, cc: deptUserEmail || null };
+      // TO: Vendor + VHD | CC: Dept User
+      return {
+        to: [vendorEmail, ...VHD_EMAILS].filter(Boolean),
+        cc: [deptUserEmail].filter(Boolean),
+      };
 
     case NOTIFICATION_TYPES.CLARIFICATION_REQUIRED:
-      return { to: vendorEmail || null, cc: VHD_EMAIL };
+      // VHD Clarification Required: TO: Vendor | CC: VHD
+      return {
+        to: [vendorEmail].filter(Boolean),
+        cc: [...VHD_EMAILS],
+      };
 
     case NOTIFICATION_TYPES.CLARIFICATION_RECEIVED:
-      return { to: VHD_EMAIL, cc: vendorEmail || null };
+      // Vendor Clarification Received: TO: VHD | CC: Vendor
+      return {
+        to: [...VHD_EMAILS],
+        cc: [vendorEmail].filter(Boolean),
+      };
 
     case NOTIFICATION_TYPES.RESOLVED:
-      return { to: deptUserEmail || null, cc: VHD_EMAIL };
+      // TO: VHD | CC: Dept User Level 1 / BL1
+      return {
+        to: [...VHD_EMAILS],
+        cc: [deptUserEmail].filter(Boolean),
+      };
 
     case NOTIFICATION_TYPES.CLOSED:
-      return { to: vendorEmail || null, cc: VHD_EMAIL };
+      // TO: Vendor | CC: VHD
+      return {
+        to: [vendorEmail].filter(Boolean),
+        cc: [...VHD_EMAILS],
+      };
 
     case NOTIFICATION_TYPES.REOPENED:
-      return { to: VHD_EMAIL, cc: vendorEmail || null };
+      // TO: VHD | CC: Vendor
+      return {
+        to: [...VHD_EMAILS],
+        cc: [vendorEmail].filter(Boolean),
+      };
 
     default:
-      return { to: null, cc: null };
+      return { to: [], cc: [] };
   }
 }
 
@@ -146,115 +195,122 @@ function resolveRecipients(type, context) {
 
 /**
  * Build the email subject line for a notification.
+ * Uses the exact subject wording from the Email Notification Matrix.
  * @param {string} type - Notification type
- * @param {Object} context - { ticketNo, subject }
+ * @param {Object} context - { ticketNo, ticketId }
  * @returns {string} Subject line
  */
 function buildSubject(type, context) {
   const ticketNo = formatTicketNo(context.ticketNo) || `#${context.ticketId}`;
 
   const subjects = {
-    [NOTIFICATION_TYPES.TICKET_CREATED]: `Ticket Created - ${ticketNo}`,
-    [NOTIFICATION_TYPES.ASSIGNED]: `Ticket Assigned - ${ticketNo}`,
-    [NOTIFICATION_TYPES.VHD_TO_DEPT_L1]: `Ticket Assigned to You - ${ticketNo}`,
-    [NOTIFICATION_TYPES.DEPT_L1_TO_L2]: `Ticket Escalated to You - ${ticketNo}`,
-    [NOTIFICATION_TYPES.DEPT_L2_TO_L3]: `Ticket Escalated to You - ${ticketNo}`,
-    [NOTIFICATION_TYPES.DEPT_L3_TO_L4]: `Ticket Escalated to You - ${ticketNo}`,
-    [NOTIFICATION_TYPES.DEPT_RESPONSE]: `New Response on Ticket - ${ticketNo}`,
-    [NOTIFICATION_TYPES.CLARIFICATION_REQUIRED]: `Clarification Required - ${ticketNo}`,
-    [NOTIFICATION_TYPES.CLARIFICATION_RECEIVED]: `Vendor Response Received - ${ticketNo}`,
-    [NOTIFICATION_TYPES.RESOLVED]: `Ticket Resolved - ${ticketNo}`,
-    [NOTIFICATION_TYPES.CLOSED]: `Ticket Closed - ${ticketNo}`,
-    [NOTIFICATION_TYPES.REOPENED]: `Ticket Reopened - ${ticketNo}`,
+    [NOTIFICATION_TYPES.TICKET_CREATED]: `Ticket No ${ticketNo} – Action Required`,
+    [NOTIFICATION_TYPES.ASSIGNED]: `Ticket No ${ticketNo} – Assigned for Action`,
+    [NOTIFICATION_TYPES.VHD_TO_DEPT_L1]: `Ticket No ${ticketNo} – Action Required`,
+    [NOTIFICATION_TYPES.DEPT_L1_TO_L2]: `Ticket No ${ticketNo} – Action Required`,
+    [NOTIFICATION_TYPES.DEPT_L2_TO_L3]: `Ticket No ${ticketNo} – Action Required`,
+    [NOTIFICATION_TYPES.DEPT_L3_TO_L4]: `Ticket No ${ticketNo} – Action Required`,
+    [NOTIFICATION_TYPES.DEPT_RESPONSE]: `Ticket No ${ticketNo} – Response/Update Available`,
+    [NOTIFICATION_TYPES.CLARIFICATION_REQUIRED]: `Ticket No ${ticketNo} – Clarification Required`,
+    [NOTIFICATION_TYPES.CLARIFICATION_RECEIVED]: `Ticket No ${ticketNo} – Clarification Received`,
+    [NOTIFICATION_TYPES.RESOLVED]: `Ticket No ${ticketNo} – Resolved`,
+    [NOTIFICATION_TYPES.CLOSED]: `Ticket No ${ticketNo} – Closed`,
+    [NOTIFICATION_TYPES.REOPENED]: `Ticket No ${ticketNo} – Reopened – Action Required`,
   };
 
-  return subjects[type] || `Ticket Notification - ${ticketNo}`;
+  return subjects[type] || `Ticket No ${ticketNo} – Notification`;
 }
 
 /**
  * Build the HTML email body for a notification.
+ * Uses the exact body text from the Email Notification Matrix.
  * @param {string} type - Notification type
- * @param {Object} context - { ticketNo, subject, status, priority, remarks }
+ * @param {Object} context - { ticketNo, ticketId }
  * @returns {string} HTML body
  */
 function buildBody(type, context) {
   const ticketNo = formatTicketNo(context.ticketNo) || `#${context.ticketId}`;
-  const subject = context.subject || '';
-  const status = context.status || '';
-  const priority = context.priority || '';
-  const remarks = context.remarks || '';
 
-  const ticketInfo = [
-    subject && `<p><strong>Subject:</strong> ${escapeHtml(subject)}</p>`,
-    status && `<p><strong>Status:</strong> ${escapeHtml(status)}</p>`,
-    priority && `<p><strong>Priority:</strong> ${escapeHtml(priority)}</p>`,
-    remarks && `<p><strong>Remarks:</strong> ${escapeHtml(remarks)}</p>`,
-  ].filter(Boolean).join('');
+  // Escape ticket number for safe HTML insertion
+  const safeTicketNo = escapeHtml(ticketNo);
+  // Application URL link
+  const appLink = `<a href="${APP_URL}">${APP_URL}</a>`;
 
   const templates = {
     [NOTIFICATION_TYPES.TICKET_CREATED]: [
-      `<p>Your ticket <strong>${ticketNo}</strong> has been created successfully.</p>`,
-      ticketInfo,
+      `<p>A Ticket (${safeTicketNo}) has been raised/assigned and requires your action.</p>`,
+      `<p>Please click the link below to view the query details and take the necessary action:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.ASSIGNED]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been assigned to you.</p>`,
-      ticketInfo,
+      `<p>Ticket <strong>${safeTicketNo}</strong> has been assigned to you.</p>`,
+      `<p>Please click the link below to view the details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.VHD_TO_DEPT_L1]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been assigned to you.</p>`,
-      ticketInfo,
+      `<p>A Ticket (${safeTicketNo}) has been escalated to your level due to non-resolution within the defined SLA.</p>`,
+      `<p>Please click the link below to review the query and take the necessary action:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.DEPT_L1_TO_L2]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been escalated to you.</p>`,
-      ticketInfo,
+      `<p>Ticket <strong>${safeTicketNo}</strong> has been escalated to you.</p>`,
+      `<p>Please click the link below to view the details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.DEPT_L2_TO_L3]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been escalated to you.</p>`,
-      ticketInfo,
+      `<p>Ticket <strong>${safeTicketNo}</strong> has been escalated to you.</p>`,
+      `<p>Please click the link below to view the details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.DEPT_L3_TO_L4]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been escalated to you.</p>`,
-      ticketInfo,
+      `<p>Ticket <strong>${safeTicketNo}</strong> has been escalated to you.</p>`,
+      `<p>Please click the link below to view the details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.DEPT_RESPONSE]: [
-      `<p>A new response has been posted on ticket <strong>${ticketNo}</strong>.</p>`,
-      ticketInfo,
+      `<p>An update/response has been provided against a Ticket (${safeTicketNo}).</p>`,
+      `<p>Please click the link below to view the details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.CLARIFICATION_REQUIRED]: [
-      `<p>Clarification is required for ticket <strong>${ticketNo}</strong>.</p>`,
-      `<p>Please review and respond to this ticket.</p>`,
-      ticketInfo,
+      `<p>Additional clarification/information is required for a Ticket (${safeTicketNo}).</p>`,
+      `<p>Please click the link below to view the query and provide the required information:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.CLARIFICATION_RECEIVED]: [
-      `<p>A vendor response has been received for ticket <strong>${ticketNo}</strong>.</p>`,
-      ticketInfo,
+      `<p>The requested clarification/information has been received for a Ticket (${safeTicketNo}).</p>`,
+      `<p>Please click the link below to view the details and proceed with the necessary action:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.RESOLVED]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been resolved.</p>`,
-      ticketInfo,
+      `<p>A Ticket (${safeTicketNo}) has been marked as resolved.</p>`,
+      `<p>Please click the link below to view the resolution details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.CLOSED]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been closed.</p>`,
-      ticketInfo,
+      `<p>A Ticket (${safeTicketNo}) has been closed.</p>`,
+      `<p>Please click the link below to view the query details:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.REOPENED]: [
-      `<p>Ticket <strong>${ticketNo}</strong> has been reopened.</p>`,
-      ticketInfo,
+      `<p>A Ticket (${safeTicketNo}) has been reopened and requires your attention.</p>`,
+      `<p>Please click the link below to review the query and take the necessary action:</p>`,
+      `<p>${appLink}</p>`,
     ].join(''),
   };
 
-  return templates[type] || `<p>Ticket <strong>${ticketNo}</strong> has been updated.</p>`;
+  return templates[type] || `<p>Ticket <strong>${safeTicketNo}</strong> has been updated.</p>`;
 }
 
 /**
@@ -271,6 +327,40 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ─── Deduplication ───
+
+/**
+ * Deduplicate email addresses across TO and CC.
+ * If an email appears in both TO and CC, it is kept only in TO.
+ * Empty/null/undefined entries are removed.
+ * @param {string[]} to
+ * @param {string[]} cc
+ * @returns {{ to: string[], cc: string[] }}
+ */
+function deduplicateRecipients(to, cc) {
+  const seen = new Set();
+  const cleanTo = [];
+
+  for (const email of to) {
+    if (!email || typeof email !== 'string') continue;
+    const trimmed = email.trim().toLowerCase();
+    if (trimmed.length === 0 || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    cleanTo.push(email.trim());
+  }
+
+  const cleanCc = [];
+  for (const email of cc) {
+    if (!email || typeof email !== 'string') continue;
+    const trimmed = email.trim().toLowerCase();
+    if (trimmed.length === 0 || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    cleanCc.push(email.trim());
+  }
+
+  return { to: cleanTo, cc: cleanCc };
+}
+
 // ─── Main Send Function ───
 
 /**
@@ -283,10 +373,10 @@ function escapeHtml(str) {
  * @param {Object} context - Notification context
  * @param {string} [context.ticketNo] - Ticket number (raw, before formatting)
  * @param {number|string} [context.ticketId] - Ticket ID (fallback for subject)
- * @param {string} [context.subject] - Ticket subject
- * @param {string} [context.status] - Current/target status text
- * @param {string} [context.priority] - Ticket priority
- * @param {string} [context.remarks] - Status change remarks
+ * @param {string} [context.subject] - Ticket subject (unused in matrix subjects, kept for compatibility)
+ * @param {string} [context.status] - Current/target status text (unused in matrix bodies, kept for compatibility)
+ * @param {string} [context.priority] - Ticket priority (unused in matrix bodies, kept for compatibility)
+ * @param {string} [context.remarks] - Status change remarks (unused in matrix bodies, kept for compatibility)
  * @param {string} [context.vendorEmail] - Vendor's email address
  * @param {string} [context.assignedEmail] - Assigned person's email
  * @param {string} [context.deptUserEmail] - Department user's email (current user)
@@ -297,8 +387,11 @@ export async function sendNotification(type, context = {}) {
   try {
     const { to, cc } = resolveRecipients(type, context);
 
-    // Skip if no valid recipient
-    if (!to) {
+    // Deduplicate across TO and CC
+    const { to: cleanTo, cc: cleanCc } = deduplicateRecipients(to, cc);
+
+    // Skip if no valid TO recipient
+    if (cleanTo.length === 0) {
       console.warn(`[EmailNotification] Skipping ${type}: no recipient email available`);
       return;
     }
@@ -306,12 +399,14 @@ export async function sendNotification(type, context = {}) {
     const subject = buildSubject(type, context);
     const body = buildBody(type, context);
 
-    // cc can be string, array, or null — mailService handles all cases
-    const ccParam = Array.isArray(cc)
-      ? (cc.length > 0 ? cc : undefined)
-      : (cc || undefined);
+    // mailService now supports array emailId — pass arrays directly
+    // If only one TO, pass as string for backward compatibility
+    const toParam = cleanTo.length === 1 ? cleanTo[0] : cleanTo;
 
-    await mailService.sendMail({ emailId: to, subject, body, cc: ccParam });
+    // cc can be empty array — pass undefined if empty
+    const ccParam = cleanCc.length > 0 ? cleanCc : undefined;
+
+    await mailService.sendMail({ emailId: toParam, subject, body, cc: ccParam });
   } catch (err) {
     // Email failure must never break the ticket workflow
     console.warn(`[EmailNotification] Failed to send ${type}:`, err);

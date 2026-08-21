@@ -18,7 +18,7 @@ export const CreateVendorTicketPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-[1200px] mx-auto">
+    <div className="flex flex-col gap-6 w-full">
       
       {/* Page Header */}
       <div className="flex items-center gap-4">

@@ -21,7 +21,7 @@ export const vendorRoutes = {
     {
       path: 'create',
       element: (
-        <div className="px-6 py-8">
+        <div className="py-8">
           <CreateVendorTicketPage />
         </div>
       )
@@ -29,7 +29,7 @@ export const vendorRoutes = {
     {
       path: 'ticket/:id',
       element: (
-        <div className="px-6 py-8">
+        <div className="py-8">
           <TicketDetailsPage />
         </div>
       )
@@ -37,7 +37,7 @@ export const vendorRoutes = {
     {
       path: 'ticket/:id/comments',
       element: (
-        <div className="px-6 py-8 h-[calc(100vh-64px)]">
+        <div className="py-8 h-[calc(100vh-64px)]">
           <TicketCommentsPage />
         </div>
       )
@@ -45,7 +45,7 @@ export const vendorRoutes = {
     {
       path: 'ticket/:id/history',
       element: (
-        <div className="px-6 py-8 h-[calc(100vh-64px)]">
+        <div className="py-8 h-[calc(100vh-64px)]">
           <TicketHistoryPage backPath="/vendor" />
         </div>
       )

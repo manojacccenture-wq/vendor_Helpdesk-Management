@@ -23,7 +23,7 @@ export const VendorDashboard = () => {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-8">
+    <div className="py-8">
 
       {/* 3 Metric Cards */}
       <DashboardMetrics statusId={statusId} onStatusChange={setStatusId} />
