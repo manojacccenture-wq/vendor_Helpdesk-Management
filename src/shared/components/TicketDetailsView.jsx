@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FileText, AlertCircle, Star } from 'lucide-react';
 import { SectionHeading, SectionDivider } from './CollapsibleSection.jsx';
@@ -34,6 +34,7 @@ export const TicketDetailsView = ({
   showUpdatedBy = false,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const profile = useSelector(selectUserProfile);
   const role = useSelector(selectUserRole);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -66,6 +67,9 @@ export const TicketDetailsView = ({
   };
 
   const canUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
+
+  // Visibility flags passed from ticket list via route state
+  const visibilityFlags = location.state || {};
 
   // ─── Loading State ───
   if (isLoading) {
@@ -183,6 +187,9 @@ export const TicketDetailsView = ({
             ticketDetails={ticketDetails}
             subject={subject}
             ticketHistoryStages={ticketHistoryStages}
+            visibleCommentButton={visibilityFlags.visibleCommentButton}
+            visibleAssignButton={visibilityFlags.visibleAssignButton}
+            visibleFeedbackButton={visibilityFlags.visibleFeedbackButton}
           />
 
           {/* Description */}

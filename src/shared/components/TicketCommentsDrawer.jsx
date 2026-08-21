@@ -37,8 +37,8 @@ export const TicketCommentsDrawer = ({ ticketId, ticketNo, ticketSubject, vendor
       ? `/department/ticket/${ticketId}/comments`
       : `/helpdesk/ticket/${ticketId}/comments`;
 
-  // Determine if user can see the internal comment checkbox (Helpdesk/Internal users only)
-  const canToggleInternal = role === 'L2' || role === 'HelpdeskExecutive';
+  // Determine if user can see the internal comment checkbox (enabled for everyone, disabled for Vendor inside CommentForm)
+  const canToggleInternal = true;
 
   // Fetch comments — only when drawer is opened (lazy loading)
   const {

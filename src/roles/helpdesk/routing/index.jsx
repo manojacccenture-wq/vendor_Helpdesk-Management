@@ -1,6 +1,6 @@
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { HelpdeskLayout } from '../layout/HelpdeskLayout.jsx';
-import { HelpdeskDashboard } from '../features/dashboard/pages/HelpdeskDashboard.jsx';
+import { DashboardPage } from '../../../shared/features/dashboard/DashboardPage.jsx';
 import { HelpdeskTicketView } from '../features/tickets/pages/HelpdeskTicketView.jsx';
 import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
 import { TicketHistoryPage } from '../../../shared/components/TicketHistoryPage.jsx';
@@ -15,7 +15,7 @@ export const helpdeskRoutes = {
   children: [
     {
       index: true,
-      element: <HelpdeskDashboard />
+      element: <DashboardPage />
     },
     {
       path: 'ticket/:id',

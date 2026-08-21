@@ -1,7 +1,7 @@
 import React from 'react';
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { DepartmentLayout } from '../layout/DepartmentLayout.jsx';
-import { DepartmentDashboard } from '../features/dashboard/pages/DepartmentDashboard.jsx';
+import { DashboardPage } from '../../../shared/features/dashboard/DashboardPage.jsx';
 import { TicketDetailsPage } from '../features/tickets/pages/TicketDetailsPage.jsx';
 import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
 import { TicketHistoryPage } from '../../../shared/components/TicketHistoryPage.jsx';
@@ -16,7 +16,7 @@ export const departmentRoutes = {
   children: [
     {
       index: true,
-      element: <DepartmentDashboard />
+      element: <DashboardPage />
     },
     {
       path: 'ticket/:id',

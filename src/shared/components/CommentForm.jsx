@@ -110,9 +110,9 @@ export const CommentForm = ({
     }
   };
 
-  // Vendor role (L1) must never see the internal/visibility toggle
+  // Vendor role (L1) must see the checkbox as visually disabled
   const isVendorRole = role === 'L1';
-  const showInternalToggle = canToggleInternal && !isVendorRole;
+  const showInternalToggle = canToggleInternal;
 
   const isCompact = size === 'sm';
 
@@ -127,7 +127,7 @@ export const CommentForm = ({
         className={cn(isCompact ? 'min-h-[80px]' : 'min-h-[100px]', textareaClassName)}
       />
 
-      {/* Internal comment toggle — only for Helpdesk/Internal users */}
+      {/* Internal comment toggle — enabled for internal users, disabled for Vendor */}
       {showInternalToggle && (
         <div className="flex items-center gap-2">
           <label className="relative inline-flex items-center cursor-pointer">
@@ -135,13 +135,13 @@ export const CommentForm = ({
               type="checkbox"
               checked={isInternal}
               onChange={(e) => setIsInternal(e.target.checked)}
-              disabled={isAddingComment}
+              disabled={isAddingComment || isVendorRole}
               className="sr-only peer"
             />
             <div className={cn(
               "w-5 h-5 rounded border transition-colors",
               "peer-focus-visible:ring-2 peer-focus-visible:ring-success peer-focus-visible:ring-offset-2",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "peer-disabled:opacity-50 peer-disabled:cursor-not-allowed",
               isInternal
                 ? "bg-success border-success"
                 : "bg-surface border-hover hover:border-default"

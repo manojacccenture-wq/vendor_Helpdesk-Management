@@ -178,6 +178,7 @@ export const UpdateTicketStatusModal = ({
             placeholder="Enter remarks for this status update..."
             disabled={isUpdating}
             error={remarksError}
+            className="min-h-[120px]"
           />
         </div>
 

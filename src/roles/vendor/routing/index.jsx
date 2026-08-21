@@ -1,6 +1,6 @@
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { VendorLayout } from '../layout/VendorLayout.jsx';
-import { VendorDashboard } from '../features/dashboard/pages/VendorDashboard.jsx';
+import { DashboardPage } from '../../../shared/features/dashboard/DashboardPage.jsx';
 import { CreateVendorTicketPage } from '../features/tickets/pages/CreateVendorTicketPage.jsx';
 import { TicketDetailsPage } from '../features/tickets/pages/TicketDetailsPage.jsx';
 import { TicketCommentsPage } from '../../../shared/components/TicketCommentsPage.jsx';
@@ -16,7 +16,7 @@ export const vendorRoutes = {
   children: [
     {
       index: true,
-      element: <VendorDashboard />
+      element: <DashboardPage />
     },
     {
       path: 'create',

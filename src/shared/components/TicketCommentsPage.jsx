@@ -27,8 +27,8 @@ export const TicketCommentsPage = ({ backPath }) => {
   const role = useSelector(selectUserRole);
   const scrollContainerRef = useRef(null);
 
-  // Determine if user can see the internal comment checkbox (Helpdesk/Internal users only)
-  const canToggleInternal = role === 'L2' || role === 'HelpdeskExecutive';
+  // Determine if user can see the internal comment checkbox (enabled for everyone, disabled for Vendor inside CommentForm)
+  const canToggleInternal = true;
 
   // Fetch ticket details for display
   const { data: ticketDetails } = useGetTicketDetailsQuery(

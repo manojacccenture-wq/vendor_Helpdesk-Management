@@ -19,6 +19,9 @@ export const TicketHero = ({
   ticketDetails,
   subject,
   ticketHistoryStages,
+  visibleCommentButton,
+  visibleAssignButton,
+  visibleFeedbackButton,
 }) => {
   const sections = ticketDetails?.sections || [];
   const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
@@ -48,7 +51,9 @@ export const TicketHero = ({
             onActionComplete={() => {}}
           />
         )}
-        <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} vendorEmail={vendorEmail} />
+        {Boolean(visibleCommentButton ?? ticketDetails?.visibleCommentButton) && (
+          <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} vendorEmail={vendorEmail} />
+        )}
         <TicketHistoryDrawer ticketId={ticketId} stages={ticketHistoryStages} />
       </div>
     </div>

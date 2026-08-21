@@ -121,8 +121,8 @@ export const TicketActions = ({
   };
 
   const actions = [
-    // Conditionally include assign action if status is 'Open'
-    ...(currentStatus?.toLowerCase() === 'open' ? [{
+    // Conditionally include assign action based on API visibility flag
+    ...(Boolean(ticket?.visibleAssignButton) ? [{
       key: 'assign',
       label: 'Assign Ticket',
       icon: UserPlus,
