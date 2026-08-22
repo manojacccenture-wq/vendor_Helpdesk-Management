@@ -91,6 +91,8 @@ export const TicketToolbar = ({
               key={action.label || index}
               variant={action.variant || 'primary'}
               onClick={action.onClick}
+              disabled={action.disabled}
+              title={action.title}
               className={`w-full sm:w-auto ${action.className || ''}`}
             >
               {action.label}

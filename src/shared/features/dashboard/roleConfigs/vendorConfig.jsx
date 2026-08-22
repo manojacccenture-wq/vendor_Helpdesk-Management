@@ -5,6 +5,7 @@ import { PipelineStepper } from '../../../../roles/vendor/features/tickets/compo
 import { VendorTabs } from '../../../../roles/vendor/features/dashboard/components/VendorTabs.jsx';
 import { TicketFeedbackModal } from '../../../components/TicketFeedbackModal.jsx';
 import { formatTicketNo } from '../../../utils/ticket.js';
+import { showWarning } from '../../../notifications/notificationService.js';
 
 /**
  * Vendor-specific Dashboard configuration.
@@ -149,10 +150,18 @@ export const vendorConfig = {
   ],
 
   // ─── Toolbar Actions ───
-  getToolbarActions: (navigate) => [
+  getToolbarActions: (navigate, { hasPendingFeedbackTicket } = {}) => [
     {
       label: '+ Raise ticket',
-      onClick: () => navigate('/vendor/create'),
+      onClick: () => {
+        if (hasPendingFeedbackTicket) {
+          showWarning('You cannot raise a new ticket because you have an existing ticket pending feedback.');
+          return;
+        }
+        navigate('/vendor/create');
+      },
+      disabled: Boolean(hasPendingFeedbackTicket),
+      title: hasPendingFeedbackTicket ? 'Cannot raise a new ticket while an existing ticket is pending feedback.' : undefined,
       variant: 'primary',
       className: 'bg-primary',
     },

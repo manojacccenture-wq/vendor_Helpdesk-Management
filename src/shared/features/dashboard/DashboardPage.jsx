@@ -192,11 +192,18 @@ export const DashboardPage = () => {
     return config.getColumns(navigate, context);
   }, [config, navigate]);
 
+  // ─── Check for pending feedback tickets across ALL tickets ───
+  // While loading, assume feedback is pending (conservative: prevents bypass)
+  const hasPendingFeedbackTicket = useMemo(() => {
+    if (data.isLoading) return true;
+    return (data.allTickets ?? []).some(ticket => ticket.visibleFeedbackButton === true);
+  }, [data.allTickets, data.isLoading]);
+
   // ─── Build toolbar actions ───
   const toolbarActions = useMemo(() => {
     if (!config?.getToolbarActions) return [];
-    return config.getToolbarActions(navigate);
-  }, [config, navigate]);
+    return config.getToolbarActions(navigate, { hasPendingFeedbackTicket });
+  }, [config, navigate, hasPendingFeedbackTicket]);
 
   // ─── Guard: unknown role ───
   if (!config) {

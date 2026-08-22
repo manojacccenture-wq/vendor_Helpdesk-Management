@@ -94,6 +94,7 @@ export const useDashboardData = (queryParams, searchTerm) => {
 
   return {
     tickets: filteredTicketsRaw,
+    allTickets,
     counts,
     countData,
     filteredTickets,
