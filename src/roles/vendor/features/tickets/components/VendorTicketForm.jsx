@@ -53,7 +53,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   const [currentSchema, setCurrentSchema] = useState(baseTicketSchema);
 
-  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue, unregister } = useForm({
+  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue, unregister, setError } = useForm({
     resolver: zodResolver(currentSchema),
     mode: 'onTouched',
     defaultValues: {
@@ -131,8 +131,10 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   // Handle Dynamic Schema and Unregistering Old Fields
   useEffect(() => {
-    // 1. Build and set new schema
-    const newSchema = buildDynamicSchema(baseTicketSchema, dynamicControls);
+    // 1. Build and set new schema (includes metadata-driven attachment refinement)
+    const newSchema = buildDynamicSchema(baseTicketSchema, dynamicControls, {
+      subcategoryMetadata: isMetadataRequired ? parsedMetadata : null,
+    });
     setCurrentSchema(newSchema);
 
     // 2. Cleanup old fields from form state if they don't exist in new controls
@@ -145,10 +147,30 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
     }
 
     previousControlsRef.current = dynamicControls;
-  }, [dynamicControls, unregister]);
+  }, [dynamicControls, unregister, isMetadataRequired, parsedMetadata]);
+
 
   const onSubmit = async (data) => {
     try {
+      // Final safety guard: prevent API call if required attachments are missing
+      // (defense-in-depth alongside the Zod schema validation)
+      if (isMetadataRequired) {
+        const attachments = data.attachments;
+        const hasValidAttachments = Array.isArray(attachments) && attachments.length > 0;
+
+        if (!hasValidAttachments) {
+          const requiredNames = (metadataAttachments || [])
+            .map(a => a?.name)
+            .filter(Boolean);
+          const message = requiredNames.length > 0
+            ? `Required attachments missing. Please upload: ${requiredNames.join(', ')}.`
+            : 'At least one attachment is required for this subcategory.';
+
+          setError('attachments', { type: 'manual', message });
+          return;
+        }
+      }
+
       const formData = new FormData();
       
       // Base fields

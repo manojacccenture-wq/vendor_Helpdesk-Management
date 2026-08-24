@@ -127,11 +127,16 @@ export const FileUpload = React.forwardRef(({ className, label, error, onChange,
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      {label && (
-        <label className="text-primary-hover">
-          {label}
-        </label>
-      )}
+      {label && (() => {
+        const isRequired = label.endsWith(' *');
+        const labelText = isRequired ? label.slice(0, -2) : label;
+        return (
+          <label className="text-primary-hover">
+            {labelText}
+            {isRequired && <span className="text-danger"> *</span>}
+          </label>
+        );
+      })()}
       
       <div 
         className={cn(
