@@ -7,12 +7,11 @@
  */
 
 /**
- * VHD (Vendor Helpdesk) support email addresses.
- * Both addresses represent the centralized VHD recipient.
- * Wherever the email matrix says "VHD", both addresses are used.
+ * VHD (Vendor Helpdesk) support email address.
+ * Represents the centralized VHD recipient.
+ * Wherever the email matrix says "VHD", this address is used.
  */
 export const VHD_EMAILS = [
-  'support@lhsindia.com',
   'vendorhelpdesktsuisl@tatasteel.com',
 ];
 
