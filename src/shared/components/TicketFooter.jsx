@@ -1,6 +1,16 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Forward } from 'lucide-react';
 import { Button } from './Button.jsx';
+import { ForwardTicketModal } from './ForwardTicketModal.jsx';
+import { selectUserRole } from '../../features/user/store/selectors.js';
+
+/**
+ * Roles allowed to forward a ticket.
+ * Strict allowlist — any other role (including unknown/null) hides the button.
+ */
+const FORWARD_ALLOWED_ROLES = ['BL1', 'HOD'];
 
 /**
  * TicketFooter — Status action buttons for department roles + Back to Dashboard.
@@ -12,52 +22,79 @@ export const TicketFooter = ({
   isLoadingStatuses,
   ticketStatuses = [],
   backPath,
+  ticketId,
+  ticketDetails,
 }) => {
   const navigate = useNavigate();
+  const role = useSelector(selectUserRole);
+  const canForward = FORWARD_ALLOWED_ROLES.includes(role);
+  const [isForwardOpen, setIsForwardOpen] = useState(false);
 
   return (
-    <div className="flex justify-between items-center py-4">
-      <div className="flex-1">
-        {isDepartmentRole && (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              className="bg-priority-medium text-priority-medium-text hover:opacity-90"
-              onClick={() => onStatusAction('On Hold')}
-              disabled={isUpdatingStatus || isLoadingStatuses}
-            >
-              Put on hold
-            </Button>
-            <Button
-              className="bg-info text-white hover:opacity-90"
-              onClick={() => onStatusAction('Resolved')}
-              disabled={isUpdatingStatus || isLoadingStatuses}
-            >
-              Resolved
-            </Button>
-            {ticketStatuses.some(s => {
-              const txt = (s.text ?? s.Text)?.toLowerCase();
-              return txt === 'cancel' || txt === 'cancelled';
-            }) && (
+    <>
+      <div className="flex justify-between items-center py-4">
+        <div className="flex-1">
+          {isDepartmentRole && (
+            <div className="flex flex-wrap gap-2">
               <Button
-                className="bg-priority-escalate text-priority-escalate-text hover:opacity-90"
-                onClick={() => {
-                  const cancelStr = ticketStatuses.find(s => {
-                    const txt = (s.text ?? s.Text)?.toLowerCase();
-                    return txt === 'cancel' || txt === 'cancelled';
-                  });
-                  onStatusAction(cancelStr?.text ?? cancelStr?.Text);
-                }}
+                className="bg-priority-medium text-priority-medium-text hover:opacity-90"
+                onClick={() => onStatusAction('On Hold')}
                 disabled={isUpdatingStatus || isLoadingStatuses}
               >
-                Cancel
+                Put on hold
               </Button>
-            )}
-          </div>
-        )}
+              <Button
+                className="bg-info text-white hover:opacity-90"
+                onClick={() => onStatusAction('Resolved')}
+                disabled={isUpdatingStatus || isLoadingStatuses}
+              >
+                Resolved
+              </Button>
+              {canForward && (
+                <Button
+                  variant="secondary"
+                  className="flex items-center gap-1.5"
+                  onClick={() => setIsForwardOpen(true)}
+                  disabled={isUpdatingStatus || isLoadingStatuses}
+                >
+                  <Forward className="w-4 h-4" />
+                  Forward
+                </Button>
+              )}
+              {ticketStatuses.some(s => {
+                const txt = (s.text ?? s.Text)?.toLowerCase();
+                return txt === 'cancel' || txt === 'cancelled';
+              }) && (
+                <Button
+                  className="bg-priority-escalate text-priority-escalate-text hover:opacity-90"
+                  onClick={() => {
+                    const cancelStr = ticketStatuses.find(s => {
+                      const txt = (s.text ?? s.Text)?.toLowerCase();
+                      return txt === 'cancel' || txt === 'cancelled';
+                    });
+                    onStatusAction(cancelStr?.text ?? cancelStr?.Text);
+                  }}
+                  disabled={isUpdatingStatus || isLoadingStatuses}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <Button variant="black" onClick={() => navigate(backPath)} className="ml-4">
+          Back to Dashboard
+        </Button>
       </div>
-      <Button variant="black" onClick={() => navigate(backPath)} className="ml-4">
-        Back to Dashboard
-      </Button>
-    </div>
+
+      {/* Forward Ticket Modal — mounted only while open so its query and state are scoped to one open */}
+      {canForward && isForwardOpen && (
+        <ForwardTicketModal
+          ticketId={ticketId}
+          ticketDetails={ticketDetails}
+          onClose={() => setIsForwardOpen(false)}
+        />
+      )}
+    </>
   );
 };

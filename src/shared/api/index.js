@@ -16,6 +16,8 @@ export {
   useGetTicketCountQuery,
   useGetTicketListQuery,
   useGetTicketDetailsQuery,
+  useGetSuperiorsQuery,
+  useForwardTicketMutation,
   useAssignTicketMutation,
   useUpdateTicketStatusMutation,
   useSubmitFeedbackMutation,

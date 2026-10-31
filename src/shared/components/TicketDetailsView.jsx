@@ -244,6 +244,8 @@ export const TicketDetailsView = ({
         isLoadingStatuses={isLoadingStatuses}
         ticketStatuses={ticketStatuses}
         backPath={backPath}
+        ticketId={ticketId}
+        ticketDetails={ticketDetails}
       />
 
       {/* Remarks Confirmation Modal (Department roles) */}

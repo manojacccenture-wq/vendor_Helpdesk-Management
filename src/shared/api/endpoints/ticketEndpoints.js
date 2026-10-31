@@ -7,6 +7,8 @@
  * Endpoints:
  *   - getTicketList: Fetch filtered ticket list
  *   - getTicketDetails: Fetch single ticket details
+ *   - getSuperiors: Fetch superior users eligible for forwarding a ticket
+ *   - forwardTicket: Forward a ticket to a superior user
  *   - getTicketCount: Fetch ticket count for dashboard metrics
  *   - createTicket: Create a new ticket (multipart/form-data)
  *   - assignTicket: Assign ticket to department/agent
@@ -15,6 +17,7 @@
  */
 
 import { adaptTicketDetails } from '../../adapters/ticketDetailsAdapter.js';
+import { adaptSuperiors } from '../../adapters/superiorsAdapter.js';
 
 export const ticketEndpoints = (builder) => ({
   getTicketList: builder.query({
@@ -42,6 +45,15 @@ export const ticketEndpoints = (builder) => ({
     providesTags: ['Ticket'],
   }),
 
+  getSuperiors: builder.query({
+    query: ({ role, ticketId }) => ({
+      url: `/api/Tickets/superiors?role=${role}&ticketId=${ticketId}`,
+      method: 'GET',
+    }),
+    transformResponse: adaptSuperiors,
+    providesTags: ['Superiors'],
+  }),
+
   getTicketCount: builder.query({
     query: ({ role, userCode }) => ({
       url: `/api/Tickets/ticketcount?role=${role}&userCode=${userCode}`,
@@ -60,6 +72,18 @@ export const ticketEndpoints = (builder) => ({
       },
     }),
     invalidatesTags: ['Ticket'],
+  }),
+
+  forwardTicket: builder.mutation({
+    query: ({ ticketId, forwardToUserId, forwardToRole, remarks }) => ({
+      url: '/api/Tickets/forward',
+      method: 'POST',
+      data: { ticketId, forwardToUserId, forwardToRole, remarks },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }),
+    invalidatesTags: ['Ticket', 'Superiors'],
   }),
 
   assignTicket: builder.mutation({
