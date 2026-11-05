@@ -12,6 +12,31 @@ import { getDashboardConfig } from './dashboardConfig.jsx';
 import { useDashboardData } from './hooks/useDashboardData.js';
 
 /**
+ * resolveMetricValue — Resolves the displayed value for a metric card.
+ *
+ * - `total` follows the role's configured source (count API for Vendor, list length otherwise).
+ * - `escalated` comes directly from the ticket count API's `totalEscalationCount`.
+ * - All other cards are derived from the unfiltered ticket list.
+ *
+ * @param {Object} card - Metric card configuration ({ key })
+ * @param {Object} counts - Per-status counts derived from the ticket list
+ * @param {Object} countData - Raw ticket count API response
+ * @param {boolean} useCountDataTotal - Whether this role sources `total` from the count API
+ * @returns {number} The value to display on the card
+ */
+const resolveMetricValue = (card, counts, countData, useCountDataTotal) => {
+  if (card.key === 'escalated') {
+    return countData?.totalEscalationCount ?? 0;
+  }
+  if (card.key === 'total') {
+    return useCountDataTotal
+      ? (countData?.total ?? countData?.totalCount ?? counts.total)
+      : counts.total;
+  }
+  return counts[card.key] ?? 0;
+};
+
+/**
  * DashboardPage — Single shared Dashboard for Vendor, Helpdesk, and Department.
  *
  * Architecture:
@@ -149,11 +174,7 @@ export const DashboardPage = () => {
 
     const cards = config.metricCards.map(card => ({
       ...card,
-      value: card.key === 'total'
-        ? (config.useCountDataTotal
-            ? (data.countData?.total ?? data.countData?.totalCount ?? data.counts.total)
-            : data.counts.total)
-        : data.counts[card.key] ?? 0,
+      value: resolveMetricValue(card, data.counts, data.countData, config.useCountDataTotal),
       onClick: () => onCardClick(card.label),
       active: isActive(card.label),
     }));

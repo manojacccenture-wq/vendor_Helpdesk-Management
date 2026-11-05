@@ -14,9 +14,11 @@ import { formatTicketNo } from '../utils/ticket.js';
  * Flow:
  *   1. Mount → GET /api/Tickets/superiors?role=&ticketId= (role from Redux,
  *      ticket id from the route, both dynamic)
- *   2. Select a superior → keeps their actual userId + role
- *   3. Enter remarks → POST /api/Tickets/forward
- *   4. Success → toast the API message, close; the mutation invalidates the
+ *   2. The first user returned is selected by default (derived from query data,
+ *      no effect); a manual pick overrides it and survives later refetches
+ *   3. Select a superior → keeps their actual userId + role
+ *   4. Enter remarks → POST /api/Tickets/forward
+ *   5. Success → toast the API message, close; the mutation invalidates the
  *      'Ticket' tag so ticket details/history refetch through RTK Query cache.
  *
  * Mounted only while open (see TicketFooter), so the query runs on open and all
@@ -57,6 +59,15 @@ export const ForwardTicketModal = ({ ticketId, ticketDetails, onClose }) => {
 
   const isBusy = isLoading || isFetching;
   const hasOptions = superiorOptions.length > 0;
+
+  // Default selection: the first user returned by the API. Derived from query
+  // data during render — no effect/state synchronization. A manual pick wins as
+  // long as that user is still offered, so refetches never override it.
+  const firstOptionValue = superiorOptions[0]?.value ?? '';
+  const manualSelectionIsValid =
+    selectedUser !== '' && superiorOptions.some((option) => option.value === selectedUser);
+  const selectedUserValue = manualSelectionIsValid ? selectedUser : firstOptionValue;
+
   const isSubmitDisabled = isBusy || isError || !hasOptions || isSubmitting;
 
   const getErrorMessage = () => {
@@ -95,7 +106,7 @@ export const ForwardTicketModal = ({ ticketId, ticketDetails, onClose }) => {
   const handleForward = async () => {
     if (isSubmitting || submitLockRef.current) return;
 
-    const selected = superiorOptions.find((option) => option.value === selectedUser);
+    const selected = superiorOptions.find((option) => option.value === selectedUserValue);
     const trimmedRemarks = remarks.trim();
 
     if (!selected) {
@@ -187,7 +198,7 @@ export const ForwardTicketModal = ({ ticketId, ticketDetails, onClose }) => {
           <div className="mb-4">
             <Select
               label="Forward To *"
-              value={selectedUser}
+              value={selectedUserValue}
               onChange={handleSelectChange}
               options={superiorOptions}
               placeholder={placeholder}

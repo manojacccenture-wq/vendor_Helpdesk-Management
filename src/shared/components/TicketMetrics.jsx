@@ -1,11 +1,24 @@
 import { useRef, useState, useCallback } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from './Card.jsx';
+import { Button } from './Button.jsx';
+
+/**
+ * Class names shared by the left and right edge scroll controls.
+ *
+ * The shared Button's base/size/variant utilities live in Tailwind's `utilities`
+ * layer, which outranks the `components`-layer `.metric-scroll-nav` rules. These
+ * utilities therefore re-assert the control's existing box (24px circle,
+ * desktop-only, surface background) instead of letting the generic Button
+ * padding/radius/visibility win.
+ */
+const SCROLL_NAV_CLASS = 'metric-scroll-nav hidden sm:flex h-6 w-6 p-0 rounded-full border-default bg-surface transition hover:bg-surface';
 
 /**
  * TicketMetrics — Shared component for displaying ticket count metrics.
  *
- * Renders metrics as a horizontally scrollable row with scroll-hint fade indicators.
+ * Renders metrics as a horizontally scrollable row with scroll-hint fade indicators
+ * and edge scroll buttons (desktop) so users can tell more cards are available.
  * Each role provides its own metric configuration.
  *
  * @param {Object} props
@@ -74,6 +87,18 @@ export const TicketMetrics = ({
     resizeRef.current = observer;
   }, [updateScrollState]);
 
+  // Scroll exactly one card (plus the row gap) in the given direction.
+  // Event-driven button click — no listener or useEffect involved.
+  const scrollByCard = useCallback((direction) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const card = el.querySelector('.metric-card');
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 16;
+    const step = (card?.offsetWidth || el.clientWidth / 3) + gap;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollBy({ left: direction * step, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }, []);
+
   // Re-check scroll state when metrics data changes (render-phase measurement)
   // This runs synchronously during render — no useEffect needed
   const prevMetricsRef = useRef(metrics);
@@ -138,6 +163,28 @@ export const TicketMetrics = ({
         <div
           className={`scroll-fade-right ${canScrollRight ? 'fade-visible' : 'fade-hidden'}`}
         />
+
+        {/* Edge scroll buttons — desktop only, shown when there is content in that direction */}
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="Scroll metrics left"
+          tabIndex={canScrollLeft ? 0 : -1}
+          onClick={() => scrollByCard(-1)}
+          className={`${SCROLL_NAV_CLASS} metric-scroll-nav-left ${canScrollLeft ? 'nav-visible' : 'nav-hidden'}`}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="Scroll metrics right"
+          tabIndex={canScrollRight ? 0 : -1}
+          onClick={() => scrollByCard(1)}
+          className={`${SCROLL_NAV_CLASS} metric-scroll-nav-right ${canScrollRight ? 'nav-visible' : 'nav-hidden'}`}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );

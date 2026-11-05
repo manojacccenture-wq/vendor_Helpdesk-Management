@@ -34,24 +34,24 @@
         display: none !important;
     }
 
-    /* Scroll hint fade overlays */
+    /* Scroll hint fade overlays — token-based so the cut edge is perceptible */
     .scroll-fade-left,
     .scroll-fade-right {
         position: absolute;
         top: 0;
         bottom: 0;
-        width: 48px;
+        width: 56px;
         pointer-events: none;
         z-index: 1;
         transition: opacity 200ms ease;
     }
     .scroll-fade-left {
         left: 0;
-        background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+        background: linear-gradient(to right, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent);
     }
     .scroll-fade-right {
         right: 0;
-        background: linear-gradient(to left, rgba(0,0,0,0.06), transparent);
+        background: linear-gradient(to left, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent);
     }
 
     /* Scroll snap container */
@@ -75,5 +75,50 @@
     }
     .fade-hidden {
         opacity: 0;
+    }
+
+    /* Metric row edge scroll buttons (desktop only) */
+    .metric-scroll-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 9999px;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-default);
+        color: var(--color-secondary);
+        box-shadow: 0 1px 2px rgba(30, 41, 59, 0.12);
+        transition: opacity 200ms ease, color 150ms ease, box-shadow 150ms ease;
+    }
+    .metric-scroll-nav-left {
+        left: 0;
+    }
+    .metric-scroll-nav-right {
+        right: 0;
+    }
+    .metric-scroll-nav:hover {
+        color: var(--color-primary);
+        box-shadow: 0 2px 6px rgba(30, 41, 59, 0.18);
+    }
+    .metric-scroll-nav:focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+    }
+    @media (min-width: 640px) {
+        .metric-scroll-nav {
+            display: flex;
+        }
+    }
+    .nav-visible {
+        opacity: 1;
+    }
+    .nav-hidden {
+        opacity: 0;
+        pointer-events: none;
     }
 }
