@@ -245,17 +245,17 @@ export const ForwardTicketModal = ({ ticketId, ticketDetails, onClose }) => {
 
         <div className="flex items-center justify-end gap-3 px-6 pb-6 pt-2 shrink-0 bg-white">
           <Button
-            variant="ghost"
+            variant="danger"
             onClick={onClose}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button
-            variant="primary"
+            variant="forward"
             onClick={handleForward}
             disabled={isSubmitDisabled}
-            className="bg-info hover:bg-info/90"
+            // className="bg-info hover:bg-info/90"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export const ForwardTicketModal = ({ ticketId, ticketDetails, onClose }) => {
                 Forwarding...
               </span>
             ) : (
-              'Forward'
+              'Confirm Forward'
             )}
           </Button>
         </div>

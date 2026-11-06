@@ -37,14 +37,15 @@ export const TicketFooter = ({
           {isDepartmentRole && (
             <div className="flex flex-wrap gap-2">
               <Button
-                className="bg-priority-medium text-priority-medium-text hover:opacity-90"
+                variant="primary"
                 onClick={() => onStatusAction('On Hold')}
                 disabled={isUpdatingStatus || isLoadingStatuses}
               >
                 Put on hold
               </Button>
               <Button
-                className="bg-info text-white hover:opacity-90"
+              variant="info"
+                // className="bg-info text-white hover:opacity-90"
                 onClick={() => onStatusAction('Resolved')}
                 disabled={isUpdatingStatus || isLoadingStatuses}
               >
@@ -52,7 +53,7 @@ export const TicketFooter = ({
               </Button>
               {canForward && (
                 <Button
-                  variant="secondary"
+                  variant="forward"
                   className="flex items-center gap-1.5"
                   onClick={() => setIsForwardOpen(true)}
                   disabled={isUpdatingStatus || isLoadingStatuses}
@@ -66,7 +67,7 @@ export const TicketFooter = ({
                 return txt === 'cancel' || txt === 'cancelled';
               }) && (
                 <Button
-                  className="bg-priority-escalate text-priority-escalate-text hover:opacity-90"
+                  variant="danger"
                   onClick={() => {
                     const cancelStr = ticketStatuses.find(s => {
                       const txt = (s.text ?? s.Text)?.toLowerCase();

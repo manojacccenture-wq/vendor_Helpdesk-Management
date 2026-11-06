@@ -251,7 +251,7 @@ export const TicketFeedbackModal = ({
         {!submitted && (
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-default shrink-0">
             <Button
-              variant="ghost"
+              variant="danger"
               onClick={handleClose}
               disabled={isSubmitting}
             >

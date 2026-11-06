@@ -7,6 +7,9 @@ const buttonVariants = {
   outline: "bg-transparent text-success border-success hover:bg-success-soft",
   ghost: "bg-transparent text-secondary hover:bg-surface-active border-transparent cursor-pointer",
   black: "bg-primary text-white cursor-pointer ",
+  forward: "bg-accent text-white hover:bg-accent-hover border-transparent cursor-pointer focus:ring-accent",
+  danger: "bg-danger text-white hover:bg-danger/90 active:bg-danger/80 border-transparent cursor-pointer focus:ring-danger",
+  info: "bg-info text-white cursor-pointer",
 };
 
 const buttonSizes = {

@@ -185,7 +185,7 @@ export const UpdateTicketStatusModal = ({
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 px-6 pb-6">
           <Button
-            variant="ghost"
+            variant="danger"
             onClick={handleClose}
             disabled={isUpdating}
           >
