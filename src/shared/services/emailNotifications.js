@@ -248,7 +248,7 @@ function buildBody(type, context) {
     [NOTIFICATION_TYPES.ASSIGNED]: [
       `<p>Ticket <strong>${safeTicketNo}</strong> has been assigned to you.</p>`,
       `<p>Please click the link below to view the details:</p>`,
-      `<p>${appLink}</p>`,
+      `<p>Production URL: ${appLink}</p>`,
     ].join(''),
 
     [NOTIFICATION_TYPES.VHD_TO_DEPT_L1]: [
