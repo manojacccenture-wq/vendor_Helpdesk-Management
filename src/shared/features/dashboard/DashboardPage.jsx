@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Download, FileSpreadsheet } from 'lucide-react';
 import { selectUserProfile, selectUserRole } from '../../../features/user/store/selectors.js';
 import { useGetTicketStatusesQuery, useGetCategoriesQuery, useGetPrioritiesQuery } from '../../api/apiSlice.js';
 import { useMetricStatusClick } from '../../hooks/useMetricStatusClick.js';
@@ -8,6 +9,7 @@ import { TicketMetrics } from '../../components/TicketMetrics.jsx';
 import { TicketToolbar } from '../../components/TicketToolbar.jsx';
 import { Table } from '../../components/Table.jsx';
 import { Pagination } from '../../components/Pagination.jsx';
+import { DownloadExcelModal } from '../../components/DownloadExcelModal.jsx';
 import { getDashboardConfig } from './dashboardConfig.jsx';
 import { useDashboardData } from './hooks/useDashboardData.js';
 
@@ -67,6 +69,9 @@ export const DashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // ─── Modals State ───
+  // Download Excel Report Modal
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+
   // Vendor: TicketFeedbackModal
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [selectedFeedbackTicket, setSelectedFeedbackTicket] = useState(null);
@@ -220,11 +225,52 @@ export const DashboardPage = () => {
     return (data.allTickets ?? []).some(ticket => ticket.visibleFeedbackButton === true);
   }, [data.allTickets, data.isLoading]);
 
+  // ─── Resolve selected status text for download filter ───
+  const selectedStatusText = useMemo(() => {
+    if (!statusId) return '';
+    const match = statusesData.find(
+      s => String(s.value ?? s.Value) === String(statusId) ||
+           String(s.text ?? s.Text).toLowerCase() === String(statusId).toLowerCase()
+    );
+    return (match?.text ?? match?.Text) || '';
+  }, [statusId, statusesData]);
+
+  // ─── Vendor check for flow restriction ───
+  const isVendor = role === 'L1' || config?.roleId === 'vendor';
+
   // ─── Build toolbar actions ───
   const toolbarActions = useMemo(() => {
-    if (!config?.getToolbarActions) return [];
-    return config.getToolbarActions(navigate, { hasPendingFeedbackTicket });
-  }, [config, navigate, hasPendingFeedbackTicket]);
+    const roleActions = config?.getToolbarActions
+      ? config.getToolbarActions(navigate, { hasPendingFeedbackTicket })
+      : [];
+
+    // Strictly restrict the report and download flow for Vendor
+    if (isVendor) {
+      return roleActions;
+    }
+
+    const viewReportsAction = {
+      key: 'view-ticket-reports',
+      label: 'View',
+      icon: FileSpreadsheet,
+      onClick: () => navigate(`/${config.roleId}/reports`),
+      variant: 'secondary',
+      className: 'flex items-center gap-1.5',
+      title: 'View Ticket Reports',
+    };
+
+    const downloadAction = {
+      key: 'download-excel-report',
+      label: 'Download',
+      icon: Download,
+      onClick: () => setIsDownloadModalOpen(true),
+      variant: 'secondary',
+      className: 'flex items-center gap-1.5',
+      title: 'Download Excel Report',
+    };
+
+    return [viewReportsAction, downloadAction, ...roleActions];
+  }, [config, navigate, hasPendingFeedbackTicket, isVendor]);
 
   // ─── Guard: unknown role ───
   if (!config) {
@@ -318,6 +364,16 @@ export const DashboardPage = () => {
           }}
           profile={profile}
           role={role}
+        />
+      )}
+
+      {/* Download Excel Report Modal (restricted for vendor) */}
+      {!isVendor && isDownloadModalOpen && (
+        <DownloadExcelModal
+          isOpen={isDownloadModalOpen}
+          onClose={() => setIsDownloadModalOpen(false)}
+          status={selectedStatusText || undefined}
+          vendorCode={profile?.userCode ? String(profile.userCode).trim() : undefined}
         />
       )}
     </div>

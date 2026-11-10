@@ -33,7 +33,7 @@ const axiosBaseQuery =
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: axiosBaseQuery(),
-  tagTypes: ['Ticket', 'Superiors'],
+  tagTypes: ['Ticket', 'Superiors', 'TicketReport'],
   endpoints: () => ({}),
 });
 
@@ -67,4 +67,6 @@ export const {
   useAssignTicketMutation,
   useUpdateTicketStatusMutation,
   useSubmitFeedbackMutation,
+  useGetTicketReportQuery,
+  useLazyGetTicketReportQuery,
 } = apiSlice;

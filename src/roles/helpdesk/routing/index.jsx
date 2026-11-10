@@ -51,6 +51,14 @@ export const helpdeskRoutes = {
         );
         return { Component };
       }
+    },
+    {
+      path: 'reports',
+      async lazy() {
+        const { TicketReportsPage } = await import('../../../shared/features/reports/pages/TicketReportsPage.jsx');
+        const Component = () => <TicketReportsPage backPath="/helpdesk" />;
+        return { Component };
+      }
     }
   ]
 };

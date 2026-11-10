@@ -1,4 +1,3 @@
-import React from 'react';
 import { RoleGuard } from '../../../shared/guards/RoleGuard.jsx';
 import { DepartmentLayout } from '../layout/DepartmentLayout.jsx';
 
@@ -50,6 +49,14 @@ export const departmentRoutes = {
             <TicketHistoryPage backPath="/department" />
           </div>
         );
+        return { Component };
+      }
+    },
+    {
+      path: 'reports',
+      async lazy() {
+        const { TicketReportsPage } = await import('../../../shared/features/reports/pages/TicketReportsPage.jsx');
+        const Component = () => <TicketReportsPage backPath="/department" />;
         return { Component };
       }
     }

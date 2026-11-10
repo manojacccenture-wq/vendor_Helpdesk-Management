@@ -32,6 +32,10 @@ export const setupInterceptors = (axiosInstance) => {
   // Response Interceptor
   axiosInstance.interceptors.response.use(
     (response) => {
+      // Allow callers needing full response (e.g. for Content-Disposition header in file downloads)
+      if (response.config?.returnFullResponse) {
+        return response;
+      }
       // Directly return the data payload to the feature API layer
       return response.data;
     },

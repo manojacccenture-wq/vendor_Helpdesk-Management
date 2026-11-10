@@ -21,6 +21,8 @@ export {
   useAssignTicketMutation,
   useUpdateTicketStatusMutation,
   useSubmitFeedbackMutation,
+  useGetTicketReportQuery,
+  useLazyGetTicketReportQuery,
 } from './apiSlice.js';
 
 // Shared utilities

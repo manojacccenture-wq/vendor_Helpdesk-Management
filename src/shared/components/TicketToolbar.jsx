@@ -88,13 +88,14 @@ export const TicketToolbar = ({
         <div className="flex items-center gap-2">
           {actions.map((action, index) => (
             <Button 
-              key={action.label || index}
+              key={action.key || (typeof action.label === 'string' ? action.label : index)}
               variant={action.variant || 'primary'}
               onClick={action.onClick}
               disabled={action.disabled}
               title={action.title}
               className={`w-full sm:w-auto ${action.className || ''}`}
             >
+              {action.icon && <action.icon className="w-4 h-4 mr-1.5" />}
               {action.label}
             </Button>
           ))}

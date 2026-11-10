@@ -30,6 +30,11 @@ export const TicketFooter = ({
   const canForward = FORWARD_ALLOWED_ROLES.includes(role);
   const [isForwardOpen, setIsForwardOpen] = useState(false);
 
+  const isBaseDisabled = isUpdatingStatus || isLoadingStatuses;
+  const isOnHoldDisabled = isBaseDisabled || ticketDetails?.isOnHold === true;
+  const isResolvedDisabled = isBaseDisabled || ticketDetails?.isResolved === true;
+  const isForwardDisabled = isBaseDisabled || ticketDetails?.isForwarded === true;
+
   return (
     <>
       <div className="flex justify-between items-center py-4">
@@ -39,15 +44,16 @@ export const TicketFooter = ({
               <Button
                 variant="primary"
                 onClick={() => onStatusAction('On Hold')}
-                disabled={isUpdatingStatus || isLoadingStatuses}
+                disabled={isOnHoldDisabled}
+                title={ticketDetails?.isOnHold ? 'Ticket is currently on hold' : undefined}
               >
                 Put on hold
               </Button>
               <Button
-              variant="info"
-                // className="bg-info text-white hover:opacity-90"
+                variant="info"
                 onClick={() => onStatusAction('Resolved')}
-                disabled={isUpdatingStatus || isLoadingStatuses}
+                disabled={isResolvedDisabled}
+                title={ticketDetails?.isResolved ? 'Ticket has already been resolved' : undefined}
               >
                 Resolved
               </Button>
@@ -56,7 +62,8 @@ export const TicketFooter = ({
                   variant="forward"
                   className="flex items-center gap-1.5"
                   onClick={() => setIsForwardOpen(true)}
-                  disabled={isUpdatingStatus || isLoadingStatuses}
+                  disabled={isForwardDisabled}
+                  title={ticketDetails?.isForwarded ? 'Ticket has already been forwarded' : undefined}
                 >
                   <Forward className="w-4 h-4" />
                   Forward
@@ -75,7 +82,7 @@ export const TicketFooter = ({
                     });
                     onStatusAction(cancelStr?.text ?? cancelStr?.Text);
                   }}
-                  disabled={isUpdatingStatus || isLoadingStatuses}
+                  disabled={isBaseDisabled}
                 >
                   Cancel
                 </Button>
@@ -89,7 +96,7 @@ export const TicketFooter = ({
       </div>
 
       {/* Forward Ticket Modal — mounted only while open so its query and state are scoped to one open */}
-      {canForward && isForwardOpen && (
+      {canForward && isForwardOpen && !ticketDetails?.isForwarded && (
         <ForwardTicketModal
           ticketId={ticketId}
           ticketDetails={ticketDetails}

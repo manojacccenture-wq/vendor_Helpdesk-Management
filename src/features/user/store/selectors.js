@@ -7,6 +7,11 @@ export const selectUserProfile = createSelector(
   (userState) => userState.profile
 );
 
+export const selectUserCode = createSelector(
+  [selectUserProfile],
+  (profile) => (profile?.userCode ? String(profile.userCode).trim() : '')
+);
+
 export const selectUserRole = createSelector(
   [selectUserState],
   (userState) => userState.role

@@ -113,4 +113,21 @@ export const ticketEndpoints = (builder) => ({
       method: 'GET',
     }),
   }),
+
+  getTicketReport: builder.query({
+    query: ({ fromDate, toDate, status, vendorCode }) => {
+      const params = new URLSearchParams();
+      if (fromDate) params.append('fromDate', fromDate);
+      if (toDate) params.append('toDate', toDate);
+      if (status) params.append('status', status);
+      if (vendorCode && String(vendorCode).trim()) {
+        params.append('vendorCode', String(vendorCode).trim());
+      }
+      return {
+        url: `/api/Tickets/report?${params.toString()}`,
+        method: 'GET',
+      };
+    },
+    providesTags: ['TicketReport'],
+  }),
 });

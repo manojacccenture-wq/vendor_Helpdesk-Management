@@ -35,6 +35,9 @@ export function adaptTicketDetails(raw) {
 
   return {
     ...raw,
+    isForwarded: Boolean(raw.isForwarded ?? raw.IsForwarded ?? false),
+    isResolved: Boolean(raw.isResolved ?? raw.IsResolved ?? false),
+    isOnHold: Boolean(raw.isOnHold ?? raw.IsOnHold ?? false),
     ticketHistoryStages: adaptTicketHistoryStages(raw.ticketHistoryStages),
   };
 }
