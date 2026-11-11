@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../../../../../shared/notifications';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../../../shared/components/Card.jsx';
-import { Input } from '../../../../../shared/components/Input.jsx';
 import { Select } from '../../../../../shared/components/Select.jsx';
 import { Textarea } from '../../../../../shared/components/Textarea.jsx';
 import { FileUpload } from '../../../../../shared/components/FileUpload.jsx';
@@ -26,14 +25,47 @@ import { buildDynamicSchema } from '../utils/dynamicSchemaBuilder.js';
 import { DynamicField } from './DynamicField.jsx';
 import { SubjectField } from './SubjectField.jsx';
 import { Paperclip } from 'lucide-react';
-import { mailService } from '../../../../../shared/services';
 import { sendNotification, NOTIFICATION_TYPES } from '../../../../../shared/services/emailNotifications.js';
-import { formatTicketNo } from '../../../../../shared/utils/ticket.js';
+
+const FIELD_ALIASES = {
+  vendordeptid: 'departmentId',
+  departmentid: 'departmentId',
+  deptid: 'departmentId',
+  issueownerusercode: 'issueOwner',
+  issueowner: 'issueOwner',
+  categoryid: 'categoryId',
+  subcategoryid: 'subCategoryId',
+  subject: 'subject',
+  description: 'description',
+  attachments: 'attachments',
+};
+
+const findMatchingFormField = (backendField, formValues = {}) => {
+  if (!backendField || typeof backendField !== 'string') return null;
+
+  // Strip prefixes like "$.", "model.", "dto." if present
+  const cleanField = backendField.replace(/^(\$\.|\w+\.)/, '');
+  const keys = Object.keys(formValues);
+
+  // 1. Exact match (e.g. "Amount" === "Amount")
+  if (keys.includes(cleanField)) return cleanField;
+
+  // 2. Case-insensitive match (e.g. "subject" vs "Subject", "amount" vs "Amount")
+  const lower = cleanField.toLowerCase();
+  const caseInsensitiveMatch = keys.find((k) => k.toLowerCase() === lower);
+  if (caseInsensitiveMatch) return caseInsensitiveMatch;
+
+  // 3. Known field aliases (e.g. "VendorDeptId" -> "departmentId", "IssueOwnerUserCode" -> "issueOwner")
+  const alias = FIELD_ALIASES[lower];
+  if (alias && keys.includes(alias)) return alias;
+
+  return null;
+};
 
 export const VendorTicketForm = ({ onSubmitTicket }) => {
   const profile = useSelector(selectUserProfile);
   const userDepartments = useSelector(selectUserDepartments);
-  const { showSuccess } = useNotification();
+  const { showError } = useNotification();
   const navigate = useNavigate();
   
   // State for success modal
@@ -53,7 +85,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   const [currentSchema, setCurrentSchema] = useState(baseTicketSchema);
 
-  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue, unregister, setError } = useForm({
+  const { register, handleSubmit, control, formState: { errors }, reset, watch, setValue, unregister, setError, getValues } = useForm({
     resolver: zodResolver(currentSchema),
     mode: 'onTouched',
     defaultValues: {
@@ -89,7 +121,7 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
 
   const selectedSubCategoryId = watch('subCategoryId');
 
-  const { data: subCategories = [], isLoading: isLoadingSubCategories, isFetching: isFetchingSubCategories } = useGetSubCategoriesQuery(selectedCategoryId, {
+  const { data: subCategories = [], isFetching: isFetchingSubCategories } = useGetSubCategoriesQuery(selectedCategoryId, {
     skip: !selectedCategoryId
   });
 
@@ -247,8 +279,57 @@ export const VendorTicketForm = ({ onSubmitTicket }) => {
       });
 
     } catch (error) {
-      // TODO: Implement standard error toast handling
       console.error('Failed to create ticket', error);
+
+      const errorData = error?.data;
+      const validationErrors =
+        typeof errorData === 'object' && errorData !== null ? errorData.errors : null;
+
+      if (validationErrors && typeof validationErrors === 'object') {
+        let hasMappedFieldError = false;
+        const currentValues = { ...getValues(), ...data };
+
+        Object.entries(validationErrors).forEach(([backendField, messages]) => {
+          let message = '';
+          if (Array.isArray(messages)) {
+            message = messages[0];
+          } else if (typeof messages === 'string') {
+            message = messages;
+          }
+
+          if (!message) return;
+
+          const matchedField = findMatchingFormField(backendField, currentValues);
+          if (matchedField) {
+            setError(matchedField, {
+              type: 'server',
+              message,
+            });
+            hasMappedFieldError = true;
+          }
+        });
+
+        if (hasMappedFieldError) {
+          showError('Please correct the highlighted errors and try again.');
+        } else {
+          const firstMessage =
+            (Array.isArray(validationErrors)
+              ? validationErrors[0]
+              : Object.values(validationErrors).flat()[0]) ||
+            errorData?.title ||
+            'Validation error occurred.';
+          showError(typeof firstMessage === 'string' ? firstMessage : 'Validation error occurred.');
+        }
+      } else {
+        const fallbackMsg =
+          (typeof errorData === 'string' && errorData) ||
+          errorData?.message ||
+          errorData?.title ||
+          error?.error ||
+          error?.message ||
+          'Failed to create ticket. Please try again.';
+        showError(fallbackMsg);
+      }
     }
   };
 
