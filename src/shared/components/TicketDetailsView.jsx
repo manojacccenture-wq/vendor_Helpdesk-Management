@@ -51,6 +51,7 @@ export const TicketDetailsView = ({
   });
 
   const isDepartmentRole = ['BL1', 'HOD', 'VH', 'MD'].includes(role);
+  const isVendor = role === 'L1';
 
   const { data: ticketStatuses = [], isLoading: isLoadingStatuses } = useGetTicketStatusesQuery(undefined, {
     skip: !isDepartmentRole
@@ -66,9 +67,12 @@ export const TicketDetailsView = ({
     setRemarksModalOpen(true);
   };
 
-  const canUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
+  // Legacy role rule — used only as the fallback when the API omits `canUpdateStatus`,
+  // and (unchanged) as the gate for whether the actions menu is offered at all.
+  const roleCanUpdateStatus = role === 'L2' || role === 'HelpdeskExecutive';
 
-  // Visibility flags passed from ticket list via route state
+  // Visibility flags passed from the ticket list via route state.
+  // Fallback only — the details API is the source of truth.
   const visibilityFlags = location.state || {};
 
   // ─── Loading State ───
@@ -158,6 +162,19 @@ export const TicketDetailsView = ({
   const ticketHistoryStages = ticketDetails.ticketHistoryStages || [];
   const sections = ticketDetails.sections || [];
 
+  // ─── Action permissions ───
+  // Backend flags are authoritative (an explicit `false` always wins).
+  // Route-state (list API) flags fill in only when the details API omits a property.
+  const permissions = {
+    visibleAssignButton: ticketDetails.visibleAssignButton ?? visibilityFlags.visibleAssignButton ?? false,
+    visibleCommentButton: ticketDetails.visibleCommentButton ?? visibilityFlags.visibleCommentButton ?? false,
+    visibleFeedbackButton: ticketDetails.visibleFeedbackButton ?? visibilityFlags.visibleFeedbackButton ?? false,
+    canUpdateStatus: ticketDetails.canUpdateStatus ?? roleCanUpdateStatus,
+    canForward: ticketDetails.canForward,
+    // Existing behaviour preserved: the actions menu stays scoped to the same roles.
+    canAccessActionsMenu: roleCanUpdateStatus,
+  };
+
   // Hide "Processing & Assignment" section from Vendor role
   const visibleSections = role === 'L1'
     ? sections.filter(s => s.title !== 'Processing & Assignment')
@@ -183,13 +200,10 @@ export const TicketDetailsView = ({
             status={status}
             statusColorHex={statusColorHex}
             priority={priority}
-            canUpdateStatus={canUpdateStatus}
             ticketDetails={ticketDetails}
             subject={subject}
             ticketHistoryStages={ticketHistoryStages}
-            visibleCommentButton={visibilityFlags.visibleCommentButton}
-            visibleAssignButton={visibilityFlags.visibleAssignButton}
-            visibleFeedbackButton={visibilityFlags.visibleFeedbackButton}
+            permissions={permissions}
           />
 
           {/* Description */}
@@ -213,8 +227,8 @@ export const TicketDetailsView = ({
           {/* Attachments */}
           <TicketAttachments attachments={attachments} />
 
-          {/* Feedback (Vendor only, Closed status only) */}
-          {role === 'L1' && (ticketDetails?.statusId === 5 || status?.toLowerCase() === 'closed') && (
+          {/* Feedback — Vendor-only, and only when the backend permits it */}
+          {isVendor && permissions.visibleFeedbackButton === true && (
             <div className="px-5 py-3">
               <SectionHeading>Feedback</SectionHeading>
               <SectionDivider />
@@ -246,6 +260,7 @@ export const TicketDetailsView = ({
         backPath={backPath}
         ticketId={ticketId}
         ticketDetails={ticketDetails}
+        permissions={permissions}
       />
 
       {/* Remarks Confirmation Modal (Department roles) */}
@@ -258,8 +273,8 @@ export const TicketDetailsView = ({
         onClose={() => setRemarksModalOpen(false)}
       />
 
-      {/* Feedback Modal (Vendor only) */}
-      {role === 'L1' && (
+      {/* Feedback Modal — Vendor-only, same rule as the section above */}
+      {isVendor && permissions.visibleFeedbackButton === true && (
         <TicketFeedbackModal
           isOpen={isFeedbackModalOpen}
           ticketId={ticketId}

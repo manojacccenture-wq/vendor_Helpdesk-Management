@@ -24,6 +24,10 @@ import { cn } from '../utils/cn.js';
  *   header: string,        // Column header label
  *   width?: string,        // Fixed width as CSS value (e.g., "150px", "20%")
  *   flex?: number,         // Flex ratio for remaining space (e.g., 1, 2, 3)
+ *   minWidth?: string,     // Minimum width for flexible columns (e.g., "220px").
+ *                          // Prevents the column from collapsing to 0 when the
+ *                          // fixed-width columns fill the row; the table then
+ *                          // scrolls horizontally inside its overflow container.
  *   align?: 'left' | 'center' | 'right',
  *   nowrap?: boolean,      // Whether header/text should not wrap
  *   truncate?: boolean,    // Whether to truncate text with ellipsis (for flexible columns)
@@ -55,8 +59,11 @@ export const Table = ({
         // Fixed-width column: use exact pixel/percentage value
         return col.width;
       } else if (col.flex) {
-        // Flexible column: use fr units
-        return `${col.flex}fr`;
+        // Flexible column: use fr units, floored when a minimum width is set
+        // (a bare fr track can collapse to 0 if the fixed columns overflow)
+        return col.minWidth
+          ? `minmax(${col.minWidth}, ${col.flex}fr)`
+          : `${col.flex}fr`;
       } else {
         // Default: flexible column with 1fr
         return '1fr';

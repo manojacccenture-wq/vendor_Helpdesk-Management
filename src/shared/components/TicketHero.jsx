@@ -15,13 +15,10 @@ export const TicketHero = ({
   status,
   statusColorHex,
   priority,
-  canUpdateStatus,
   ticketDetails,
   subject,
   ticketHistoryStages,
-  visibleCommentButton,
-  visibleAssignButton,
-  visibleFeedbackButton,
+  permissions = {},
 }) => {
   const sections = ticketDetails?.sections || [];
   const vendorEmail = getSectionField(sections, 'Ticket Information', 'Vendor Email');
@@ -43,15 +40,19 @@ export const TicketHero = ({
       </div>
 
       <div className="flex items-center gap-2">
-        {canUpdateStatus && (
+        {permissions.canAccessActionsMenu && (
           <TicketActions
             ticketId={ticketId}
-            ticket={{ ...ticketDetails, visibleAssignButton }}
+            ticket={{
+              ...ticketDetails,
+              visibleAssignButton: permissions.visibleAssignButton,
+              canUpdateStatus: permissions.canUpdateStatus,
+            }}
             currentStatus={status}
             onActionComplete={() => {}}
           />
         )}
-        {Boolean(visibleCommentButton ?? ticketDetails?.visibleCommentButton) && (
+        {permissions.visibleCommentButton && (
           <TicketCommentsDrawer ticketId={ticketId} ticketNo={ticketNo} ticketSubject={subject} vendorEmail={vendorEmail} />
         )}
         <TicketHistoryDrawer ticketId={ticketId} stages={ticketHistoryStages} />

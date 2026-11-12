@@ -89,6 +89,7 @@ export const TicketReportTable = ({
       key: 'subject',
       header: 'Subject',
       flex: 1,
+      minWidth: '220px',
       truncate: true,
       render: (row) => (
         <span className="text-primary font-medium block truncate max-w-xs" title={row.subject}>

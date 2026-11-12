@@ -24,11 +24,15 @@ export const TicketFooter = ({
   backPath,
   ticketId,
   ticketDetails,
+  permissions = {},
 }) => {
   const navigate = useNavigate();
   const role = useSelector(selectUserRole);
-  const canForward = FORWARD_ALLOWED_ROLES.includes(role);
   const [isForwardOpen, setIsForwardOpen] = useState(false);
+
+  // Backend flag is authoritative; the role allowlist remains only as a fallback
+  // for responses that do not include `canForward`.
+  const canForward = permissions.canForward ?? FORWARD_ALLOWED_ROLES.includes(role);
 
   const isBaseDisabled = isUpdatingStatus || isLoadingStatuses;
   const isOnHoldDisabled = isBaseDisabled || ticketDetails?.isOnHold === true;

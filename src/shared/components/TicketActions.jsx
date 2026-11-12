@@ -120,21 +120,26 @@ export const TicketActions = ({
     }
   };
 
+  // Each action follows its own backend permission flag. An explicit `false` hides it;
+  // a missing property is treated as "not permitted" here (the caller resolves fallbacks).
   const actions = [
-    // Conditionally include assign action based on API visibility flag
-    ...(Boolean(ticket?.visibleAssignButton) ? [{
+    ...(ticket?.visibleAssignButton === true ? [{
       key: 'assign',
       label: 'Assign Ticket',
       icon: UserPlus,
       onClick: () => handleActionSelect('assign'),
     }] : []),
-    {
+    ...(ticket?.canUpdateStatus === true ? [{
       key: 'status',
       label: 'Change Status',
       icon: RefreshCw,
       onClick: () => handleActionSelect('status'),
-    },
+    }] : []),
   ];
+
+  // Nothing permitted → render no trigger at all (never an empty dropdown).
+  // Declared after every hook, so the early return is hook-safe.
+  if (actions.length === 0) return null;
 
   return (
     <>

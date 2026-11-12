@@ -19,6 +19,31 @@
  */
 
 /**
+ * Coerce a permission/visibility flag while preserving "not provided".
+ *
+ * Returns the boolean value when the API sends one (boolean or "true"/"false"),
+ * and `undefined` when the property is absent — so callers can distinguish
+ * "explicitly disabled" from "backend did not send it" and apply their fallback.
+ * Never invents a `true`.
+ *
+ * @param {...*} values - Candidate values (camelCase first, PascalCase second)
+ * @returns {boolean|undefined} Resolved flag or undefined when absent
+ */
+const optionalBool = (...values) => {
+  for (const value of values) {
+    if (value === undefined || value === null || value === '') continue;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+    return Boolean(value);
+  }
+  return undefined;
+};
+
+/**
  * Adapt the raw ticket details API response into the frontend view model.
  *
  * Preserves the stage-based hierarchy:
@@ -38,6 +63,14 @@ export function adaptTicketDetails(raw) {
     isForwarded: Boolean(raw.isForwarded ?? raw.IsForwarded ?? false),
     isResolved: Boolean(raw.isResolved ?? raw.IsResolved ?? false),
     isOnHold: Boolean(raw.isOnHold ?? raw.IsOnHold ?? false),
+    // Backend action permissions — the source of truth for ticket action visibility.
+    // Kept as undefined when absent so UI fallbacks stay in control.
+    canUpdateStatus: optionalBool(raw.canUpdateStatus, raw.CanUpdateStatus),
+    canForward: optionalBool(raw.canForward, raw.CanForward),
+    canCancel: optionalBool(raw.canCancel, raw.CanCancel),
+    visibleAssignButton: optionalBool(raw.visibleAssignButton, raw.VisibleAssignButton),
+    visibleCommentButton: optionalBool(raw.visibleCommentButton, raw.VisibleCommentButton),
+    visibleFeedbackButton: optionalBool(raw.visibleFeedbackButton, raw.VisibleFeedbackButton),
     ticketHistoryStages: adaptTicketHistoryStages(raw.ticketHistoryStages),
   };
 }
