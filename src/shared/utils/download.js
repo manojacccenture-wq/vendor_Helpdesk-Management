@@ -127,8 +127,8 @@ export const downloadTicketAttachment = async (attachmentUuid, filename, options
  * Download tickets report as an Excel file based on date range and optional filters.
  *
  * @param {Object} params
- * @param {string} params.fromDate - Starting date (DD/MM/YYYY)
- * @param {string} params.toDate - Ending date (DD/MM/YYYY)
+ * @param {string} params.fromDate - Starting date (YYYY-MM-DD)
+ * @param {string} params.toDate - Ending date (YYYY-MM-DD)
  * @param {string} [params.status] - Optional ticket status filter
  * @param {string} [params.vendorCode] - Optional vendor code
  * @param {Object} [options]

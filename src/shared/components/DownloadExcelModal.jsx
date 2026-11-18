@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from './Button.jsx';
 import { Input } from './Input.jsx';
 import { downloadTicketsExcel } from '../utils/download.js';
-import { formatDateToDDMMYYYY } from '../utils/date.js';
+import { formatDateForApi } from '../utils/date.js';
 
 /**
  * DownloadExcelModal — Modal dialog for exporting ticket records to Excel with date range selection.
@@ -10,7 +10,7 @@ import { formatDateToDDMMYYYY } from '../utils/date.js';
  * Requirements:
  * - Allows user to pick From Date and To Date
  * - Validates date range (From <= To, required, not in future)
- * - Sends dates in DD/MM/YYYY format to GET /api/Tickets/download-excel
+ * - Sends dates in YYYY-MM-DD format to GET /api/Tickets/download-excel
  * - Triggers Excel file download and preserves server filename
  * - Prevents duplicate requests while download is in progress
  * - Closes on success, stays open on error for retry
@@ -95,8 +95,8 @@ export const DownloadExcelModal = ({
     setIsDownloading(true);
 
     try {
-      const formattedFromDate = formatDateToDDMMYYYY(fromDate);
-      const formattedToDate = formatDateToDDMMYYYY(toDate);
+      const formattedFromDate = formatDateForApi(fromDate);
+      const formattedToDate = formatDateForApi(toDate);
 
       await downloadTicketsExcel({
         fromDate: formattedFromDate,

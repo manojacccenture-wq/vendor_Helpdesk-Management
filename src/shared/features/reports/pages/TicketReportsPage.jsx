@@ -8,7 +8,7 @@ import { BackButton } from '../../../components/BackButton.jsx';
 import { Button } from '../../../components/Button.jsx';
 import { ReportDateFilter } from '../components/ReportDateFilter.jsx';
 import { TicketReportTable } from '../components/TicketReportTable.jsx';
-import { formatDateToDDMMYYYY } from '../../../utils/date.js';
+import { formatDateForApi, formatDateToDDMMYYYY } from '../../../utils/date.js';
 import { downloadTicketsExcel } from '../../../utils/download.js';
 
 /**
@@ -50,8 +50,10 @@ export const TicketReportsPage = ({ backPath }) => {
 
   // ─── Search Trigger ───
   const handleSearch = async ({ fromDate, toDate }) => {
-    const apiFromDate = formatDateToDDMMYYYY(fromDate);
-    const apiToDate = formatDateToDDMMYYYY(toDate);
+    const apiFromDate = formatDateForApi(fromDate);
+    const apiToDate = formatDateForApi(toDate);
+    const displayFromDate = formatDateToDDMMYYYY(fromDate);
+    const displayToDate = formatDateToDDMMYYYY(toDate);
 
     const reportParams = {
       fromDate: apiFromDate,
@@ -66,6 +68,8 @@ export const TicketReportsPage = ({ backPath }) => {
       toDate,
       apiFromDate,
       apiToDate,
+      displayFromDate,
+      displayToDate,
       // vendorCode: userCode || undefined,
     });
 
@@ -205,7 +209,7 @@ export const TicketReportsPage = ({ backPath }) => {
                 ticket {reportData.length === 1 ? 'record' : 'records'} found for range
               </span>
               <span className="font-medium text-primary ml-1.5">
-                {activeDateRange.apiFromDate} — {activeDateRange.apiToDate}
+                {activeDateRange.displayFromDate} — {activeDateRange.displayToDate}
               </span>
             </div>
 
@@ -225,7 +229,7 @@ export const TicketReportsPage = ({ backPath }) => {
           <TicketReportTable
             data={reportData}
             isLoading={isFetching}
-            emptyMessage={`No ticket records found between ${activeDateRange.apiFromDate} and ${activeDateRange.apiToDate}.`}
+            emptyMessage={`No ticket records found between ${activeDateRange.displayFromDate} and ${activeDateRange.displayToDate}.`}
           />
         </div>
       )}

@@ -1,5 +1,5 @@
 /**
- * Format an ISO date string (YYYY-MM-DD) to DD/MM/YYYY for backend API queries
+ * Format an ISO date string (YYYY-MM-DD) to DD/MM/YYYY for display
  * @param {string} isoDate - Date string in YYYY-MM-DD format
  * @returns {string} Date string in DD/MM/YYYY format or empty string
  */
@@ -10,6 +10,22 @@ export const formatDateToDDMMYYYY = (isoDate) => {
   const [year, month, day] = parts;
   if (!year || !month || !day) return '';
   return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+};
+
+/**
+ * Normalize an ISO date string (YYYY-MM-DD) for API query parameters.
+ * The backend binds DateTime query params from ISO 8601; day-first formats
+ * are rejected or misread as month-first.
+ * @param {string} isoDate - Date string in YYYY-MM-DD format
+ * @returns {string} Date string in YYYY-MM-DD format or empty string
+ */
+export const formatDateForApi = (isoDate) => {
+  if (!isoDate || typeof isoDate !== 'string') return '';
+  const parts = isoDate.split('-');
+  if (parts.length !== 3) return '';
+  const [year, month, day] = parts;
+  if (!year || !month || !day) return '';
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
 
 /**
